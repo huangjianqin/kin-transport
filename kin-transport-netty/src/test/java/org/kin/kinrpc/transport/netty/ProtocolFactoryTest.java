@@ -1,7 +1,5 @@
 package org.kin.kinrpc.transport.netty;
 
-import org.kin.kinrpc.transport.netty.ProtocolFactory;
-
 /**
  * @author huangjianqin
  * @date 2019/7/4
