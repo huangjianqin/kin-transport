@@ -26,8 +26,7 @@ public class InOutBoundStatisicService implements Closeable{
     private InOutBoundStatisticHolder reqHolder = new InOutBoundStatisticHolder();
     private InOutBoundStatisticHolder respHolder = new InOutBoundStatisticHolder();
     private ThreadManager threadManager = new ThreadManager(null,
-            new ScheduledThreadPoolExecutor(3,
-                    new SimpleThreadFactory("inoutbound-statisic")));
+            1, new SimpleThreadFactory("inoutbound-statisic"));
 
     private InOutBoundStatisicService() {
         //一分钟打印一次
