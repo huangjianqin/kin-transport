@@ -7,7 +7,8 @@ import org.kin.framework.concurrent.ThreadManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,12 +26,14 @@ public class InOutBoundStatisicService implements Closeable{
 
     private InOutBoundStatisticHolder reqHolder = new InOutBoundStatisticHolder();
     private InOutBoundStatisticHolder respHolder = new InOutBoundStatisticHolder();
-    private ThreadManager threadManager = new ThreadManager(null,
-            1, new SimpleThreadFactory("inoutbound-statisic"));
+    private ThreadManager threads = new ThreadManager(
+            new ThreadPoolExecutor(0, 2, 60L, TimeUnit.SECONDS,
+                    new LinkedBlockingQueue<>(), new SimpleThreadFactory("inoutbound-statisic")),
+            1, new SimpleThreadFactory("inoutbound-statisic-schedule"));
 
     private InOutBoundStatisicService() {
         //一分钟打印一次
-        threadManager.scheduleAtFixedRate(() -> {
+        threads.scheduleAtFixedRate(() -> {
             logReqStatistic();
             logRespStatistic();
         }, 1, 1, TimeUnit.MINUTES);
@@ -42,7 +45,7 @@ public class InOutBoundStatisicService implements Closeable{
 
     @Override
     public void close() {
-        threadManager.shutdown();
+        threads.shutdown();
     }
     //-------------------------------------------------------------------------------------------------------
     private void logReqStatistic() {
@@ -54,7 +57,7 @@ public class InOutBoundStatisicService implements Closeable{
     private void logReqStatistic0(InOutBoundStatisticHolder origin) {
         if (origin != null) {
             if (origin.getRef() > 0) {
-                threadManager.schedule(() -> logReqStatistic0(origin), 50, TimeUnit.MILLISECONDS);
+                threads.schedule(() -> logReqStatistic0(origin), 50, TimeUnit.MILLISECONDS);
                 return;
             }
             logReqStatistic1(origin);
@@ -76,7 +79,7 @@ public class InOutBoundStatisicService implements Closeable{
     private void logRespStatistic0(InOutBoundStatisticHolder origin) {
         if (origin != null) {
             if (origin.getRef() > 0) {
-                threadManager.schedule(() -> logRespStatistic0(origin), 50, TimeUnit.MILLISECONDS);
+                threads.schedule(() -> logRespStatistic0(origin), 50, TimeUnit.MILLISECONDS);
                 return;
             }
             logRespStatistic1(origin);
