@@ -8,6 +8,7 @@ import io.netty.handler.codec.CorruptedFrameException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -67,40 +68,46 @@ public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        if (serverElseClient) {
-            if (in.readableBytes() >= FRAME_BASE_LENGTH) {
-                byte[] magic = new byte[FRAME_MAGIC.length];
-                in.readBytes(magic);
+        List<ByteBuf> byteBufs = new ArrayList<>();
+        while(in.readableBytes() > 0){
+            /** 合并解包 */
+            if (serverElseClient) {
+                if (in.readableBytes() >= FRAME_BASE_LENGTH) {
+                    byte[] magic = new byte[FRAME_MAGIC.length];
+                    in.readBytes(magic);
 
-                //校验魔数
-                if (!isMagicRight(magic)) {
-                    String hexDump = ByteBufUtil.hexDump(in);
-                    in.skipBytes(in.readableBytes());
-                    throw new CorruptedFrameException(String.format("FrameHeaderError: magic=%s, HexDump=%s", Arrays.toString(magic), hexDump));
+                    //校验魔数
+                    if (!isMagicRight(magic)) {
+                        String hexDump = ByteBufUtil.hexDump(in);
+                        in.skipBytes(in.readableBytes());
+                        throw new CorruptedFrameException(String.format("FrameHeaderError: magic=%s, HexDump=%s", Arrays.toString(magic), hexDump));
+                    }
+
+                    int sno = in.readInt();
+                    int bodySize = in.readInt();
+
+                    if (bodySize > MAX_BODY_SIZE) {
+                        throw new IllegalStateException(String.format("BodySize[%s] too large!", bodySize));
+                    }
+
+                    int bodyReadableSize = in.readableBytes();
+                    if (bodyReadableSize != bodySize) {
+                        throw new IllegalStateException(String.format("BodyReadableSize[%s] != BodySize[%s]!", bodyReadableSize, bodySize));
+                    }
+
+                    ByteBuf frameBuf = ctx.alloc().heapBuffer(bodySize);
+                    frameBuf.writeBytes(in, bodySize);
+                    byteBufs.add(frameBuf);
                 }
-
-                int sno = in.readInt();
+            }
+            else{
                 int bodySize = in.readInt();
-
-                if (bodySize > MAX_BODY_SIZE) {
-                    throw new IllegalStateException(String.format("BodySize[%s] too large!", bodySize));
-                }
-
-                int bodyReadableSize = in.readableBytes();
-                if (bodyReadableSize != bodySize) {
-                    throw new IllegalStateException(String.format("BodyReadableSize[%s] != BodySize[%s]!", bodyReadableSize, bodySize));
-                }
-
                 ByteBuf frameBuf = ctx.alloc().heapBuffer(bodySize);
                 frameBuf.writeBytes(in, bodySize);
-                out.add(frameBuf);
+                byteBufs.add(frameBuf);
             }
         }
-        else{
-            int bodySize = in.readInt();
-            ByteBuf frameBuf = ctx.alloc().heapBuffer(bodySize);
-            frameBuf.writeBytes(in, bodySize);
-            out.add(frameBuf);
-        }
+
+        out.add(byteBufs);
     }
 }

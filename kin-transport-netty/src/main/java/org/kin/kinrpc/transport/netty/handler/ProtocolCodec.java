@@ -9,16 +9,18 @@ import org.kin.kinrpc.transport.netty.Bytes2ProtocolTransfer;
 import org.kin.kinrpc.transport.netty.common.ProtocolConstants;
 import org.kin.kinrpc.transport.netty.domain.ProtocolByteBuf;
 import org.kin.kinrpc.transport.netty.domain.Request;
+import org.kin.kinrpc.transport.netty.protocol.AbstractProtocol;
 import org.kin.kinrpc.transport.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by huangjianqin on 2019/5/29.
  */
-public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBuf> {
+public class ProtocolCodec extends MessageToMessageCodec<List<ByteBuf>, ProtocolByteBuf> {
     private static final Logger log = LoggerFactory.getLogger(ProtocolCodec.class);
     private final Bytes2ProtocolTransfer transfer;
     //true = server, false = client
@@ -52,23 +54,28 @@ public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBu
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        if (serverElseClient) {
-            Request byteBufRequest = new ProtocolByteBuf(in);
-            out.add(transfer.transfer(byteBufRequest));
+    protected void decode(ChannelHandlerContext ctx, List<ByteBuf> in, List<Object> out) throws Exception {
+        /** 合并解包 */
+        List<AbstractProtocol> protocols = new ArrayList<>();
+        for(ByteBuf inByteBuf: in){
+            if (serverElseClient) {
+                Request byteBufRequest = new ProtocolByteBuf(inByteBuf);
+                protocols.add(transfer.transfer(byteBufRequest));
 
-            //server receive request
-            InOutBoundStatisicService.instance()
-                    .statisticReq(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
-        } else {
-            //client 需要解析respSN
-            Request byteBufRequest = new ProtocolByteBuf(in, true);
-            out.add(transfer.transfer(byteBufRequest));
+                //server receive request
+                InOutBoundStatisicService.instance()
+                        .statisticReq(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
+            } else {
+                //client 需要解析respSN
+                Request byteBufRequest = new ProtocolByteBuf(inByteBuf, true);
+                protocols.add(transfer.transfer(byteBufRequest));
 
-            //client receive response
-            InOutBoundStatisicService.instance()
-                    .statisticResp(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
+                //client receive response
+                InOutBoundStatisicService.instance()
+                        .statisticResp(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
+            }
         }
+        out.add(protocols);
     }
 
     private int getRespSN(Channel channel) {

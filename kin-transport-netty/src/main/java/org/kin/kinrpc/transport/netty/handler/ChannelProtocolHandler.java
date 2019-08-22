@@ -16,7 +16,10 @@ import org.kin.kinrpc.transport.netty.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by huangjianqin on 2019/6/3.
@@ -65,13 +68,22 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        AbstractProtocol protocol = (AbstractProtocol) msg;
+        /** 合并解包 */
+        List<AbstractProtocol> protocols = new ArrayList<>();
+        if(msg instanceof List){
+            protocols.addAll((Collection<? extends AbstractProtocol>) msg);
+        }
+        if(msg instanceof AbstractProtocol){
+            protocols.add((AbstractProtocol) msg);
+        }
 
-        log.debug("Recv {} {} {}", Arrays.asList(protocol.getProtocolId(), protocol.getClass().getSimpleName(), ctx.channel()));
+        for(AbstractProtocol protocol: protocols){
+            log.debug("Recv {} {} {}", Arrays.asList(protocol.getProtocolId(), protocol.getClass().getSimpleName(), ctx.channel()));
 
-        AbstractSession session = ProtocolConstants.session(ctx.channel());
-        if (session != null) {
-            protocolHandler.handleProtocol(session, protocol);
+            AbstractSession session = ProtocolConstants.session(ctx.channel());
+            if (session != null) {
+                protocolHandler.handleProtocol(session, protocol);
+            }
         }
     }
 
