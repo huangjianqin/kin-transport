@@ -8,7 +8,7 @@ import org.kin.transport.netty.core.ProtocolFactory;
  */
 public class ProtocolFactoryTest {
     public static void main(String[] args) {
-        ProtocolFactory.init("org.kin.kinrpc");
+        ProtocolFactory.init("org.kin.transport");
         System.out.println(ProtocolFactory.createProtocol(1));
         System.out.println(ProtocolFactory.createProtocol(1, 1));
         System.out.println(ProtocolFactory.createProtocol(1, ""));

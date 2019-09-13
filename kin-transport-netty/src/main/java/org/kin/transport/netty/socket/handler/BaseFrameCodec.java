@@ -34,14 +34,6 @@ public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
         this.FRAME_BASE_LENGTH = FRAME_SNO_SIZE + FRAME_MAGIC.length + FRAME_BODY_SIZE;
     }
 
-    public static BaseFrameCodec clientRPCFrameCodec() {
-        return new BaseFrameCodec(1024000, false);
-    }
-
-    public static BaseFrameCodec serverRPCFrameCodec() {
-        return new BaseFrameCodec(1024000, true);
-    }
-
     public static BaseFrameCodec clientFrameCodec() {
         return new BaseFrameCodec(1024000, false);
     }
