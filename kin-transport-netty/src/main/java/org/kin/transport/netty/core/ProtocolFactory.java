@@ -26,12 +26,12 @@ public class ProtocolFactory {
     /**
      * 仅仅append
      */
-    public static void init(String scanPath){
-        synchronized (ProtocolFactory.class){
+    public static void init(String scanPath) {
+        synchronized (ProtocolFactory.class) {
             Set<Class<AbstractProtocol>> protocolClasses = ClassUtils.getSubClass(scanPath, AbstractProtocol.class, false);
-            for(Class<AbstractProtocol> protocolClass: protocolClasses){
+            for (Class<AbstractProtocol> protocolClass : protocolClasses) {
                 Protocol protocol = protocolClass.getAnnotation(Protocol.class);
-                if(protocol != null){
+                if (protocol != null) {
                     PROTOCOL_CACHE.put(protocol.id(), protocolClass);
                     log.info("find protocol(id={}) >>> {}", protocol.id(), protocolClass);
                 }
@@ -42,21 +42,21 @@ public class ProtocolFactory {
     /**
      * 根据id创建protocol, 并依照field定义顺序设置field value, 从子类开始算
      */
-    public static <T extends AbstractProtocol> T createProtocol(int id, Object... fieldValues){
+    public static <T extends AbstractProtocol> T createProtocol(int id, Object... fieldValues) {
         Class<AbstractProtocol> claxx = PROTOCOL_CACHE.getIfPresent(id);
-        if(claxx != null){
+        if (claxx != null) {
             AbstractProtocol protocol = ClassUtils.instance(claxx);
-            if(protocol != null){
+            if (protocol != null) {
                 //设置协议id
                 Field[] fields = ClassUtils.getAllFields(claxx).toArray(new Field[0]);
-                for(Field field: fields){
-                    if("protocolId".equals(field.getName())){
+                for (Field field : fields) {
+                    if ("protocolId".equals(field.getName())) {
                         ClassUtils.setFieldValue(protocol, field, id);
                         break;
                     }
                 }
                 if (fieldValues.length > 0) {
-                    for(int i = 0; i < fieldValues.length; i++){
+                    for (int i = 0; i < fieldValues.length; i++) {
                         Field field = fields[i];
                         ClassUtils.setFieldValue(protocol, field, fieldValues[i]);
                     }

@@ -6,13 +6,6 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
-import org.kin.transport.netty.socket.handler.BaseFrameCodec;
-import org.kin.transport.netty.core.handler.ChannelIdleHandler;
-import org.kin.transport.netty.core.handler.ChannelProtocolHandler;
-import org.kin.transport.netty.core.handler.ProtocolCodec;
-import org.kin.transport.netty.core.listener.ChannelIdleListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +23,7 @@ public class Server extends AbstractConnection {
     private NioEventLoopGroup bossGroup;
     private NioEventLoopGroup workerGroup;
     private Channel selector;
+
     public Server(InetSocketAddress address) {
         super(address);
     }
@@ -56,7 +50,7 @@ public class Server extends AbstractConnection {
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(this.bossGroup, this.workerGroup).channel(NioServerSocketChannel.class);
 
-        for(Map.Entry<ChannelOption, Object> entry: channelOptions.entrySet()){
+        for (Map.Entry<ChannelOption, Object> entry : channelOptions.entrySet()) {
             bootstrap.option(entry.getKey(), entry.getValue());
         }
 

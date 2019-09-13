@@ -8,7 +8,7 @@ import java.net.InetSocketAddress;
  * Created by huangjianqin on 2019/6/3.
  */
 public class ChannelUtils {
-    private ChannelUtils(){
+    private ChannelUtils() {
 
     }
 
@@ -18,7 +18,7 @@ public class ChannelUtils {
 
     public static long ipHashCode(String ip) {
         String[] splits = ip.split("/");
-        if(splits.length > 1){
+        if (splits.length > 1) {
             ip = splits[1];
         }
         splits = ip.split("\\.");

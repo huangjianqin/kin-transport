@@ -70,14 +70,14 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         /** 合并解包 */
         List<AbstractProtocol> protocols = new ArrayList<>();
-        if(msg instanceof List){
+        if (msg instanceof List) {
             protocols.addAll((Collection<? extends AbstractProtocol>) msg);
         }
-        if(msg instanceof AbstractProtocol){
+        if (msg instanceof AbstractProtocol) {
             protocols.add((AbstractProtocol) msg);
         }
 
-        for(AbstractProtocol protocol: protocols){
+        for (AbstractProtocol protocol : protocols) {
             log.debug("Recv {} {} {}", Arrays.asList(protocol.getProtocolId(), protocol.getClass().getSimpleName(), ctx.channel()));
 
             AbstractSession session = ProtocolConstants.session(ctx.channel());

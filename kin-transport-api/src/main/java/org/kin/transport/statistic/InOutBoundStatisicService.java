@@ -13,13 +13,14 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by huangjianqin on 2019/6/3.
- *
+ * <p>
  * important 要手动close
  */
-public class InOutBoundStatisicService implements Closeable{
+public class InOutBoundStatisicService implements Closeable {
     private static final Logger reqStatisticLog = LoggerFactory.getLogger("org.kin.kinrpc.transport.reqStatistic");
     private static final Logger respStatisticLog = LoggerFactory.getLogger("org.kin.kinrpc.transport.respStatistic");
     private static final InOutBoundStatisicService INSTANCE = new InOutBoundStatisicService();
+
     static {
         JvmCloseCleaner.DEFAULT().add(INSTANCE);
     }
@@ -47,6 +48,7 @@ public class InOutBoundStatisicService implements Closeable{
     public void close() {
         threads.shutdown();
     }
+
     //-------------------------------------------------------------------------------------------------------
     private void logReqStatistic() {
         InOutBoundStatisticHolder origin = reqHolder;

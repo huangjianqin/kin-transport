@@ -10,7 +10,7 @@ import org.kin.transport.netty.core.protocol.Protocol;
  * @date 2019/7/4
  */
 @Protocol(id = 1)
-public class Protocol1 extends AbstractProtocol{
+public class Protocol1 extends AbstractProtocol {
     private int f;
 
     @Override

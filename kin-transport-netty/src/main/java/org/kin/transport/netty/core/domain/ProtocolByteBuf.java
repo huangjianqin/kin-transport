@@ -30,7 +30,7 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
 
     public ProtocolByteBuf(ByteBuf byteBuf, boolean needReadRespSN) {
         this.byteBuf = byteBuf;
-        if(needReadRespSN){
+        if (needReadRespSN) {
             this.respSN = byteBuf.readInt();
         }
         this.protocolId = byteBuf.readUnsignedShort();

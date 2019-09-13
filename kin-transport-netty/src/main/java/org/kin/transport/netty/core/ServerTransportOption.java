@@ -10,7 +10,7 @@ import java.net.InetSocketAddress;
  * @date 2019-09-13
  */
 public class ServerTransportOption extends TransportOption {
-    public Server tcp(InetSocketAddress address){
+    public Server tcp(InetSocketAddress address) {
         ChannelHandlerInitializer channelHandlerInitializer = new SocketHandlerInitializer(this, true);
         Server server = new Server(address);
         try {

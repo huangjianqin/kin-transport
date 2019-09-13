@@ -17,7 +17,7 @@ import java.util.List;
  * @author huangjianqin
  * @date 2019-09-12
  */
-public abstract class AbstractChannelHandlerInitializer implements ChannelHandlerInitializer{
+public abstract class AbstractChannelHandlerInitializer implements ChannelHandlerInitializer {
     protected final TransportOption transportOption;
 
     public AbstractChannelHandlerInitializer(TransportOption transportOption) {
@@ -27,18 +27,20 @@ public abstract class AbstractChannelHandlerInitializer implements ChannelHandle
     /**
      * 返回解析协议需要的handlers
      */
-    protected Collection<ChannelHandler> beforeHandlers(){
+    protected Collection<ChannelHandler> beforeHandlers() {
         return Collections.emptyList();
     }
+
     /**
      * 返回处理完请求协议之后需要执行的handlers
      */
-    protected Collection<ChannelHandler> afterHandlers(){
+    protected Collection<ChannelHandler> afterHandlers() {
         return Collections.emptyList();
     }
 
     /**
      * 标识是用于server还是client
+     *
      * @return server -> true, client -> false
      */
     protected abstract boolean serverElseClient();
@@ -50,11 +52,11 @@ public abstract class AbstractChannelHandlerInitializer implements ChannelHandle
 
 
         ChannelIdleListener channelIdleListener = transportOption.getChannelIdleListener();
-        if(channelIdleListener != null){
+        if (channelIdleListener != null) {
             int readIdleTime = channelIdleListener.readIdleTime();
             int writeIdleTime = channelIdleListener.writeIdelTime();
             int allIdleTime = channelIdleListener.allIdleTime();
-            if(readIdleTime > 0 || writeIdleTime > 0 || allIdleTime > 0){
+            if (readIdleTime > 0 || writeIdleTime > 0 || allIdleTime > 0) {
                 //其中一个>0就设置Handler
                 channelHandlers.add(new IdleStateHandler(readIdleTime, writeIdleTime, allIdleTime));
                 channelHandlers.add(new ChannelIdleHandler(channelIdleListener));

@@ -69,7 +69,7 @@ public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         List<ByteBuf> byteBufs = new ArrayList<>();
-        while(in.readableBytes() > 0){
+        while (in.readableBytes() > 0) {
             /** 合并解包 */
             if (serverElseClient) {
                 if (in.readableBytes() >= FRAME_BASE_LENGTH) {
@@ -99,8 +99,7 @@ public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
                     frameBuf.writeBytes(in, bodySize);
                     byteBufs.add(frameBuf);
                 }
-            }
-            else{
+            } else {
                 int bodySize = in.readInt();
                 ByteBuf frameBuf = ctx.alloc().heapBuffer(bodySize);
                 frameBuf.writeBytes(in, bodySize);

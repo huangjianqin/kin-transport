@@ -4,9 +4,7 @@ import io.netty.channel.ChannelOption;
 import org.kin.transport.netty.core.listener.ChannelActiveListener;
 import org.kin.transport.netty.core.listener.ChannelIdleListener;
 import org.kin.transport.netty.core.listener.ChannelInactiveListener;
-import org.kin.transport.netty.socket.SocketHandlerInitializer;
 
-import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 

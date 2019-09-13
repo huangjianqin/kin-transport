@@ -57,7 +57,7 @@ public class ProtocolCodec extends MessageToMessageCodec<List<ByteBuf>, Protocol
     protected void decode(ChannelHandlerContext ctx, List<ByteBuf> in, List<Object> out) throws Exception {
         /** 合并解包 */
         List<AbstractProtocol> protocols = new ArrayList<>();
-        for(ByteBuf inByteBuf: in){
+        for (ByteBuf inByteBuf : in) {
             if (serverElseClient) {
                 Request byteBufRequest = new ProtocolByteBuf(inByteBuf);
                 protocols.add(transfer.transfer(byteBufRequest));

@@ -19,7 +19,7 @@ public class InOutBoundStatisticHolder {
     private final Partitioner<String> partitioner = new EfficientHashPartitioner<>();
 
     InOutBoundStatisticHolder() {
-        for(int i = 0; i < locks.length; i++){
+        for (int i = 0; i < locks.length; i++) {
             locks[i] = new Object();
         }
     }

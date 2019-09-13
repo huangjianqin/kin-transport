@@ -6,13 +6,6 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
-import org.kin.transport.netty.socket.handler.BaseFrameCodec;
-import org.kin.transport.netty.core.handler.ChannelIdleHandler;
-import org.kin.transport.netty.core.handler.ChannelProtocolHandler;
-import org.kin.transport.netty.core.handler.ProtocolCodec;
-import org.kin.transport.netty.core.listener.ChannelIdleListener;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +39,7 @@ public class Client extends AbstractConnection {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class);
 
-        for(Map.Entry<ChannelOption, Object> entry: channelOptions.entrySet()){
+        for (Map.Entry<ChannelOption, Object> entry : channelOptions.entrySet()) {
             bootstrap.option(entry.getKey(), entry.getValue());
         }
 
@@ -82,7 +75,7 @@ public class Client extends AbstractConnection {
     @Override
     public void close() {
         isStopped = true;
-        if(channel != null){
+        if (channel != null) {
             channel.close();
         }
         eventLoopGroup.shutdownGracefully();
@@ -95,13 +88,13 @@ public class Client extends AbstractConnection {
     }
 
     public void request(AbstractProtocol protocol) {
-        if(isActive()){
+        if (isActive()) {
             channel.writeAndFlush(protocol.write());
         }
     }
 
-    public String getLocalAddress(){
-        if(channel != null){
+    public String getLocalAddress() {
+        if (channel != null) {
             return channel.localAddress().toString();
         }
         return "";

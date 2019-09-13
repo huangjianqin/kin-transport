@@ -6,13 +6,13 @@ import io.netty.channel.Channel;
  * @author huangjianqin
  * @date 2019/7/29
  */
-public class DefaultSessionBuilder implements SessionBuilder{
+public class DefaultSessionBuilder implements SessionBuilder {
     private static final SessionBuilder INSTANCE = new DefaultSessionBuilder();
 
     private DefaultSessionBuilder() {
     }
 
-    public static SessionBuilder instance(){
+    public static SessionBuilder instance() {
         return INSTANCE;
     }
 
