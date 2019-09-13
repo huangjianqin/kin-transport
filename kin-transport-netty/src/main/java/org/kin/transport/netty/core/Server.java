@@ -29,18 +29,18 @@ public class Server extends AbstractConnection {
     }
 
     @Override
-    public void connect(Map<ChannelOption, Object> channelOptions, ChannelHandler[] channelHandlers) {
+    public void connect(Map<ChannelOption, Object> channelOptions, ChannelHandlerInitializer channelHandlerInitializer) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void bind(Map<ChannelOption, Object> channelOptions, ChannelHandler[] channelHandlers) throws Exception {
+    public void bind(Map<ChannelOption, Object> channelOptions, ChannelHandlerInitializer channelHandlerInitializer) throws Exception {
         log.info("server({}) connection binding...", address);
 
         Preconditions.checkArgument(bossGroup == null);
         Preconditions.checkArgument(workerGroup == null);
         Preconditions.checkArgument(channelOptions != null);
-        Preconditions.checkArgument(channelHandlers != null);
+        Preconditions.checkArgument(channelHandlerInitializer != null);
 
         this.bossGroup = new NioEventLoopGroup(1);
         this.workerGroup = new NioEventLoopGroup();
@@ -57,7 +57,7 @@ public class Server extends AbstractConnection {
         bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) throws Exception {
-                socketChannel.pipeline().addLast(channelHandlers);
+                socketChannel.pipeline().addLast(channelHandlerInitializer.getChannelHandlers());
             }
         });
         ChannelFuture cf = bootstrap.bind(super.address);

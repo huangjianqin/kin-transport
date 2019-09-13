@@ -29,11 +29,11 @@ public class Client extends AbstractConnection {
     }
 
     @Override
-    public void connect(Map<ChannelOption, Object> channelOptions, ChannelHandler[] channelHandlers) {
+    public void connect(Map<ChannelOption, Object> channelOptions, ChannelHandlerInitializer channelHandlerInitializer) {
         log.info("client connecting...");
 
         Preconditions.checkArgument(channelOptions != null);
-        Preconditions.checkArgument(channelHandlers != null);
+        Preconditions.checkArgument(channelHandlerInitializer != null);
 
         CountDownLatch latch = new CountDownLatch(1);
         Bootstrap bootstrap = new Bootstrap();
@@ -46,7 +46,7 @@ public class Client extends AbstractConnection {
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) throws Exception {
-                socketChannel.pipeline().addLast(channelHandlers);
+                socketChannel.pipeline().addLast(channelHandlerInitializer.getChannelHandlers());
             }
         });
         ChannelFuture cf = bootstrap.connect(address);
@@ -68,7 +68,7 @@ public class Client extends AbstractConnection {
     }
 
     @Override
-    public void bind(Map<ChannelOption, Object> channelOptions, ChannelHandler[] channelHandlers) throws Exception {
+    public void bind(Map<ChannelOption, Object> channelOptions, ChannelHandlerInitializer channelHandlerInitializer) throws Exception {
         throw new UnsupportedOperationException();
     }
 

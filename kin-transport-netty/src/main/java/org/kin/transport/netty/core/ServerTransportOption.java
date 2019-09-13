@@ -14,7 +14,7 @@ public class ServerTransportOption extends TransportOption {
         ChannelHandlerInitializer channelHandlerInitializer = new SocketHandlerInitializer(this, true);
         Server server = new Server(address);
         try {
-            server.bind(getChannelOptions(), channelHandlerInitializer.getChannelHandlers());
+            server.bind(getChannelOptions(), channelHandlerInitializer);
         } catch (Exception e) {
             ExceptionUtils.log(e);
         }

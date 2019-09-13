@@ -10,9 +10,9 @@ import java.net.InetSocketAddress;
  */
 public class ClientTransportOption extends TransportOption {
     public Client tcp(InetSocketAddress address) {
-        ChannelHandlerInitializer channelHandlerInitializer = new SocketHandlerInitializer(this, true);
+        ChannelHandlerInitializer channelHandlerInitializer = new SocketHandlerInitializer(this, false);
         Client client = new Client(address);
-        client.connect(getChannelOptions(), channelHandlerInitializer.getChannelHandlers());
+        client.connect(getChannelOptions(), channelHandlerInitializer);
         return client;
     }
 }

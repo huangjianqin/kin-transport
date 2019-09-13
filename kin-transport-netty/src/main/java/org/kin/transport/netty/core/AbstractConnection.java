@@ -16,9 +16,9 @@ public abstract class AbstractConnection {
         this.address = address;
     }
 
-    public abstract void connect(Map<ChannelOption, Object> channelOptions, ChannelHandler[] channelHandlers);
+    public abstract void connect(Map<ChannelOption, Object> channelOptions, ChannelHandlerInitializer channelHandlerInitializer);
 
-    public abstract void bind(Map<ChannelOption, Object> channelOptions, ChannelHandler[] channelHandlers) throws Exception;
+    public abstract void bind(Map<ChannelOption, Object> channelOptions, ChannelHandlerInitializer channelHandlerInitializer) throws Exception;
 
     public abstract void close();
 

@@ -37,49 +37,49 @@ public class TransportOption {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    public TransportOption protocolHandler(ProtocolHandler protocolHandler) {
+    public <T extends TransportOption> T protocolHandler(ProtocolHandler protocolHandler) {
         this.protocolHandler = protocolHandler;
-        return this;
+        return (T) this;
     }
 
-    public TransportOption sessionBuilder(SessionBuilder sessionBuilder) {
+    public <T extends TransportOption> T sessionBuilder(SessionBuilder sessionBuilder) {
         this.sessionBuilder = sessionBuilder;
-        return this;
+        return (T) this;
     }
 
-    public TransportOption channelOptions(Map<ChannelOption, Object> channelOptions) {
+    public <T extends TransportOption> T channelOptions(Map<ChannelOption, Object> channelOptions) {
         this.channelOptions.putAll(channelOptions);
-        return this;
+        return (T) this;
     }
 
-    public <E> TransportOption channelOption(ChannelOption<E> channelOption, E value) {
+    public <T extends TransportOption, E> T channelOption(ChannelOption<E> channelOption, E value) {
         this.channelOptions.put(channelOption, value);
-        return this;
+        return (T) this;
     }
 
-    public TransportOption protocolTransfer(Bytes2ProtocolTransfer transfer) {
+    public <T extends TransportOption> T protocolTransfer(Bytes2ProtocolTransfer transfer) {
         this.protocolTransfer = transfer;
-        return this;
+        return (T) this;
     }
 
-    public TransportOption channelActiveListener(ChannelActiveListener channelActiveListener) {
+    public <T extends TransportOption> T channelActiveListener(ChannelActiveListener channelActiveListener) {
         this.channelActiveListener = channelActiveListener;
-        return this;
+        return (T) this;
     }
 
-    public TransportOption channelInactiveListener(ChannelInactiveListener channelInactiveListener) {
+    public <T extends TransportOption> T channelInactiveListener(ChannelInactiveListener channelInactiveListener) {
         this.channelInactiveListener = channelInactiveListener;
-        return this;
+        return (T) this;
     }
 
-    public TransportOption channelExceptionHandler(ChannelExceptionHandler channelExceptionHandler) {
+    public <T extends TransportOption> T channelExceptionHandler(ChannelExceptionHandler channelExceptionHandler) {
         this.channelExceptionHandler = channelExceptionHandler;
-        return this;
+        return (T) this;
     }
 
-    public TransportOption channelIdleListener(ChannelIdleListener channelIdleListener) {
+    public <T extends TransportOption> T channelIdleListener(ChannelIdleListener channelIdleListener) {
         this.channelIdleListener = channelIdleListener;
-        return this;
+        return (T) this;
     }
 
     //getter
