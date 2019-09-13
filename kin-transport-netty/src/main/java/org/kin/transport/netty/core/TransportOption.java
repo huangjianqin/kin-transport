@@ -4,7 +4,9 @@ import io.netty.channel.ChannelOption;
 import org.kin.transport.netty.core.listener.ChannelActiveListener;
 import org.kin.transport.netty.core.listener.ChannelIdleListener;
 import org.kin.transport.netty.core.listener.ChannelInactiveListener;
+import org.kin.transport.netty.socket.SocketHandlerInitializer;
 
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,25 +15,30 @@ import java.util.Map;
  * @date 2019/7/29
  */
 public class TransportOption {
-    protected ProtocolHandler protocolHandler;
-    protected SessionBuilder sessionBuilder;
+    private ProtocolHandler protocolHandler;
+    private SessionBuilder sessionBuilder;
 
-    protected Map<ChannelOption, Object> channelOptions = new HashMap<>();
-    protected Bytes2ProtocolTransfer protocolTransfer;
-    protected ChannelActiveListener channelActiveListener;
-    protected ChannelInactiveListener channelInactiveListener;
-    protected ChannelExceptionHandler channelExceptionHandler;
-    protected ChannelIdleListener channelIdleListener;
-
-    public static TransportOption create() {
-        return new TransportOption();
-    }
+    private Map<ChannelOption, Object> channelOptions = new HashMap<>();
+    private Bytes2ProtocolTransfer protocolTransfer;
+    private ChannelActiveListener channelActiveListener;
+    private ChannelInactiveListener channelInactiveListener;
+    private ChannelExceptionHandler channelExceptionHandler;
+    private ChannelIdleListener channelIdleListener;
 
     public TransportOption() {
         sessionBuilder = DefaultSessionBuilder.instance();
         protocolTransfer = DefaultProtocolTransfer.instance();
     }
 
+    public static ServerTransportOption server() {
+        return new ServerTransportOption();
+    }
+
+    public static ClientTransportOption client() {
+        return new ClientTransportOption();
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
     public TransportOption protocolHandler(ProtocolHandler protocolHandler) {
         this.protocolHandler = protocolHandler;
         return this;

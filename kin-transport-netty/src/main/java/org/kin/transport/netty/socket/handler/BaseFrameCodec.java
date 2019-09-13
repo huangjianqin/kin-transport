@@ -1,4 +1,4 @@
-package org.kin.transport.netty.core.handler;
+package org.kin.transport.netty.socket.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
     private static final Logger log = LoggerFactory.getLogger(BaseFrameCodec.class);
-    private static final byte[] FRAME_MAGIC = "kin-rpc".getBytes();
+    private static final byte[] FRAME_MAGIC = "kin-transport".getBytes();
     private final int FRAME_SNO_SIZE = 4;
     private final int FRAME_BODY_SIZE = 4;
     private final int MAX_BODY_SIZE;
