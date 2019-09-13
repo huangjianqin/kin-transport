@@ -77,7 +77,7 @@ public class Server extends AbstractConnection {
     @Override
     public void close() {
         if (this.selector == null || this.workerGroup == null || this.bossGroup == null) {
-            throw new IllegalStateException("server connection has not started");
+            return;
         }
 
         this.selector.close();

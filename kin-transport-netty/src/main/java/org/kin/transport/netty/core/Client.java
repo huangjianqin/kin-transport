@@ -74,6 +74,9 @@ public class Client extends AbstractConnection {
 
     @Override
     public void close() {
+        if(isStopped){
+            return;
+        }
         isStopped = true;
         if (channel != null) {
             channel.close();
