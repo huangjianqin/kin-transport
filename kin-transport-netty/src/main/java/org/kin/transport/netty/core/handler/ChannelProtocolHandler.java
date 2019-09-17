@@ -4,10 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.Attribute;
-import org.kin.transport.netty.core.AbstractSession;
-import org.kin.transport.netty.core.ChannelExceptionHandler;
-import org.kin.transport.netty.core.ProtocolHandler;
-import org.kin.transport.netty.core.SessionBuilder;
+import org.kin.transport.netty.core.*;
 import org.kin.transport.netty.core.common.ProtocolConstants;
 import org.kin.transport.netty.core.listener.ChannelActiveListener;
 import org.kin.transport.netty.core.listener.ChannelInactiveListener;
@@ -80,9 +77,11 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
         for (AbstractProtocol protocol : protocols) {
             log.debug("Recv {} {} {}", Arrays.asList(protocol.getProtocolId(), protocol.getClass().getSimpleName(), ctx.channel()));
 
-            AbstractSession session = ProtocolConstants.session(ctx.channel());
-            if (session != null) {
-                protocolHandler.handleProtocol(session, protocol);
+            if(ProtocolRateLimiter.valid(protocol, protocolHandler)){
+                AbstractSession session = ProtocolConstants.session(ctx.channel());
+                if (session != null) {
+                    protocolHandler.handleProtocol(session, protocol);
+                }
             }
         }
     }

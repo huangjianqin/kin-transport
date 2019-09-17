@@ -21,13 +21,6 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     private int contentSize;
     private final int mode;
 
-    public ProtocolByteBuf(ByteBuf byteBuf) {
-        this.byteBuf = byteBuf;
-        this.protocolId = byteBuf.readUnsignedShort();
-        this.contentSize = byteBuf.readableBytes();
-        this.mode = READ_MODE;
-    }
-
     public ProtocolByteBuf(ByteBuf byteBuf, boolean needReadRespSN) {
         this.byteBuf = byteBuf;
         if (needReadRespSN) {
@@ -36,6 +29,10 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
         this.protocolId = byteBuf.readUnsignedShort();
         this.contentSize = byteBuf.readableBytes();
         this.mode = READ_MODE;
+    }
+
+    public ProtocolByteBuf(ByteBuf byteBuf) {
+        this(byteBuf, false);
     }
 
     public ProtocolByteBuf(int protocolId) {
