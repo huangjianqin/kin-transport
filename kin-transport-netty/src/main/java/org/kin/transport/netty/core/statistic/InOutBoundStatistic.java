@@ -1,4 +1,4 @@
-package org.kin.transport.statistic;
+package org.kin.transport.netty.core.statistic;
 
 import java.util.concurrent.atomic.AtomicLong;
 

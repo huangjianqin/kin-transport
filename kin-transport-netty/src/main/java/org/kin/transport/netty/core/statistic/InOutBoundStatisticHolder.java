@@ -1,4 +1,4 @@
-package org.kin.transport.statistic;
+package org.kin.transport.netty.core.statistic;
 
 import org.kin.framework.concurrent.Partitioner;
 import org.kin.framework.concurrent.impl.EfficientHashPartitioner;

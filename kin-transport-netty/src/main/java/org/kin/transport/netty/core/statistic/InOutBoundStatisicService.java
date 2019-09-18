@@ -1,4 +1,4 @@
-package org.kin.transport.statistic;
+package org.kin.transport.netty.core.statistic;
 
 import org.kin.framework.Closeable;
 import org.kin.framework.JvmCloseCleaner;
