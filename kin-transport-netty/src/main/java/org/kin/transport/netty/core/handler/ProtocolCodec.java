@@ -10,7 +10,7 @@ import org.kin.transport.netty.core.common.ProtocolConstants;
 import org.kin.transport.netty.core.domain.ProtocolByteBuf;
 import org.kin.transport.netty.core.domain.Request;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
-import org.kin.transport.statistic.InOutBoundStatisicService;
+import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
