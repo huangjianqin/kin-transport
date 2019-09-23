@@ -11,6 +11,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.*;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -186,6 +187,17 @@ public class HttpUtils {
     }
 
     //------------------------------------------http请求------------------------------------------------------
+    private static void setHttpGetParams(HttpUriRequest request, String url, Map<String, Object> params) {
+        HttpGet httpGet = (HttpGet) request;
+        String paramStr = toQueryStr(params);
+        if (url.indexOf("?") > 0) {
+            url = url + "&" + paramStr;
+        } else {
+            url = url + "?" + paramStr;
+        }
+        httpGet.setURI(URI.create(url));
+    }
+
     private static HttpUriRequest setParams(HttpUriRequest request, String url, Map<String, Object> params) {
         if (CollectionUtils.isNonEmpty(params)) {
             if (request instanceof HttpEntityEnclosingRequestBase) {
@@ -206,18 +218,31 @@ public class HttpUtils {
 
                 httpEntityEnclosingRequestBase.setEntity(new UrlEncodedFormEntity(nvps, UTF8));
             } else if (request instanceof HttpGet) {
-                HttpGet httpGet = (HttpGet) request;
-                String paramStr = toQueryStr(params);
-                if (url.indexOf("?") > 0) {
-                    url = url + "&" + paramStr;
-                } else {
-                    url = url + "?" + paramStr;
-                }
-                httpGet.setURI(URI.create(url));
+                setHttpGetParams(request, url, params);
             }
 
         }
 
+        return request;
+    }
+
+    private static HttpUriRequest setJsonParams(HttpUriRequest request, String url, Map<String, Object> params) {
+        if (CollectionUtils.isNonEmpty(params)) {
+            if (request instanceof HttpEntityEnclosingRequestBase) {
+                HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase = (HttpEntityEnclosingRequestBase) request;
+                JSONObject jsonObject = new JSONObject();
+                for(Map.Entry<String, Object> entry: params.entrySet()){
+                    jsonObject.put(entry.getKey(), entry.getValue());
+                }
+                StringEntity entity = new StringEntity(jsonObject.toJSONString(),"utf-8");
+                entity.setContentEncoding("UTF-8");
+                entity.setContentType("application/json");
+                httpEntityEnclosingRequestBase.setEntity(entity);
+            } else if (request instanceof HttpGet) {
+                setHttpGetParams(request, url, params);
+            }
+
+        }
         return request;
     }
 
@@ -236,7 +261,7 @@ public class HttpUtils {
     public static HttpResponseWrapper get(String url, Map<String, Object> params) {
         log.debug("http get '{}', params: '{}'", url, params);
         HttpGet httpGet = new HttpGet(url);
-        setParams(httpGet, url, params);
+        setHttpGetParams(httpGet, url, params);
         try {
             return httpClient().execute(httpGet, DEFAULT_HTTP_RESPONSE_HANDLER);
         } catch (IOException e) {
@@ -250,10 +275,35 @@ public class HttpUtils {
         return post(url, Collections.emptyMap());
     }
 
+    /**
+     * 表单提交
+     */
     public static HttpResponseWrapper post(String url, Map<String, Object> params) {
         log.debug("http post '{}', params: '{}'", url, params);
         HttpPost httpPost = new HttpPost(url);
         setParams(httpPost, url, params);
+
+        try {
+            return httpClient().execute(httpPost, DEFAULT_HTTP_RESPONSE_HANDLER);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+
+        return null;
+    }
+
+    public static HttpResponseWrapper postJson(String url){
+        return postJson(url, Collections.emptyMap());
+    }
+
+    /**
+     * json提交
+     */
+    public static HttpResponseWrapper postJson(String url, Map<String, Object> params) {
+        log.debug("http post '{}', params: '{}'", url, params);
+        HttpPost httpPost = new HttpPost(url);
+        setJsonParams(httpPost, url, params);
+
         try {
             return httpClient().execute(httpPost, DEFAULT_HTTP_RESPONSE_HANDLER);
         } catch (IOException e) {
@@ -267,6 +317,9 @@ public class HttpUtils {
         return put(url, Collections.emptyMap());
     }
 
+    /**
+     * 表单提交
+     */
     public static HttpResponseWrapper put(String url, Map<String, Object> params) {
         log.debug("http put '{}', params: '{}'", url, params);
         HttpPut httpPut = new HttpPut(url);
@@ -280,14 +333,57 @@ public class HttpUtils {
         return null;
     }
 
+    public static HttpResponseWrapper putJson(String url){
+        return putJson(url, Collections.emptyMap());
+    }
+
+    /**
+     * json提交
+     */
+    public static HttpResponseWrapper putJson(String url, Map<String, Object> params) {
+        log.debug("http put '{}', params: '{}'", url, params);
+        HttpPut httpPut = new HttpPut(url);
+        setJsonParams(httpPut, url, params);
+        try {
+            return httpClient().execute(httpPut, DEFAULT_HTTP_RESPONSE_HANDLER);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+
+        return null;
+    }
+
     public static HttpResponseWrapper delete(String url){
         return delete(url, Collections.emptyMap());
     }
 
+    /**
+     * 表单提交
+     */
     public static HttpResponseWrapper delete(String url, Map<String, Object> params) {
         log.debug("http delete '{}', params: '{}'", url, params);
         HttpDelete httpDelete = new HttpDelete(url);
         setParams(httpDelete, url, params);
+        try {
+            return httpClient().execute(httpDelete, DEFAULT_HTTP_RESPONSE_HANDLER);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+
+        return null;
+    }
+
+    public static HttpResponseWrapper deleteJson(String url){
+        return deleteJson(url, Collections.emptyMap());
+    }
+
+    /**
+     * json提交
+     */
+    public static HttpResponseWrapper deleteJson(String url, Map<String, Object> params) {
+        log.debug("http delete '{}', params: '{}'", url, params);
+        HttpDelete httpDelete = new HttpDelete(url);
+        setJsonParams(httpDelete, url, params);
         try {
             return httpClient().execute(httpDelete, DEFAULT_HTTP_RESPONSE_HANDLER);
         } catch (IOException e) {
@@ -354,7 +450,7 @@ public class HttpUtils {
     public static void get(String url, Map<String, Object> params, AsyncHttpCallback callback) {
         log.debug("async http get '{}', params: '{}'", url, params);
         HttpGet httpGet = new HttpGet(url);
-        setParams(httpGet, url, params);
+        setHttpGetParams(httpGet, url, params);
         asyncHttpRequest(url, params, httpGet, callback);
     }
 
@@ -369,6 +465,17 @@ public class HttpUtils {
         asyncHttpRequest(url, params, httpPost, callback);
     }
 
+    public static void postJson(String url, AsyncHttpCallback callback) {
+        postJson(url, Collections.emptyMap(), callback);
+    }
+
+    public static void postJson(String url, Map<String, Object> params, AsyncHttpCallback callback) {
+        log.debug("async http post '{}', params: '{}'", url, params);
+        HttpPost httpPost = new HttpPost(url);
+        setJsonParams(httpPost, url, params);
+        asyncHttpRequest(url, params, httpPost, callback);
+    }
+
     public static void put(String url, AsyncHttpCallback callback) {
         put(url, Collections.emptyMap(), callback);
     }
@@ -380,6 +487,17 @@ public class HttpUtils {
         asyncHttpRequest(url, params, httpPut, callback);
     }
 
+    public static void putJson(String url, AsyncHttpCallback callback) {
+        putJson(url, Collections.emptyMap(), callback);
+    }
+
+    public static void putJson(String url, Map<String, Object> params, AsyncHttpCallback callback) {
+        log.debug("async http put '{}', params: '{}'", url, params);
+        HttpPut httpPut = new HttpPut(url);
+        setJsonParams(httpPut, url, params);
+        asyncHttpRequest(url, params, httpPut, callback);
+    }
+
     public static void delete(String url, AsyncHttpCallback callback) {
         delete(url, Collections.emptyMap(), callback);
     }
@@ -388,6 +506,17 @@ public class HttpUtils {
         log.debug("async http delete '{}', params: '{}'", url, params);
         HttpDelete httpDelete = new HttpDelete(url);
         setParams(httpDelete, url, params);
+        asyncHttpRequest(url, params, httpDelete, callback);
+    }
+
+    public static void deleteJson(String url, AsyncHttpCallback callback) {
+        deleteJson(url, Collections.emptyMap(), callback);
+    }
+
+    public static void deleteJson(String url, Map<String, Object> params, AsyncHttpCallback callback) {
+        log.debug("async http delete '{}', params: '{}'", url, params);
+        HttpDelete httpDelete = new HttpDelete(url);
+        setJsonParams(httpDelete, url, params);
         asyncHttpRequest(url, params, httpDelete, callback);
     }
 }
