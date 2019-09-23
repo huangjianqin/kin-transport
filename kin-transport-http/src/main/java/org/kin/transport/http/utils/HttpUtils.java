@@ -234,7 +234,7 @@ public class HttpUtils {
     }
 
     public static HttpResponseWrapper get(String url, Map<String, Object> params) {
-        log.info("http get '{}', params: '{}'", url, params);
+        log.debug("http get '{}', params: '{}'", url, params);
         HttpGet httpGet = new HttpGet(url);
         setParams(httpGet, url, params);
         try {
@@ -251,7 +251,7 @@ public class HttpUtils {
     }
 
     public static HttpResponseWrapper post(String url, Map<String, Object> params) {
-        log.info("http post '{}', params: '{}'", url, params);
+        log.debug("http post '{}', params: '{}'", url, params);
         HttpPost httpPost = new HttpPost(url);
         setParams(httpPost, url, params);
         try {
@@ -268,7 +268,7 @@ public class HttpUtils {
     }
 
     public static HttpResponseWrapper put(String url, Map<String, Object> params) {
-        log.info("http put '{}', params: '{}'", url, params);
+        log.debug("http put '{}', params: '{}'", url, params);
         HttpPut httpPut = new HttpPut(url);
         setParams(httpPut, url, params);
         try {
@@ -285,7 +285,7 @@ public class HttpUtils {
     }
 
     public static HttpResponseWrapper delete(String url, Map<String, Object> params) {
-        log.info("http delete '{}', params: '{}'", url, params);
+        log.debug("http delete '{}', params: '{}'", url, params);
         HttpDelete httpDelete = new HttpDelete(url);
         setParams(httpDelete, url, params);
         try {
@@ -319,7 +319,7 @@ public class HttpUtils {
             @Override
             public void completed(HttpResponse httpResponse) {
                 try {
-                    log.info("async http '{}', params: '{}' completed", url, params);
+                    log.debug("async http '{}', params: '{}' completed", url, params);
                     callback.completed(DEFAULT_HTTP_RESPONSE_HANDLER.handleResponse(httpResponse));
                 } catch (IOException e) {
                     log.error(e.getMessage(), e);
@@ -340,7 +340,7 @@ public class HttpUtils {
 
             @Override
             public void cancelled() {
-                log.info("async http '{}', params: '{}' cancelled", url, params);
+                log.debug("async http '{}', params: '{}' cancelled", url, params);
                 stop(httpAsyncClient);
                 callback.cancelled();
             }
@@ -352,7 +352,7 @@ public class HttpUtils {
     }
 
     public static void get(String url, Map<String, Object> params, AsyncHttpCallback callback) {
-        log.info("async http get '{}', params: '{}'", url, params);
+        log.debug("async http get '{}', params: '{}'", url, params);
         HttpGet httpGet = new HttpGet(url);
         setParams(httpGet, url, params);
         asyncHttpRequest(url, params, httpGet, callback);
@@ -363,7 +363,7 @@ public class HttpUtils {
     }
 
     public static void post(String url, Map<String, Object> params, AsyncHttpCallback callback) {
-        log.info("async http post '{}', params: '{}'", url, params);
+        log.debug("async http post '{}', params: '{}'", url, params);
         HttpPost httpPost = new HttpPost(url);
         setParams(httpPost, url, params);
         asyncHttpRequest(url, params, httpPost, callback);
@@ -374,7 +374,7 @@ public class HttpUtils {
     }
 
     public static void put(String url, Map<String, Object> params, AsyncHttpCallback callback) {
-        log.info("async http put '{}', params: '{}'", url, params);
+        log.debug("async http put '{}', params: '{}'", url, params);
         HttpPut httpPut = new HttpPut(url);
         setParams(httpPut, url, params);
         asyncHttpRequest(url, params, httpPut, callback);
@@ -385,7 +385,7 @@ public class HttpUtils {
     }
 
     public static void delete(String url, Map<String, Object> params, AsyncHttpCallback callback) {
-        log.info("async http delete '{}', params: '{}'", url, params);
+        log.debug("async http delete '{}', params: '{}'", url, params);
         HttpDelete httpDelete = new HttpDelete(url);
         setParams(httpDelete, url, params);
         asyncHttpRequest(url, params, httpDelete, callback);
