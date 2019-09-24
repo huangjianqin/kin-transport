@@ -1,522 +1,206 @@
 package org.kin.transport.http.utils;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.*;
-import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
-import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.nio.reactor.ConnectingIOReactor;
-import org.apache.http.nio.reactor.IOReactorException;
-import org.apache.http.util.EntityUtils;
-import org.kin.framework.exception.HttpException;
-import org.kin.framework.utils.CollectionUtils;
+import okhttp3.*;
+import org.jetbrains.annotations.NotNull;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Created by huangjianqin on 2019/6/18.
+ * @author huangjianqin
+ * @date 2019-09-24
+ * <p>
+ * okhttp优势:
+ * api易用
+ * 支持多路复用
+ * 支持GZIP压缩减少网络流量
+ * 连接池化
+ * 因此大量请求时性能更佳
  */
 public class HttpUtils {
     private static final Logger log = LoggerFactory.getLogger(HttpUtils.class);
-    private static final Charset UTF8 = Charset.forName("utf-8");
-    //http
-    private static final SocketConfig DEFAULT_HTTP_SOCKET_CONFIG = SocketConfig.custom().setTcpNoDelay(true)
-            .setSoTimeout(3000).build();
-    private static final RequestConfig DEFAULT_HTTP_REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(3000)
-            .setConnectionRequestTimeout(3000).setSocketTimeout(3000).setMaxRedirects(3).build();
-    private static final PoolingHttpClientConnectionManager HTTP_CONNECTION_MANAGER;
-    private static final ResponseHandler<HttpResponseWrapper> DEFAULT_HTTP_RESPONSE_HANDLER = (httpResponse) -> {
-        int statusCode = httpResponse.getStatusLine().getStatusCode();
-        String reasonPhrase = httpResponse.getStatusLine().getReasonPhrase();
-        HttpEntity httpEntity = httpResponse.getEntity();
-        if (200 <= statusCode && statusCode < 300) {
-            if (httpEntity != null) {
-                return new HttpResponseWrapper(statusCode, EntityUtils.toString(httpEntity, UTF8), reasonPhrase);
-            } else {
-                return new HttpResponseWrapper(statusCode);
-            }
-        } else {
-            EntityUtils.consume(httpEntity);
-            throw new HttpException(statusCode, reasonPhrase, httpResponse.toString());
+    /**
+     * 与原实例共享线程池、连接池和其他设置项，只需进行少量配置就可以实现特殊需求
+     * .newBuilder()
+     */
+    /**
+     * 最好只使用一个共享的OkHttpClient实例，将所有的网络请求都通过这个实例处理。因为每个OkHttpClient 实例都有自己的连接池和线程池，重用这个实例能降低延时，减少内存消耗，而重复创建新实例则会浪费资源。
+     * OkHttpClient的线程池和连接池在空闲的时候会自动释放，所以一般情况下不需要手动关闭，但是如果出现极端内存不足的情况，可以使用以下代码释放内存：
+     */
+    private static final OkHttpClient CLIENT =
+            new OkHttpClient.Builder()
+                    .connectTimeout(3, TimeUnit.SECONDS)
+                    .callTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(3, TimeUnit.SECONDS)
+                    .writeTimeout(3, TimeUnit.SECONDS)
+                    .addInterceptor(new LoggingInterceptor())
+                    .build();
+    private static final MediaType MEDIATYPE_JSON = MediaType.get("application/json; charset=utf-8");
+    private static final MediaType MEDIATYPE_MULTIPART_FORM_DATA = MediaType.get("multipart/form-data; charset=ISO_8859_1");
+    private static final MediaType MEDIATYPE_APPLICATION_FORM_URLENCODED = MediaType.get("application/x-www-form-urlencoded; charset=ISO_8859_1");
+
+    /**
+     * ResponseBody必须关闭，不然可能造成资源泄漏，你可以通过以下方法关闭ResponseBody,对同一个ResponseBody只要关闭一次就可以了。
+     * Response.close();
+     * Response.body().close();
+     * Response.body().source().close();
+     * Response.body().charStream().close();
+     * Response.body().byteString().close();
+     * Response.body().bytes();
+     * Response.body().string();
+     *
+     * ResponseBody只能被消费一次，也就是string(),bytes(),byteStream()或 charStream()方法只能调用其中一个。
+     * 如果ResponseBody中的数据很大，则不应该使用bytes() 或 string()方法，它们会将结果一次性读入内存，而应该使用byteStream()或 charStream()，以流的方式读取数据。
+     */
+
+    /**
+     * 每个Call对象只能执行一次请求
+     * 如果想重复执行相同的请求，可以：
+     * client.newCall(call.request());     //获取另一个相同配置的Call对象
+     */
+
+    private static class LoggingInterceptor implements Interceptor {
+        @NotNull
+        @Override
+        public Response intercept(@NotNull Chain chain) throws IOException {
+            Request request = chain.request();
+
+            long t1 = System.nanoTime();
+            log.debug("Sending request {} on {}-{}", request.url(), chain.connection(), request.headers());
+
+            Response response = chain.proceed(request);
+
+            long t2 = System.nanoTime();
+            log.debug("Received response for {} in {}ms-{}", response.request().url(), (t2 - t1) / 1e6d, response.headers());
+
+            return response;
         }
-    };
-
-    //异步http
-    private static final PoolingNHttpClientConnectionManager ASYNC_HTTP_CONNECTION_MANAGER;
-
-    static {
-        PoolingHttpClientConnectionManager httpConnectionManager = new PoolingHttpClientConnectionManager();
-        httpConnectionManager.setMaxTotal(200);
-        httpConnectionManager.setDefaultMaxPerRoute(20);
-        HTTP_CONNECTION_MANAGER = httpConnectionManager;
-
-
-        ConnectingIOReactor ioReactor = null;
-        try {
-            ioReactor = new DefaultConnectingIOReactor();
-        } catch (IOReactorException e) {
-            log.error(e.getMessage(), e);
-        }
-        PoolingNHttpClientConnectionManager nHttpConnectionManager = new PoolingNHttpClientConnectionManager(ioReactor);
-        nHttpConnectionManager.setMaxTotal(100);
-        nHttpConnectionManager.setDefaultMaxPerRoute(50);
-        ASYNC_HTTP_CONNECTION_MANAGER = nHttpConnectionManager;
     }
 
-    public static class HttpResponseWrapper {
-        private int statusCode;
-        private String content;
-        private String reasonPhrase;
+    public static abstract class OkHttp3Callback<T> implements Callback {
 
-        public HttpResponseWrapper(int statusCode, String content, String reasonPhrase) {
-            this.statusCode = statusCode;
-            this.content = content;
-            this.reasonPhrase = reasonPhrase;
-        }
-
-        public HttpResponseWrapper(int statusCode) {
-            this(statusCode, "", "");
-        }
-
-        public JSONObject json() {
-            return JSON.parseObject(content);
-        }
-
-        public <T> T obj(Type type) {
-            return JSON.parseObject(content, type);
-        }
-
-        public <T> T obj(Class<T> claxx) {
-            return JSON.parseObject(content, claxx);
-        }
-
-        //getter
-        public int getStatusCode() {
-            return statusCode;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public String getReasonPhrase() {
-            return reasonPhrase;
+        @Override
+        public void onFailure(@NotNull Call call, @NotNull IOException e) {
+            failure(call, e);
         }
 
         @Override
-        public String toString() {
-            return "HttpResponseWrapper{" +
-                    "statusCode=" + statusCode +
-                    ", content='" + content + '\'' +
-                    ", reasonPhrase='" + reasonPhrase + '\'' +
-                    '}';
-        }
-    }
-
-    public interface AsyncHttpCallback {
-        void completed(HttpResponseWrapper wrapper);
-
-        void failed(Exception e);
-
-        void cancelled();
-    }
-
-    //-----------------------------------------------------------------------------------------------------
-    public static Map<String, String> parseQueryStr(String query) {
-        if (StringUtils.isNotBlank(query)) {
-            String[] splits = query.split("&");
-            Map<String, String> params = new HashMap<>(splits.length);
-            for (String kv : splits) {
-                String[] kvArr = kv.split("=");
-                if (kvArr.length == 2) {
-                    params.put(kvArr[0], kvArr[1]);
-                } else {
-                    params.put(kvArr[0], "");
-                }
+        public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            T data = null;
+            Class<T> respClass = respClass();
+            if (response.isSuccessful() && respClass != null && !String.class.equals(respClass)) {
+                data = converter2Obj(response.body().string(), respClass);
             }
-
-            return params;
+            response(call, response, data);
         }
 
-        return Collections.emptyMap();
-    }
-
-    public static String toQueryStr(Map<String, Object> params) {
-        if (CollectionUtils.isNonEmpty(params)) {
-            StringBuilder sb = new StringBuilder();
-            for (Map.Entry<String, Object> entry : params.entrySet()) {
-                Object value = entry.getValue();
-                Object[] values;
-                if (value.getClass().isArray()) {
-                    values = (Object[]) value;
-                } else {
-                    values = new Object[]{value};
-                }
-
-                for (Object item : values) {
-                    sb.append(entry.getKey() + "=" + item.toString() + "&");
-                }
-            }
-            sb.deleteCharAt(sb.length() - 1);
-            return sb.toString();
+        public Class<T> respClass() {
+            return null;
         }
 
-        return "";
+        public abstract void failure(@NotNull Call call, @NotNull IOException e);
+
+        public abstract void response(@NotNull Call call, @NotNull Response response, T data) throws IOException;
     }
 
-    //------------------------------------------http请求------------------------------------------------------
-    private static void setHttpGetParams(HttpUriRequest request, String url, Map<String, Object> params) {
-        HttpGet httpGet = (HttpGet) request;
-        String paramStr = toQueryStr(params);
-        if (url.indexOf("?") > 0) {
-            url = url + "&" + paramStr;
-        } else {
-            url = url + "?" + paramStr;
-        }
-        httpGet.setURI(URI.create(url));
+    //------------------------------------------------------------api----------------------------------------------------
+    public static OkHttpClient getCLIENT() {
+        return CLIENT;
     }
 
-    private static HttpUriRequest setParams(HttpUriRequest request, String url, Map<String, Object> params) {
-        if (CollectionUtils.isNonEmpty(params)) {
-            if (request instanceof HttpEntityEnclosingRequestBase) {
-                HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase = (HttpEntityEnclosingRequestBase) request;
-                List<NameValuePair> nvps = new ArrayList<>();
-                for (Map.Entry<String, Object> entry : params.entrySet()) {
-                    Object value = entry.getValue();
-                    Object[] values;
-                    if (value.getClass().isArray()) {
-                        values = (Object[]) value;
-                    } else {
-                        values = new Object[]{value};
-                    }
-                    for (Object item : values) {
-                        nvps.add(new BasicNameValuePair(entry.getKey(), item.toString()));
-                    }
-                }
-
-                httpEntityEnclosingRequestBase.setEntity(new UrlEncodedFormEntity(nvps, UTF8));
-            } else if (request instanceof HttpGet) {
-                setHttpGetParams(request, url, params);
-            }
-
-        }
-
-        return request;
-    }
-
-    private static HttpUriRequest setJsonParams(HttpUriRequest request, String url, Map<String, Object> params) {
-        if (CollectionUtils.isNonEmpty(params)) {
-            if (request instanceof HttpEntityEnclosingRequestBase) {
-                HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase = (HttpEntityEnclosingRequestBase) request;
-                JSONObject jsonObject = new JSONObject();
-                for(Map.Entry<String, Object> entry: params.entrySet()){
-                    jsonObject.put(entry.getKey(), entry.getValue());
-                }
-                StringEntity entity = new StringEntity(jsonObject.toJSONString(),"utf-8");
-                entity.setContentEncoding("UTF-8");
-                entity.setContentType("application/json");
-                httpEntityEnclosingRequestBase.setEntity(entity);
-            } else if (request instanceof HttpGet) {
-                setHttpGetParams(request, url, params);
-            }
-
-        }
-        return request;
-    }
-
-    public static CloseableHttpClient httpClient() {
-        return HttpClientBuilder.create()
-                .setConnectionManager(HTTP_CONNECTION_MANAGER)
-                .setDefaultSocketConfig(DEFAULT_HTTP_SOCKET_CONFIG)
-                .setDefaultRequestConfig(DEFAULT_HTTP_REQUEST_CONFIG)
-                .build();
-    }
-
-    public static HttpResponseWrapper get(String url) {
-        return get(url, Collections.emptyMap());
-    }
-
-    public static HttpResponseWrapper get(String url, Map<String, Object> params) {
-        log.debug("http get '{}', params: '{}'", url, params);
-        HttpGet httpGet = new HttpGet(url);
-        setHttpGetParams(httpGet, url, params);
-        try {
-            return httpClient().execute(httpGet, DEFAULT_HTTP_RESPONSE_HANDLER);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
+    private static <T> T converter2Obj(String respData, Class<T> respClass) {
+        if (StringUtils.isNotBlank(respData)) {
+            return JSONObject.parseObject(respData, respClass);
         }
 
         return null;
     }
 
-    public static HttpResponseWrapper post(String url){
+    private static String converterMap2JsonStr(Map<String, Object> params) {
+        JSONObject jsonObject = new JSONObject();
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            jsonObject.put(entry.getKey(), entry.getValue());
+        }
+
+        return jsonObject.toJSONString();
+    }
+
+    //------------------------------------------------------------sync api----------------------------------------------------
+    public static <T> T get(String url, Class<T> respClass) {
+        return converter2Obj(get(url), respClass);
+    }
+
+    public static String get(String url) {
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        try (Response response = CLIENT.newCall(request).execute()) {
+            if (response.isSuccessful()) {
+                return response.body().string();
+            }
+        } catch (IOException e) {
+            ExceptionUtils.log(e);
+        }
+
+        return null;
+    }
+
+    public static <T> T post(String url, Class<T> respClass) {
+        return converter2Obj(post(url), respClass);
+    }
+
+    public static <T> T post(String url, Map<String, Object> params, Class<T> respClass) {
+        return converter2Obj(post(url, params), respClass);
+    }
+
+    public static String post(String url) {
         return post(url, Collections.emptyMap());
     }
 
-    /**
-     * 表单提交
-     */
-    public static HttpResponseWrapper post(String url, Map<String, Object> params) {
-        log.debug("http post '{}', params: '{}'", url, params);
-        HttpPost httpPost = new HttpPost(url);
-        setParams(httpPost, url, params);
-
-        try {
-            return httpClient().execute(httpPost, DEFAULT_HTTP_RESPONSE_HANDLER);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
-
-        return null;
-    }
-
-    public static HttpResponseWrapper postJson(String url){
-        return postJson(url, Collections.emptyMap());
-    }
-
-    /**
-     * json提交
-     */
-    public static HttpResponseWrapper postJson(String url, Map<String, Object> params) {
-        log.debug("http post '{}', params: '{}'", url, params);
-        HttpPost httpPost = new HttpPost(url);
-        setJsonParams(httpPost, url, params);
-
-        try {
-            return httpClient().execute(httpPost, DEFAULT_HTTP_RESPONSE_HANDLER);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
-
-        return null;
-    }
-
-    public static HttpResponseWrapper put(String url){
-        return put(url, Collections.emptyMap());
-    }
-
-    /**
-     * 表单提交
-     */
-    public static HttpResponseWrapper put(String url, Map<String, Object> params) {
-        log.debug("http put '{}', params: '{}'", url, params);
-        HttpPut httpPut = new HttpPut(url);
-        setParams(httpPut, url, params);
-        try {
-            return httpClient().execute(httpPut, DEFAULT_HTTP_RESPONSE_HANDLER);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
-
-        return null;
-    }
-
-    public static HttpResponseWrapper putJson(String url){
-        return putJson(url, Collections.emptyMap());
-    }
-
-    /**
-     * json提交
-     */
-    public static HttpResponseWrapper putJson(String url, Map<String, Object> params) {
-        log.debug("http put '{}', params: '{}'", url, params);
-        HttpPut httpPut = new HttpPut(url);
-        setJsonParams(httpPut, url, params);
-        try {
-            return httpClient().execute(httpPut, DEFAULT_HTTP_RESPONSE_HANDLER);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
-
-        return null;
-    }
-
-    public static HttpResponseWrapper delete(String url){
-        return delete(url, Collections.emptyMap());
-    }
-
-    /**
-     * 表单提交
-     */
-    public static HttpResponseWrapper delete(String url, Map<String, Object> params) {
-        log.debug("http delete '{}', params: '{}'", url, params);
-        HttpDelete httpDelete = new HttpDelete(url);
-        setParams(httpDelete, url, params);
-        try {
-            return httpClient().execute(httpDelete, DEFAULT_HTTP_RESPONSE_HANDLER);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
-
-        return null;
-    }
-
-    public static HttpResponseWrapper deleteJson(String url){
-        return deleteJson(url, Collections.emptyMap());
-    }
-
-    /**
-     * json提交
-     */
-    public static HttpResponseWrapper deleteJson(String url, Map<String, Object> params) {
-        log.debug("http delete '{}', params: '{}'", url, params);
-        HttpDelete httpDelete = new HttpDelete(url);
-        setJsonParams(httpDelete, url, params);
-        try {
-            return httpClient().execute(httpDelete, DEFAULT_HTTP_RESPONSE_HANDLER);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
-
-        return null;
-    }
-
-    public static CloseableHttpAsyncClient asyncHttpClient() {
-        return HttpAsyncClientBuilder.create()
-                .setConnectionManager(ASYNC_HTTP_CONNECTION_MANAGER)
-                .setDefaultRequestConfig(DEFAULT_HTTP_REQUEST_CONFIG)
+    public static String post(String url, Map<String, Object> params) {
+        RequestBody body = RequestBody.create(converterMap2JsonStr(params), MEDIATYPE_JSON);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
                 .build();
-    }
-
-    private static void stop(CloseableHttpAsyncClient httpAsyncClient){
-        try {
-            httpAsyncClient.close();
+        try (Response response = CLIENT.newCall(request).execute()) {
+            if (response.isSuccessful()) {
+                return response.body().string();
+            }
         } catch (IOException e) {
-            log.error(e.getMessage(), e);
+            ExceptionUtils.log(e);
         }
+
+        return null;
     }
 
-    private static void asyncHttpRequest(String url, Map<String, Object> params, HttpUriRequest request, AsyncHttpCallback callback) {
-        CloseableHttpAsyncClient httpAsyncClient = asyncHttpClient();
-        httpAsyncClient.start();
-        httpAsyncClient.execute(request, new FutureCallback<HttpResponse>() {
-            @Override
-            public void completed(HttpResponse httpResponse) {
-                try {
-                    log.debug("async http '{}', params: '{}' completed", url, params);
-                    callback.completed(DEFAULT_HTTP_RESPONSE_HANDLER.handleResponse(httpResponse));
-                } catch (IOException e) {
-                    log.error(e.getMessage(), e);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                }
-                finally {
-                    stop(httpAsyncClient);
-                }
-            }
+    //------------------------------------------------------------async api----------------------------------------------------
+    public static void get(String url, Callback callback) {
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
 
-            @Override
-            public void failed(Exception e) {
-                log.error("async http '{}', params: '{}' failed", url, params);
-                stop(httpAsyncClient);
-                callback.failed(e);
-            }
-
-            @Override
-            public void cancelled() {
-                log.debug("async http '{}', params: '{}' cancelled", url, params);
-                stop(httpAsyncClient);
-                callback.cancelled();
-            }
-        });
+        CLIENT.newCall(request).enqueue(callback);
     }
 
-    public static void get(String url, AsyncHttpCallback callback) {
-        get(url, Collections.emptyMap(), callback);
-    }
-
-    public static void get(String url, Map<String, Object> params, AsyncHttpCallback callback) {
-        log.debug("async http get '{}', params: '{}'", url, params);
-        HttpGet httpGet = new HttpGet(url);
-        setHttpGetParams(httpGet, url, params);
-        asyncHttpRequest(url, params, httpGet, callback);
-    }
-
-    public static void post(String url, AsyncHttpCallback callback) {
+    public static void post(String url, Callback callback) {
         post(url, Collections.emptyMap(), callback);
     }
 
-    public static void post(String url, Map<String, Object> params, AsyncHttpCallback callback) {
-        log.debug("async http post '{}', params: '{}'", url, params);
-        HttpPost httpPost = new HttpPost(url);
-        setParams(httpPost, url, params);
-        asyncHttpRequest(url, params, httpPost, callback);
-    }
-
-    public static void postJson(String url, AsyncHttpCallback callback) {
-        postJson(url, Collections.emptyMap(), callback);
-    }
-
-    public static void postJson(String url, Map<String, Object> params, AsyncHttpCallback callback) {
-        log.debug("async http post '{}', params: '{}'", url, params);
-        HttpPost httpPost = new HttpPost(url);
-        setJsonParams(httpPost, url, params);
-        asyncHttpRequest(url, params, httpPost, callback);
-    }
-
-    public static void put(String url, AsyncHttpCallback callback) {
-        put(url, Collections.emptyMap(), callback);
-    }
-
-    public static void put(String url, Map<String, Object> params, AsyncHttpCallback callback) {
-        log.debug("async http put '{}', params: '{}'", url, params);
-        HttpPut httpPut = new HttpPut(url);
-        setParams(httpPut, url, params);
-        asyncHttpRequest(url, params, httpPut, callback);
-    }
-
-    public static void putJson(String url, AsyncHttpCallback callback) {
-        putJson(url, Collections.emptyMap(), callback);
-    }
-
-    public static void putJson(String url, Map<String, Object> params, AsyncHttpCallback callback) {
-        log.debug("async http put '{}', params: '{}'", url, params);
-        HttpPut httpPut = new HttpPut(url);
-        setJsonParams(httpPut, url, params);
-        asyncHttpRequest(url, params, httpPut, callback);
-    }
-
-    public static void delete(String url, AsyncHttpCallback callback) {
-        delete(url, Collections.emptyMap(), callback);
-    }
-
-    public static void delete(String url, Map<String, Object> params, AsyncHttpCallback callback) {
-        log.debug("async http delete '{}', params: '{}'", url, params);
-        HttpDelete httpDelete = new HttpDelete(url);
-        setParams(httpDelete, url, params);
-        asyncHttpRequest(url, params, httpDelete, callback);
-    }
-
-    public static void deleteJson(String url, AsyncHttpCallback callback) {
-        deleteJson(url, Collections.emptyMap(), callback);
-    }
-
-    public static void deleteJson(String url, Map<String, Object> params, AsyncHttpCallback callback) {
-        log.debug("async http delete '{}', params: '{}'", url, params);
-        HttpDelete httpDelete = new HttpDelete(url);
-        setJsonParams(httpDelete, url, params);
-        asyncHttpRequest(url, params, httpDelete, callback);
+    public static void post(String url, Map<String, Object> params, Callback callback) {
+        RequestBody body = RequestBody.create(converterMap2JsonStr(params), MEDIATYPE_JSON);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .build();
+        CLIENT.newCall(request).enqueue(callback);
     }
 }
