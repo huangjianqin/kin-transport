@@ -31,8 +31,12 @@ public class HttpUtils {
      * .newBuilder()
      */
     /**
-     * 最好只使用一个共享的OkHttpClient实例，将所有的网络请求都通过这个实例处理。因为每个OkHttpClient 实例都有自己的连接池和线程池，重用这个实例能降低延时，减少内存消耗，而重复创建新实例则会浪费资源。
+     * 最好只使用一个共享的OkHttpClient实例，将所有的网络请求都通过这个实例处理。
+     * 因为每个OkHttpClient 实例都有自己的连接池和线程池，重用这个实例能降低延时，减少内存消耗，而重复创建新实例则会浪费资源。
      * OkHttpClient的线程池和连接池在空闲的时候会自动释放，所以一般情况下不需要手动关闭，但是如果出现极端内存不足的情况，可以使用以下代码释放内存：
+     * client.dispatcher().executorService().shutdown();   //清除并关闭线程池
+     * client.connectionPool().evictAll();                 //清除并关闭连接池
+     * client.cache().close();                             //清除cache
      */
     private static final OkHttpClient CLIENT =
             new OkHttpClient.Builder()
@@ -42,15 +46,6 @@ public class HttpUtils {
                     .writeTimeout(3, TimeUnit.SECONDS)
                     .addInterceptor(new LoggingInterceptor())
                     .build();
-    static {
-        CLIENT.dispatcher().executorService().shutdown();   //清除并关闭线程池
-        CLIENT.connectionPool().evictAll();                 //清除并关闭连接池
-        try {
-            CLIENT.cache().close();                             //清除cache
-        } catch (IOException e) {
-            ExceptionUtils.log(e);
-        }
-    }
     private static final MediaType MEDIATYPE_JSON = MediaType.get("application/json; charset=utf-8");
     private static final MediaType MEDIATYPE_MULTIPART_FORM_DATA = MediaType.get("multipart/form-data; charset=ISO_8859_1");
     private static final MediaType MEDIATYPE_APPLICATION_FORM_URLENCODED = MediaType.get("application/x-www-form-urlencoded; charset=ISO_8859_1");
