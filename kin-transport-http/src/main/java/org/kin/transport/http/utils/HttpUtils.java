@@ -42,6 +42,15 @@ public class HttpUtils {
                     .writeTimeout(3, TimeUnit.SECONDS)
                     .addInterceptor(new LoggingInterceptor())
                     .build();
+    static {
+        CLIENT.dispatcher().executorService().shutdown();   //清除并关闭线程池
+        CLIENT.connectionPool().evictAll();                 //清除并关闭连接池
+        try {
+            CLIENT.cache().close();                             //清除cache
+        } catch (IOException e) {
+            ExceptionUtils.log(e);
+        }
+    }
     private static final MediaType MEDIATYPE_JSON = MediaType.get("application/json; charset=utf-8");
     private static final MediaType MEDIATYPE_MULTIPART_FORM_DATA = MediaType.get("multipart/form-data; charset=ISO_8859_1");
     private static final MediaType MEDIATYPE_APPLICATION_FORM_URLENCODED = MediaType.get("application/x-www-form-urlencoded; charset=ISO_8859_1");
