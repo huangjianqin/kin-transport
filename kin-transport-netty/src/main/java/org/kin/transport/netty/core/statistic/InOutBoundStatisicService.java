@@ -28,7 +28,7 @@ public class InOutBoundStatisicService implements Closeable {
     private InOutBoundStatisticHolder reqHolder = new InOutBoundStatisticHolder();
     private InOutBoundStatisticHolder respHolder = new InOutBoundStatisticHolder();
     private ThreadManager threads = new ThreadManager(
-            new ThreadPoolExecutor(0, 2, 60L, TimeUnit.SECONDS,
+            new ThreadPoolExecutor(2, 2, 60L, TimeUnit.SECONDS,
                     new LinkedBlockingQueue<>(), new SimpleThreadFactory("inoutbound-statisic")),
             1, new SimpleThreadFactory("inoutbound-statisic-schedule"));
 
