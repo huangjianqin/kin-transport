@@ -46,9 +46,9 @@ public class HttpUtils {
                     .writeTimeout(3, TimeUnit.SECONDS)
                     .addInterceptor(new LoggingInterceptor())
                     .build();
-    private static final MediaType MEDIATYPE_JSON = MediaType.get("application/json; charset=utf-8");
-    private static final MediaType MEDIATYPE_MULTIPART_FORM_DATA = MediaType.get("multipart/form-data; charset=ISO_8859_1");
-    private static final MediaType MEDIATYPE_APPLICATION_FORM_URLENCODED = MediaType.get("application/x-www-form-urlencoded; charset=ISO_8859_1");
+    private static final okhttp3.MediaType MEDIATYPE_JSON = okhttp3.MediaType.get("application/json; charset=utf-8");
+    private static final okhttp3.MediaType MEDIATYPE_MULTIPART_FORM_DATA = okhttp3.MediaType.get("multipart/form-data; charset=ISO_8859_1");
+    private static final okhttp3.MediaType MEDIATYPE_APPLICATION_FORM_URLENCODED = okhttp3.MediaType.get("application/x-www-form-urlencoded; charset=ISO_8859_1");
 
     /**
      * ResponseBody必须关闭，不然可能造成资源泄漏，你可以通过以下方法关闭ResponseBody,对同一个ResponseBody只要关闭一次就可以了。
@@ -127,15 +127,6 @@ public class HttpUtils {
         return null;
     }
 
-    private static String converterMap2JsonStr(Map<String, Object> params) {
-        JSONObject jsonObject = new JSONObject();
-        for (Map.Entry<String, Object> entry : params.entrySet()) {
-            jsonObject.put(entry.getKey(), entry.getValue());
-        }
-
-        return jsonObject.toJSONString();
-    }
-
     //------------------------------------------------------------sync api----------------------------------------------------
     public static <T> T get(String url, Class<T> respClass) {
         return converter2Obj(get(url), respClass);
@@ -157,23 +148,40 @@ public class HttpUtils {
         return null;
     }
 
+    //-------------------------------------------------------
     public static <T> T post(String url, Class<T> respClass) {
         return converter2Obj(post(url), respClass);
     }
 
     public static <T> T post(String url, Map<String, Object> params, Class<T> respClass) {
-        return converter2Obj(post(url, params), respClass);
+        return converter2Obj(post(url, params, MediaType.JSON), respClass);
     }
 
     public static String post(String url) {
-        return post(url, Collections.emptyMap());
+        return post(url, Collections.emptyMap(), MediaType.JSON);
     }
 
     public static String post(String url, Map<String, Object> params) {
-        RequestBody body = RequestBody.create(converterMap2JsonStr(params), MEDIATYPE_JSON);
+        return post(url, params, MediaType.JSON);
+    }
+    //-------------------------------------------------------
+
+    public static <T> T post(String url, Class<T> respClass, MediaType mediaType) {
+        return converter2Obj(post(url, mediaType), respClass);
+    }
+
+    public static <T> T post(String url, Map<String, Object> params, Class<T> respClass, MediaType mediaType) {
+        return converter2Obj(post(url, params, mediaType), respClass);
+    }
+
+    public static String post(String url, MediaType mediaType) {
+        return post(url, Collections.emptyMap(), mediaType);
+    }
+
+    public static String post(String url, Map<String, Object> params, MediaType mediaType) {
         Request request = new Request.Builder()
                 .url(url)
-                .post(body)
+                .post(mediaType.createRequestBody(params))
                 .build();
         try (Response response = CLIENT.newCall(request).execute()) {
             if (response.isSuccessful()) {
@@ -195,16 +203,84 @@ public class HttpUtils {
         CLIENT.newCall(request).enqueue(callback);
     }
 
+    //-----------------------------------------------
     public static void post(String url, Callback callback) {
         post(url, Collections.emptyMap(), callback);
     }
 
     public static void post(String url, Map<String, Object> params, Callback callback) {
-        RequestBody body = RequestBody.create(converterMap2JsonStr(params), MEDIATYPE_JSON);
+        post(url, params, MediaType.JSON, callback);
+    }
+    //-----------------------------------------------
+
+    public static void post(String url, MediaType mediaType, Callback callback) {
+        post(url, Collections.emptyMap(), mediaType, callback);
+    }
+
+    public static void post(String url, Map<String, Object> params, MediaType mediaType, Callback callback) {
         Request request = new Request.Builder()
                 .url(url)
-                .post(body)
+                .post(mediaType.createRequestBody(params))
                 .build();
         CLIENT.newCall(request).enqueue(callback);
+    }
+
+    /**
+     *
+     */
+    public enum MediaType {
+        /**
+         *
+         */
+        JSON {
+            private String converterMap2JsonStr(Map<String, Object> params) {
+                JSONObject jsonObject = new JSONObject();
+                for (Map.Entry<String, Object> entry : params.entrySet()) {
+                    jsonObject.put(entry.getKey(), entry.getValue());
+                }
+
+                return jsonObject.toJSONString();
+            }
+
+            @Override
+            public RequestBody createRequestBody(Map<String, Object> params) {
+                return RequestBody.create(converterMap2JsonStr(params), MEDIATYPE_JSON);
+            }
+        },
+        /**
+         *
+         */
+        FORM {
+            @Override
+            public RequestBody createRequestBody(Map<String, Object> params) {
+                FormBody.Builder formBodyBuilder = new FormBody.Builder();
+                for (Map.Entry<String, Object> entry : params.entrySet()) {
+                    formBodyBuilder.add(entry.getKey(), entry.getValue().toString());
+                }
+
+                return formBodyBuilder.build();
+            }
+        };
+
+        /**
+         * 根据类型转换成对应的RequestBody
+         */
+        public abstract RequestBody createRequestBody(Map<String, Object> params);
+    }
+
+    public static abstract class AsyncHttpRequestCallback<T> implements Callback {
+        @Override
+        public final void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+            doResponse(converter2Obj(response.body().string(), getResponseObj()));
+        }
+
+        @Override
+        public final void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+        }
+
+        public abstract void doResponse(T responseObj);
+
+        abstract Class<T> getResponseObj();
     }
 }
