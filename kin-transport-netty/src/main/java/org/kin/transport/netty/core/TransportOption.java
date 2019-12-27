@@ -23,6 +23,8 @@ public class TransportOption {
     private ChannelExceptionHandler channelExceptionHandler;
     private ChannelIdleListener channelIdleListener;
 
+    private boolean compression;
+
     public TransportOption() {
         sessionBuilder = DefaultSessionBuilder.instance();
         protocolTransfer = DefaultProtocolTransfer.instance();
@@ -82,6 +84,16 @@ public class TransportOption {
         return (T) this;
     }
 
+    public <T extends TransportOption> T compress() {
+        this.compression = true;
+        return (T) this;
+    }
+
+    public <T extends TransportOption> T uncompress() {
+        this.compression = false;
+        return (T) this;
+    }
+
     //getter
     public ProtocolHandler getProtocolHandler() {
         return protocolHandler;
@@ -113,5 +125,9 @@ public class TransportOption {
 
     public ChannelIdleListener getChannelIdleListener() {
         return channelIdleListener;
+    }
+
+    public boolean isCompression() {
+        return compression;
     }
 }

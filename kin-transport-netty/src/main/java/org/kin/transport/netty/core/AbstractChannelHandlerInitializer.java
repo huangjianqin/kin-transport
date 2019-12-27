@@ -65,7 +65,7 @@ public abstract class AbstractChannelHandlerInitializer implements ChannelHandle
         }
 
         channelHandlers.addAll(beforeHandlers());
-        channelHandlers.add(new ProtocolCodec(transportOption.getProtocolTransfer(), serverElseClient()));
+        channelHandlers.add(new ProtocolCodec(transportOption.getProtocolTransfer(), serverElseClient(), transportOption.isCompression()));
         channelHandlers.add(new ChannelProtocolHandler(
                 transportOption.getProtocolHandler(),
                 transportOption.getSessionBuilder(),
