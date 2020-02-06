@@ -2,7 +2,10 @@ package org.kin.transport.netty.core;
 
 import com.google.common.base.Preconditions;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -22,7 +25,7 @@ public class Server extends AbstractConnection {
     //连接相关线程池
     private NioEventLoopGroup bossGroup;
     private NioEventLoopGroup workerGroup;
-    private Channel selector;
+    private volatile Channel selector;
 
     public Server(InetSocketAddress address) {
         super(address);
@@ -65,13 +68,14 @@ public class Server extends AbstractConnection {
             if (channelFuture.isSuccess()) {
                 log.info("server connection binded: {}", address);
                 selector = channelFuture.channel();
-                latch.countDown();
-            } else {
-                throw new RuntimeException("server connection bind fail: " + address);
             }
+            latch.countDown();
         });
 
         latch.await();
+        if (selector == null) {
+            throw new RuntimeException("server connection bind fail: " + address);
+        }
     }
 
     @Override

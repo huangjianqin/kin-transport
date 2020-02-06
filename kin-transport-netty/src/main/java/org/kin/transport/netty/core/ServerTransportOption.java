@@ -1,6 +1,5 @@
 package org.kin.transport.netty.core;
 
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.transport.netty.socket.SocketHandlerInitializer;
 
 import java.net.InetSocketAddress;
@@ -10,14 +9,10 @@ import java.net.InetSocketAddress;
  * @date 2019-09-13
  */
 public class ServerTransportOption extends TransportOption {
-    public Server tcp(InetSocketAddress address) {
+    public Server tcp(InetSocketAddress address) throws Exception {
         ChannelHandlerInitializer channelHandlerInitializer = new SocketHandlerInitializer(this, true);
         Server server = new Server(address);
-        try {
-            server.bind(getChannelOptions(), channelHandlerInitializer);
-        } catch (Exception e) {
-            ExceptionUtils.log(e);
-        }
+        server.bind(getChannelOptions(), channelHandlerInitializer);
         return server;
     }
 }
