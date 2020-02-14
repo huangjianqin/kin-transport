@@ -29,7 +29,7 @@ public class ProtocolFactory {
      */
     public static void init(String scanPath) {
         synchronized (ProtocolFactory.class) {
-            Set<Class<? extends AbstractProtocol>> protocolClasses = ClassUtils.getSubClass(scanPath, AbstractProtocol.class, false);
+            Set<Class<? extends AbstractProtocol>> protocolClasses = ClassUtils.getSubClass(scanPath, AbstractProtocol.class, true);
             for (Class<? extends AbstractProtocol> protocolClass : protocolClasses) {
                 Protocol protocolAnnotation = protocolClass.getAnnotation(Protocol.class);
                 if (protocolAnnotation != null) {
