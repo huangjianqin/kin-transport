@@ -83,8 +83,8 @@ public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
                     }
 
                     int bodyReadableSize = in.readableBytes();
-                    if (bodyReadableSize != bodySize) {
-                        throw new IllegalStateException(String.format("BodyReadableSize[%s] != BodySize[%s]!", bodyReadableSize, bodySize));
+                    if (bodyReadableSize < bodySize) {
+                        throw new IllegalStateException(String.format("BodyReadableSize[%s] < BodySize[%s]!", bodyReadableSize, bodySize));
                     }
 
                     ByteBuf frameBuf = ctx.alloc().heapBuffer(bodySize);

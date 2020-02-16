@@ -30,7 +30,7 @@ public class Client extends AbstractConnection {
 
     @Override
     public void connect(Map<ChannelOption, Object> channelOptions, ChannelHandlerInitializer channelHandlerInitializer) {
-        log.info("client connecting...");
+        log.info("client({}) connecting...", address);
 
         Preconditions.checkArgument(channelOptions != null);
         Preconditions.checkArgument(channelHandlerInitializer != null);
@@ -57,7 +57,6 @@ public class Client extends AbstractConnection {
                 latch.countDown();
             } else {
                 latch.countDown();
-                throw new RuntimeException("connect to remote server time out: " + address);
             }
         });
         try {
@@ -82,7 +81,7 @@ public class Client extends AbstractConnection {
             channel.close();
         }
         eventLoopGroup.shutdownGracefully();
-        log.info("client closed");
+        log.info("client({}) closed", address);
     }
 
     @Override

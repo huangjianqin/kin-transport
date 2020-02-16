@@ -19,7 +19,7 @@ public class ChannelUtils {
     public static long ipHashCode(String ip) {
         String[] splits = ip.split("/");
         if (splits.length > 1) {
-            ip = splits[1];
+            ip = splits[splits.length - 1];
         }
         splits = ip.split("\\.");
         long hashcode = 0L;
