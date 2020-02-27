@@ -49,7 +49,7 @@ public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, ByteBuf in, ByteBuf out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, ByteBuf in, ByteBuf out) {
         if (!serverElseClient) {
             out.writeBytes(FRAME_MAGIC);
             //TODO sno
@@ -61,10 +61,10 @@ public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
         List<ByteBuf> byteBufs = new ArrayList<>();
         while (in.readableBytes() > 0) {
-            /** 合并解包 */
+            //合并解包
             if (serverElseClient) {
                 if (in.readableBytes() >= FRAME_BASE_LENGTH) {
                     byte[] magic = new byte[FRAME_MAGIC.length];

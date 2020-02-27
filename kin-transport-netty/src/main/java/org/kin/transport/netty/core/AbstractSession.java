@@ -2,7 +2,6 @@ package org.kin.transport.netty.core;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import org.kin.transport.netty.core.domain.Response;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.utils.ChannelUtils;
@@ -86,12 +85,7 @@ public abstract class AbstractSession {
     public void writeAndClose(Response response, SessionCloseCause cause, String ip) {
         if (response != null) {
             ChannelFuture writeFuture = channel.writeAndFlush(response);
-            writeFuture.addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                    close(cause, ip);
-                }
-            });
+            writeFuture.addListener((ChannelFuture channelFuture) -> close(cause, ip));
             channel.eventLoop().schedule(() -> {
                 if (!writeFuture.isDone()) {
                     close(cause, ip);

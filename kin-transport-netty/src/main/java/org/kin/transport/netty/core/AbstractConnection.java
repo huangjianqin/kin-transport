@@ -18,13 +18,14 @@ public abstract class AbstractConnection {
     }
 
     /**
+     * 连接
      * @param channelOptions            netty channel可选项
      * @param channelHandlerInitializer netty channel handler 初始化
      */
     public abstract void connect(Map<ChannelOption, Object> channelOptions, ChannelHandlerInitializer channelHandlerInitializer);
 
     /**
-     *
+     * 绑定
      * @param channelOptions netty channel可选项
      * @param channelHandlerInitializer netty channel handler 初始化
      * @throws Exception 异常
@@ -41,7 +42,7 @@ public abstract class AbstractConnection {
     }
 
     /**
-     *
+     * 检查连接是否有效
      * @return 连接是否有效
      */
     public abstract boolean isActive();

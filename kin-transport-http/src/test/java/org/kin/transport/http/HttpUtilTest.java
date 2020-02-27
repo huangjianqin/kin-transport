@@ -51,7 +51,7 @@ public class HttpUtilTest {
             }
 
             @Override
-            public void response(@NotNull Call call, @NotNull Response response, ConfFindResult data) throws IOException {
+            public void response(@NotNull Call call, @NotNull Response response, ConfFindResult data) {
                 System.out.println(data);
             }
         });

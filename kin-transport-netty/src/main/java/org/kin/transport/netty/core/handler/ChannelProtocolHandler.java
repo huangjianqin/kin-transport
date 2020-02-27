@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -66,8 +65,8 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        /** 合并解包 */
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        //合并解包
         List<AbstractProtocol> protocols = new ArrayList<>();
         if (msg instanceof List) {
             protocols.addAll((Collection<? extends AbstractProtocol>) msg);
@@ -77,7 +76,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
         }
 
         for (AbstractProtocol protocol : protocols) {
-            log.debug("Recv {} {} {}", Arrays.asList(protocol.getProtocolId(), protocol.getClass().getSimpleName(), ctx.channel()));
+            log.debug("Recv {} {} {}", protocol.getProtocolId(), protocol.getClass().getSimpleName(), ctx.channel());
 
             if(ProtocolRateLimiter.valid(protocol, protocolHandler)){
                 AbstractSession session = ProtocolConstants.session(ctx.channel());
@@ -89,7 +88,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) {
         log.info("channel active: {}", ctx.channel());
         Attribute<AbstractSession> attr = ctx.channel().attr(ProtocolConstants.SESSION_KEY);
         if (!attr.compareAndSet(null, sessionBuilder.create(ctx.channel()))) {
@@ -107,7 +106,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) {
         log.info("channel inactive: {}", ctx.channel());
         if (channelInactiveListener != null) {
             try {
@@ -119,7 +118,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Channel channel = ctx.channel();
         log.error("server('{}') throw exception:{}", ChannelUtils.getIP(channel), cause);
         if (channel.isOpen() || channel.isActive()) {

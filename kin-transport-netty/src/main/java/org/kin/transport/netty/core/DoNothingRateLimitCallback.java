@@ -9,6 +9,6 @@ import org.kin.transport.netty.core.protocol.AbstractProtocol;
 public class DoNothingRateLimitCallback implements ProtocolRateLimitCallback {
     @Override
     public <T extends AbstractProtocol> void call(T protocol, ProtocolHandler<T> protocolHandler) {
-        /** do nothing */
+        //TODO do nothing
     }
 }

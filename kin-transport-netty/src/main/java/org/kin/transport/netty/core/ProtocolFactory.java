@@ -67,8 +67,6 @@ public class ProtocolFactory {
 
                 return (T) protocol;
             }
-
-            return null;
         }
 
         throw new UnknowProtocolException(id);
@@ -79,7 +77,7 @@ public class ProtocolFactory {
         if (protocolInfo != null) {
             return protocolInfo.getRate();
         }
-        /** 没有该协议, 返回最大协议间隔, 也就意味着直接抛弃 */
+        //没有该协议, 返回最大协议间隔, 也就意味着直接抛弃
         return Long.MAX_VALUE;
     }
 

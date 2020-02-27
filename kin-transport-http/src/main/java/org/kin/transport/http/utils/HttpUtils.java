@@ -29,8 +29,8 @@ public class HttpUtils {
     /**
      * 与原实例共享线程池、连接池和其他设置项，只需进行少量配置就可以实现特殊需求
      * .newBuilder()
-     */
-    /**
+     *
+     * ----
      * 最好只使用一个共享的OkHttpClient实例，将所有的网络请求都通过这个实例处理。
      * 因为每个OkHttpClient 实例都有自己的连接池和线程池，重用这个实例能降低延时，减少内存消耗，而重复创建新实例则会浪费资源。
      * OkHttpClient的线程池和连接池在空闲的时候会自动释放，所以一般情况下不需要手动关闭，但是如果出现极端内存不足的情况，可以使用以下代码释放内存：
@@ -62,9 +62,8 @@ public class HttpUtils {
      *
      * ResponseBody只能被消费一次，也就是string(),bytes(),byteStream()或 charStream()方法只能调用其中一个。
      * 如果ResponseBody中的数据很大，则不应该使用bytes() 或 string()方法，它们会将结果一次性读入内存，而应该使用byteStream()或 charStream()，以流的方式读取数据。
-     */
-
-    /**
+     *
+     * ---
      * 每个Call对象只能执行一次请求
      * 如果想重复执行相同的请求，可以：
      * client.newCall(call.request());     //获取另一个相同配置的Call对象
@@ -99,7 +98,11 @@ public class HttpUtils {
         public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
             T data = null;
             Class<T> respClass = respClass();
-            if (response.isSuccessful() && respClass != null && !String.class.equals(respClass)) {
+            if (response.isSuccessful() &&
+                    respClass != null &&
+                    !String.class.equals(respClass) &&
+                    response.body() != null
+            ) {
                 data = converter2Obj(response.body().string(), respClass);
             }
             response(call, response, data);
@@ -153,7 +156,7 @@ public class HttpUtils {
                 .build();
 
         try (Response response = CLIENT.newCall(request).execute()) {
-            if (response.isSuccessful()) {
+            if (response.isSuccessful() && response.body() != null) {
                 return response.body().string();
             }
         } catch (IOException e) {
@@ -200,7 +203,7 @@ public class HttpUtils {
                 .post(mediaType.createRequestBody(params))
                 .build();
         try (Response response = CLIENT.newCall(request).execute()) {
-            if (response.isSuccessful()) {
+            if (response.isSuccessful() && response.body() != null) {
                 return response.body().string();
             }
         } catch (IOException e) {
@@ -289,7 +292,9 @@ public class HttpUtils {
     public static abstract class AsyncHttpRequestCallback<T> implements Callback {
         @Override
         public final void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-            doResponse(converter2Obj(response.body().string(), getResponseObj()));
+            if (response.isSuccessful() && response.body() != null) {
+                doResponse(converter2Obj(response.body().string(), getResponseObj()));
+            }
         }
 
         @Override

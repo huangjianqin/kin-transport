@@ -47,7 +47,7 @@ public class Client extends AbstractConnection {
 
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
-            protected void initChannel(SocketChannel socketChannel) throws Exception {
+            protected void initChannel(SocketChannel socketChannel) {
                 socketChannel.pipeline().addLast(channelHandlerInitializer.getChannelHandlers());
             }
         });
@@ -69,7 +69,7 @@ public class Client extends AbstractConnection {
     }
 
     @Override
-    public void bind(Map<ChannelOption, Object> channelOptions, ChannelHandlerInitializer channelHandlerInitializer) throws Exception {
+    public void bind(Map<ChannelOption, Object> channelOptions, ChannelHandlerInitializer channelHandlerInitializer) {
         throw new UnsupportedOperationException();
     }
 

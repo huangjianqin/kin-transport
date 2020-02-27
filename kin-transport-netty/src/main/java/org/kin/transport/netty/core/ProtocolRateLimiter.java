@@ -20,7 +20,7 @@ public class ProtocolRateLimiter {
     private static final Map<Integer, Long> RATE_DATA = new HashMap<>();
 
     static {
-        JvmCloseCleaner.DEFAULT().add(() -> EXECUTORS.shutdown());
+        JvmCloseCleaner.DEFAULT().add(EXECUTORS::shutdown);
     }
 
     private ProtocolRateLimiter() {
@@ -45,7 +45,7 @@ public class ProtocolRateLimiter {
                 if(callback != null){
                     long finalLastTime = lastTime;
                     EXECUTORS.execute(protocolId, () -> {
-                        log.warn("protocol(id={},lastTime={},now={}) rate limit >>> ", protocolId, finalLastTime, now, protocol);
+                        log.warn("protocol(id={},lastTime={},now={}) rate limit >>> {}", protocolId, finalLastTime, now, protocol);
                         callback.call(protocol, protocolHandler);
                     });
                 }

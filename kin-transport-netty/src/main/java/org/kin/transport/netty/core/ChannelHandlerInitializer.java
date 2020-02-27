@@ -8,6 +8,7 @@ import io.netty.channel.ChannelHandler;
  */
 public interface ChannelHandlerInitializer {
     /**
+     * 返回channel需要的ChannelHandler
      * @return 返回channel需要的ChannelHandler
      */
     ChannelHandler[] getChannelHandlers();

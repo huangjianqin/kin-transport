@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.ReferenceCounted;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author huangjianqin
@@ -138,7 +138,7 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
         int length = byteBuf.readShort();
         byte[] content = new byte[length];
         byteBuf.readBytes(content);
-        return new String(content, Charset.forName("UTF-8"));
+        return new String(content, StandardCharsets.UTF_8);
     }
 
     @Override
@@ -147,7 +147,7 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
         int length = byteBuf.readUnsignedShort();
         byte[] content = new byte[length];
         byteBuf.readBytes(content);
-        return new String(content, Charset.forName("UTF-8"));
+        return new String(content, StandardCharsets.UTF_8);
     }
 
 
@@ -272,7 +272,6 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     @Override
     public Response writeInt(int value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
-        Preconditions.checkArgument(value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE, "value: %s", value);
         byteBuf.writeInt(value);
         return this;
     }
@@ -280,7 +279,6 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     @Override
     public Response writeUnsignedInt(long value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
-        Preconditions.checkArgument(value >= 0 && value <= Integer.MAX_VALUE - Integer.MIN_VALUE, "value: %s", value);
         byteBuf.writeInt((int) value);
         return this;
     }
@@ -296,7 +294,6 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     @Override
     public Response writeLong(long value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
-        Preconditions.checkArgument(value >= Long.MIN_VALUE && value <= Long.MAX_VALUE, "value: %s", value);
         byteBuf.writeLong(value);
         return this;
     }
@@ -312,7 +309,7 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     private void writeString0(String value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value != null);
-        byte[] content = value.getBytes(Charset.forName("UTF-8"));
+        byte[] content = value.getBytes(StandardCharsets.UTF_8);
         byteBuf.writeShort(content.length);
         byteBuf.writeBytes(content);
     }
@@ -373,7 +370,6 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     @Override
     public Response setInt(int index, int value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
-        Preconditions.checkArgument(value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE, "value: %s", value);
         byteBuf.setInt(index, value);
         return this;
     }
@@ -381,7 +377,6 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     @Override
     public Response setUnsignedInt(int index, long value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
-        Preconditions.checkArgument(value >= 0 && value <= Integer.MAX_VALUE - Integer.MIN_VALUE, "value: %s", value);
         byteBuf.setInt(index, (int) value);
         return this;
     }
@@ -389,7 +384,6 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     @Override
     public Response setLong(int index, long value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
-        Preconditions.checkArgument(value >= Long.MIN_VALUE && value <= Long.MAX_VALUE, "value: %s", value);
         byteBuf.setLong(index, value);
         return this;
     }

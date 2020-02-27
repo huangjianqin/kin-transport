@@ -74,6 +74,6 @@ public abstract class AbstractChannelHandlerInitializer implements ChannelHandle
                 transportOption.getChannelExceptionHandler()));
         channelHandlers.addAll(afterHandlers());
 
-        return channelHandlers.toArray(new ChannelHandler[channelHandlers.size()]);
+        return channelHandlers.toArray(new ChannelHandler[0]);
     }
 }

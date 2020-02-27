@@ -46,7 +46,7 @@ public class ProtocolCodec extends MessageToMessageCodec<List<ByteBuf>, Protocol
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, ProtocolByteBuf in, List<Object> out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, ProtocolByteBuf in, List<Object> out) {
         Tuple<Boolean, byte[]> tuple = getRealOutBytes(in);
         if (serverElseClient) {
             //server send response
@@ -72,7 +72,7 @@ public class ProtocolCodec extends MessageToMessageCodec<List<ByteBuf>, Protocol
 
     @Override
     protected void decode(ChannelHandlerContext ctx, List<ByteBuf> in, List<Object> out) throws Exception {
-        /** 合并解包 */
+        //合并解包
         List<AbstractProtocol> protocols = new ArrayList<>();
         for (ByteBuf inByteBuf : in) {
             boolean compression = inByteBuf.readBoolean();

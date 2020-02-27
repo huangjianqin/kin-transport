@@ -43,7 +43,7 @@ public class InOutBoundStatisticHolder {
         StringBuilder sb = new StringBuilder();
         sb.append(System.lineSeparator());
         for (InOutBoundStatistic statistic : statisticMap.values()) {
-            sb.append(statistic.toString() + System.lineSeparator());
+            sb.append(statistic.toString()).append(System.lineSeparator());
         }
         return sb.toString();
     }

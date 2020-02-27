@@ -61,7 +61,7 @@ public class Server extends AbstractConnection {
 
         bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
-            protected void initChannel(SocketChannel socketChannel) throws Exception {
+            protected void initChannel(SocketChannel socketChannel) {
                 socketChannel.pipeline().addLast(channelHandlerInitializer.getChannelHandlers());
             }
         });
