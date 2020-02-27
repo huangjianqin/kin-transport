@@ -109,12 +109,26 @@ public class HttpUtils {
             return null;
         }
 
+        /**
+         * http请求失败
+         *
+         * @param call http请求信息
+         * @param e    异常
+         */
         public abstract void failure(@NotNull Call call, @NotNull IOException e);
 
+        /**
+         * http请求成功
+         * @param call http请求信息
+         * @param response http请求返回
+         * @param data 返回的数据(json反序列化)
+         * @throws IOException 中途可能抛出的异常
+         */
         public abstract void response(@NotNull Call call, @NotNull Response response, T data) throws IOException;
     }
 
     //------------------------------------------------------------api----------------------------------------------------
+
     public static OkHttpClient getCLIENT() {
         return CLIENT;
     }
@@ -128,6 +142,7 @@ public class HttpUtils {
     }
 
     //------------------------------------------------------------sync api----------------------------------------------------
+
     public static <T> T get(String url, Class<T> respClass) {
         return converter2Obj(get(url), respClass);
     }
@@ -149,6 +164,7 @@ public class HttpUtils {
     }
 
     //-------------------------------------------------------
+
     public static <T> T post(String url, Class<T> respClass) {
         return converter2Obj(post(url), respClass);
     }
@@ -195,6 +211,7 @@ public class HttpUtils {
     }
 
     //------------------------------------------------------------async api----------------------------------------------------
+
     public static void get(String url, Callback callback) {
         Request request = new Request.Builder()
                 .url(url)
@@ -204,6 +221,7 @@ public class HttpUtils {
     }
 
     //-----------------------------------------------
+
     public static void post(String url, Callback callback) {
         post(url, Collections.emptyMap(), callback);
     }
@@ -279,8 +297,16 @@ public class HttpUtils {
 
         }
 
+        /**
+         * http请求成功处理
+         * @param responseObj 返回的数据(json反序列化)
+         */
         public abstract void doResponse(T responseObj);
 
+        /**
+         * 获取http返回数据对象
+         * @return http返回数据对象
+         */
         abstract Class<T> getResponseObj();
     }
 }

@@ -15,7 +15,9 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Created by huangjianqin on 2019/5/30.
+ *
+ * @author huangjianqin
+ * @date 2019/5/30
  */
 public class Client extends AbstractConnection {
     private static final Logger log = LoggerFactory.getLogger(Client.class);

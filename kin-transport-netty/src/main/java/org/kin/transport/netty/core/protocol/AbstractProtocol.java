@@ -5,7 +5,9 @@ import org.kin.transport.netty.core.domain.Request;
 import org.kin.transport.netty.core.domain.Response;
 
 /**
- * Created by huangjianqin on 2019/5/30.
+ *
+ * @author huangjianqin
+ * @date 2019/5/30
  */
 public abstract class AbstractProtocol {
     private int protocolId;
@@ -22,8 +24,17 @@ public abstract class AbstractProtocol {
 
     }
 
+    /**
+     * in解析
+     *
+     * @param request in协议(本质上是个byteBuf的封装)
+     */
     public abstract void read(Request request);
 
+    /**
+     * out封装
+     * @param response out协议(本质上是个byteBuf的封装
+     */
     public abstract void write(Response response);
 
     public Response write() {
@@ -41,6 +52,7 @@ public abstract class AbstractProtocol {
     }
 
     //setter && getter
+
     public int getProtocolId() {
         return protocolId;
     }

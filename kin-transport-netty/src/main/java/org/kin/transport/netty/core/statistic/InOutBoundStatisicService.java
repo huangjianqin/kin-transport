@@ -12,7 +12,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by huangjianqin on 2019/6/3.
+ *
+ * @author huangjianqin
+ * @date 2019/6/3
  * <p>
  * important 要手动close
  */
@@ -50,6 +52,7 @@ public class InOutBoundStatisicService implements Closeable {
     }
 
     //-------------------------------------------------------------------------------------------------------
+
     private void logReqStatistic() {
         InOutBoundStatisticHolder origin = reqHolder;
         reqHolder = new InOutBoundStatisticHolder();
@@ -72,6 +75,7 @@ public class InOutBoundStatisicService implements Closeable {
     }
 
     //-------------------------------------------------------------------------------------------------------
+
     private void logRespStatistic() {
         InOutBoundStatisticHolder origin = respHolder;
         respHolder = new InOutBoundStatisticHolder();
@@ -94,6 +98,7 @@ public class InOutBoundStatisicService implements Closeable {
     }
 
     //-------------------------------------------------------------------------------------------------------
+
     public void statisticReq(String uuid, long size) {
         reqHolder.reference();
         InOutBoundStatistic statistic = reqHolder.getstatistic(uuid);

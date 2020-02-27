@@ -17,12 +17,14 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Created by huangjianqin on 2019/5/30.
+ *
+ * @author huangjianqin
+ * @date 2019/5/30
  */
 public class Server extends AbstractConnection {
     private static final Logger log = LoggerFactory.getLogger(Server.class);
 
-    //连接相关线程池
+    /** 连接相关线程池 */
     private NioEventLoopGroup bossGroup;
     private NioEventLoopGroup workerGroup;
     private volatile Channel selector;

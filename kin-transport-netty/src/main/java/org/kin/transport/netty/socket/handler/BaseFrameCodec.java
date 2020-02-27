@@ -13,7 +13,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by huangjianqin on 2019/5/29.
+ *
+ * @author huangjianqin
+ * @date 2019/5/29
  * 主要是校验协议头
  */
 public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
@@ -22,7 +24,7 @@ public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
     private final int FRAME_SNO_SIZE = 4;
     private final int FRAME_BODY_SIZE = 4;
     private final int MAX_BODY_SIZE;
-    //true = in, false = out
+    /** true = in, false = out */
     private final boolean serverElseClient;
 
     private final int FRAME_BASE_LENGTH;

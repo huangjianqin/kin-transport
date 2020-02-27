@@ -6,7 +6,9 @@ import io.netty.util.AttributeKey;
 import org.kin.transport.netty.core.AbstractSession;
 
 /**
- * Created by huangjianqin on 2019/6/3.
+ *
+ * @author huangjianqin
+ * @date 2019/6/3
  */
 public class ProtocolConstants {
     private ProtocolConstants() {

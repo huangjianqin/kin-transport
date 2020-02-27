@@ -1,7 +1,9 @@
 package org.kin.transport.netty.core;
 
 /**
- * Created by huangjianqin on 2019/6/3.
+ *
+ * @author huangjianqin
+ * @date 2019/6/3
  */
 public enum SessionCloseCause {
     /**

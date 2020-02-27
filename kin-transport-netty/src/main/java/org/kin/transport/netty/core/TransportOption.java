@@ -39,6 +39,7 @@ public class TransportOption {
     }
 
     //------------------------------------------------------------------------------------------------------------------
+
     public <T extends TransportOption> T protocolHandler(ProtocolHandler protocolHandler) {
         this.protocolHandler = protocolHandler;
         return (T) this;
@@ -95,6 +96,7 @@ public class TransportOption {
     }
 
     //getter
+
     public ProtocolHandler getProtocolHandler() {
         return protocolHandler;
     }

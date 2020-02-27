@@ -3,7 +3,9 @@ package org.kin.transport.netty.core.protocol;
 import org.kin.transport.netty.core.domain.Request;
 
 /**
- * Created by huangjianqin on 2019/5/30.
+ *
+ * @author huangjianqin
+ * @date 2019/5/30
  */
 public abstract class AbstractResponseProtocol extends AbstractProtocol {
     public AbstractResponseProtocol() {

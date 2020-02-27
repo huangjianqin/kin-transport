@@ -5,7 +5,9 @@ import io.netty.channel.Channel;
 import java.net.InetSocketAddress;
 
 /**
- * Created by huangjianqin on 2019/6/3.
+ *
+ * @author huangjianqin
+ * @date 2019/6/3
  */
 public class ChannelUtils {
     private ChannelUtils() {

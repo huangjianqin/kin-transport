@@ -23,14 +23,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by huangjianqin on 2019/5/29.
+ *
+ * @author huangjianqin
+ * @date 2019/5/29
  */
 public class ProtocolCodec extends MessageToMessageCodec<List<ByteBuf>, ProtocolByteBuf> {
     private static final Logger log = LoggerFactory.getLogger(ProtocolCodec.class);
     private final Bytes2ProtocolTransfer transfer;
-    //true = server, false = client
+    /** true = server, false = client */
     private final boolean serverElseClient;
-    //是否压缩
+    /** 是否压缩 */
     private final boolean compression;
 
     public ProtocolCodec(Bytes2ProtocolTransfer transfer, boolean serverElseClient, boolean compression) {

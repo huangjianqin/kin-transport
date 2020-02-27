@@ -19,7 +19,9 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by huangjianqin on 2019/6/3.
+ *
+ * @author huangjianqin
+ * @date 2019/6/3
  */
 public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     private static final Logger log = LoggerFactory.getLogger(ChannelProtocolHandler.class);

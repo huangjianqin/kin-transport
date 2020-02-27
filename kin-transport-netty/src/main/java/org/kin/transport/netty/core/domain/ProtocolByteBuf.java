@@ -8,7 +8,8 @@ import io.netty.util.ReferenceCounted;
 import java.nio.charset.Charset;
 
 /**
- * Created by huangjianqin on 2019/6/4.
+ * @author huangjianqin
+ * @date 2019/6/4
  */
 public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     private static final int READ_MODE = 0;
@@ -41,6 +42,7 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     }
 
     //--------------------------------------------request----------------------------------------------------
+
     @Override
     public int getRespSN() {
         return respSN;
@@ -196,6 +198,7 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     }
 
     //--------------------------------------------response----------------------------------------------------
+
     @Override
     public ByteBuf getByteBuf() {
         return byteBuf;
