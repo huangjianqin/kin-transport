@@ -27,7 +27,7 @@ public class ChannelUtils {
         long hashcode = 0L;
         int offset = 24;
         for (String item : splits) {
-            hashcode += Long.valueOf(item) << offset;
+            hashcode += Long.parseLong(item) << offset;
             offset -= 8;
         }
         return hashcode;
