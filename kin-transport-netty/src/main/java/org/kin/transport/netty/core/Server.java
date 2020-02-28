@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -113,7 +114,7 @@ public class Server extends AbstractConnection {
 
         Server that = (Server) o;
 
-        return selector != null ? selector.equals(that.selector) : that.selector == null;
+        return Objects.equals(selector, that.selector);
     }
 
     @Override

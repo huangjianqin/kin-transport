@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -119,7 +120,7 @@ public class Client extends AbstractConnection {
 
         Client that = (Client) o;
 
-        return channel != null ? channel.equals(that.channel) : that.channel == null;
+        return Objects.equals(channel, that.channel);
     }
 
     @Override
