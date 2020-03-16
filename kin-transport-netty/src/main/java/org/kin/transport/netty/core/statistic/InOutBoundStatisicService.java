@@ -2,13 +2,10 @@ package org.kin.transport.netty.core.statistic;
 
 import org.kin.framework.Closeable;
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -29,10 +26,8 @@ public class InOutBoundStatisicService implements Closeable {
 
     private InOutBoundStatisticHolder reqHolder = new InOutBoundStatisticHolder();
     private InOutBoundStatisticHolder respHolder = new InOutBoundStatisticHolder();
-    private ThreadManager threads = new ThreadManager(
-            new ThreadPoolExecutor(2, 2, 60L, TimeUnit.SECONDS,
-                    new LinkedBlockingQueue<>(), new SimpleThreadFactory("inoutbound-statisic")),
-            1, new SimpleThreadFactory("inoutbound-statisic-schedule"));
+    private ThreadManager threads = ThreadManager.fix(2, "inoutbound-statisic",
+            1, "inoutbound-statisic-schedule");
 
     private InOutBoundStatisicService() {
         //一分钟打印一次
