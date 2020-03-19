@@ -17,7 +17,6 @@ import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 /**
- *
  * @author huangjianqin
  * @date 2019/5/30
  */
@@ -50,7 +49,9 @@ public class Client extends AbstractConnection {
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) {
-                socketChannel.pipeline().addLast(channelHandlerInitializer.getChannelHandlers());
+                for (ChannelHandler channelHandler : channelHandlerInitializer.getChannelHandlers()) {
+                    socketChannel.pipeline().addLast(channelHandler.getClass().getSimpleName(), channelHandler);
+                }
             }
         });
         ChannelFuture cf = bootstrap.connect(address);
@@ -77,7 +78,7 @@ public class Client extends AbstractConnection {
 
     @Override
     public void close() {
-        if(isStopped){
+        if (isStopped) {
             return;
         }
         isStopped = true;
