@@ -1,12 +1,9 @@
-package org.kin.transport.netty.core;
+package org.kin.transport.netty.core.handler;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
-import org.kin.transport.netty.core.handler.ChannelIdleHandler;
-import org.kin.transport.netty.core.handler.ChannelProtocolHandler;
-import org.kin.transport.netty.core.handler.ProtocolCodec;
-import org.kin.transport.netty.core.listener.ChannelIdleListener;
+import org.kin.transport.netty.core.TransportOption;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,28 +47,18 @@ public abstract class AbstractChannelHandlerInitializer implements ChannelHandle
         List<ChannelHandler> channelHandlers = new ArrayList<>();
         channelHandlers.add(new WriteTimeoutHandler(3));
 
-
-        ChannelIdleListener channelIdleListener = transportOption.getChannelIdleListener();
-        if (channelIdleListener != null) {
-            int readIdleTime = channelIdleListener.readIdleTime();
-            int writeIdleTime = channelIdleListener.writeIdelTime();
-            int allIdleTime = channelIdleListener.allIdleTime();
-            if (readIdleTime > 0 || writeIdleTime > 0 || allIdleTime > 0) {
-                //其中一个>0就设置Handler
-                channelHandlers.add(new IdleStateHandler(readIdleTime, writeIdleTime, allIdleTime));
-                channelHandlers.add(new ChannelIdleHandler(channelIdleListener));
-            }
-
+        int readIdleTime = transportOption.getReadIdleTime();
+        int writeIdleTime = transportOption.getWriteIdleTime();
+        int readWriteIdleTime = transportOption.getReadWriteIdleTime();
+        if (readIdleTime > 0 || writeIdleTime > 0 || readWriteIdleTime > 0) {
+            //其中一个>0就设置Handler
+            channelHandlers.add(new IdleStateHandler(readIdleTime, writeIdleTime, readWriteIdleTime));
+            channelHandlers.add(new ChannelIdleHandler(transportOption.getTransportHandler()));
         }
 
         channelHandlers.addAll(beforeHandlers());
         channelHandlers.add(new ProtocolCodec(transportOption.getProtocolTransfer(), serverElseClient(), transportOption.isCompression()));
-        channelHandlers.add(new ChannelProtocolHandler(
-                transportOption.getProtocolHandler(),
-                transportOption.getSessionBuilder(),
-                transportOption.getChannelActiveListener(),
-                transportOption.getChannelInactiveListener(),
-                transportOption.getChannelExceptionHandler()));
+        channelHandlers.add(new ChannelProtocolHandler(transportOption.getTransportHandler()));
         channelHandlers.addAll(afterHandlers());
 
         return channelHandlers.toArray(new ChannelHandler[0]);

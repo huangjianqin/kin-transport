@@ -1,19 +1,19 @@
-package org.kin.transport.netty.core;
+package org.kin.transport.netty.core.session;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import org.kin.transport.netty.core.domain.Response;
+import org.kin.transport.netty.core.domain.SessionCloseCause;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
+import org.kin.transport.netty.core.protocol.domain.Response;
 import org.kin.transport.netty.core.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
  * @author huangjianqin
  * @date 2019/5/30
  */
@@ -23,11 +23,10 @@ public abstract class AbstractSession {
     private volatile Channel channel;
     private boolean isFlush;
 
-    protected AtomicInteger respSNCounter = new AtomicInteger(1);
-    protected volatile String ip;
-    protected volatile long ipHashCode;
-    protected volatile boolean isClosed;
-    protected SessionCloseCause sessionCloseCause;
+    private volatile String ip;
+    private volatile long ipHashCode;
+    private volatile boolean isClosed;
+    private SessionCloseCause sessionCloseCause;
 
     private AtomicBoolean flushChannelScheduleTag = new AtomicBoolean(false);
 
@@ -38,7 +37,7 @@ public abstract class AbstractSession {
         this.isFlush = isFlush;
     }
 
-    public Channel change(Channel channel) {
+    public final Channel change(Channel channel) {
         if (!isClosed) {
             Channel old = this.channel;
             this.channel = channel;
@@ -51,15 +50,12 @@ public abstract class AbstractSession {
     }
 
     public void sendProtocol(AbstractProtocol protocol) {
-        if (protocol != null) {
-            Response response = protocol.write();
-            if (response != null) {
-                write(response);
-            }
+        if (Objects.nonNull(protocol)) {
+            write(protocol.write());
         }
     }
 
-    public void write(Response response) {
+    protected final void write(Response response) {
         if (isActive()) {
             if (response != null) {
                 if (isFlush) {
@@ -82,7 +78,7 @@ public abstract class AbstractSession {
         }, 50, TimeUnit.MILLISECONDS);
     }
 
-    public void writeAndClose(Response response, SessionCloseCause cause, String ip) {
+    public final void writeAndClose(Response response, SessionCloseCause cause, String ip) {
         if (response != null) {
             ChannelFuture writeFuture = channel.writeAndFlush(response);
             writeFuture.addListener((ChannelFuture channelFuture) -> close(cause, ip));
@@ -94,7 +90,7 @@ public abstract class AbstractSession {
         }
     }
 
-    public ChannelFuture close(SessionCloseCause cause, String ip) {
+    public final ChannelFuture close(SessionCloseCause cause, String ip) {
         this.isClosed = true;
         this.sessionCloseCause = cause;
         if (channel.isOpen()) {
@@ -110,11 +106,6 @@ public abstract class AbstractSession {
         return channel != null && channel.isActive();
     }
 
-    public int getRespSN() {
-        return respSNCounter.getAndIncrement();
-    }
-
-    //getter
     public Channel getChannel() {
         return channel;
     }

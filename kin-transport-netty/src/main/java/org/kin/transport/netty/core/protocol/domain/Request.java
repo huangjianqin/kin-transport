@@ -1,4 +1,4 @@
-package org.kin.transport.netty.core.domain;
+package org.kin.transport.netty.core.protocol.domain;
 
 /**
  *
@@ -6,13 +6,6 @@ package org.kin.transport.netty.core.domain;
  * @date 2019/5/30
  */
 public interface Request {
-    /**
-     * 获取response sn
-     *
-     * @return response sn
-     */
-    int getRespSN();
-
     /**
      * 获取协议号
      * @return 协议号

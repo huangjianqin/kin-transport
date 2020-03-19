@@ -1,12 +1,9 @@
-package org.kin.transport.netty.core;
+package org.kin.transport.netty.core.protocol;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.utils.ClassUtils;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.transport.netty.core.exception.UnknowProtocolException;
-import org.kin.transport.netty.core.protocol.AbstractProtocol;
-import org.kin.transport.netty.core.protocol.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +30,9 @@ public class ProtocolFactory {
             for (Class<? extends AbstractProtocol> protocolClass : protocolClasses) {
                 Protocol protocolAnnotation = protocolClass.getAnnotation(Protocol.class);
                 if (protocolAnnotation != null) {
-                    long rate = protocolAnnotation.rate();
-                    PROTOCOL_CACHE.put(protocolAnnotation.id(), new ProtocolInfo(protocolClass, rate, protocolAnnotation.callback()));
-                    log.info("find protocol(id={}) >>> {}, interval={}, callback={}", protocolAnnotation.id(), protocolClass, rate, protocolAnnotation.callback());
+                    int rate = protocolAnnotation.rate();
+                    PROTOCOL_CACHE.put(protocolAnnotation.id(), new ProtocolInfo(protocolClass, rate));
+                    log.info("find protocol(id={}) >>> {}, interval={}, callback={}", protocolAnnotation.id(), protocolClass, rate);
                 }
             }
         }
@@ -72,38 +69,22 @@ public class ProtocolFactory {
         throw new UnknowProtocolException(id);
     }
 
-    public static long getProtocolRate(int id){
+    public static int getProtocolRate(int id) {
         ProtocolInfo protocolInfo = PROTOCOL_CACHE.getIfPresent(id);
         if (protocolInfo != null) {
             return protocolInfo.getRate();
         }
         //没有该协议, 返回最大协议间隔, 也就意味着直接抛弃
-        return Long.MAX_VALUE;
-    }
-
-    public static ProtocolRateLimitCallback getProtocolRateLimitCallback(int id){
-        ProtocolInfo protocolInfo = PROTOCOL_CACHE.getIfPresent(id);
-        if (protocolInfo != null) {
-            return protocolInfo.getRateLimitCallback();
-        }
-        return null;
+        return Integer.MAX_VALUE;
     }
 
     private static class ProtocolInfo {
         private Class<? extends AbstractProtocol> protocolClass;
-        private long rate;
-        private ProtocolRateLimitCallback rateLimitCallback;
+        private int rate;
 
-        public ProtocolInfo(Class<? extends AbstractProtocol> protocolClass, long rate, Class<? extends ProtocolRateLimitCallback> rateLimitCallbackClass) {
+        public ProtocolInfo(Class<? extends AbstractProtocol> protocolClass, int rate) {
             this.protocolClass = protocolClass;
             this.rate = rate;
-            if (rateLimitCallbackClass != null && ProtocolRateLimitCallback.class.isAssignableFrom(rateLimitCallbackClass)) {
-                try {
-                    rateLimitCallback = rateLimitCallbackClass.newInstance();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    ExceptionUtils.log(e);
-                }
-            }
         }
 
         //getter
@@ -111,12 +92,8 @@ public class ProtocolFactory {
             return protocolClass;
         }
 
-        public long getRate() {
+        public int getRate() {
             return rate;
-        }
-
-        public ProtocolRateLimitCallback getRateLimitCallback() {
-            return rateLimitCallback;
         }
     }
 }

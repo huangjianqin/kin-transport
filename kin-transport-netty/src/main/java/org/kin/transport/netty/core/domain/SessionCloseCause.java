@@ -1,4 +1,4 @@
-package org.kin.transport.netty.core;
+package org.kin.transport.netty.core.domain;
 
 /**
  *

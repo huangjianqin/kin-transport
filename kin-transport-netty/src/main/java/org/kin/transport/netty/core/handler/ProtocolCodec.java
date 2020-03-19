@@ -2,17 +2,15 @@ package org.kin.transport.netty.core.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.util.ReferenceCountUtil;
 import org.kin.framework.collection.Tuple;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.transport.netty.core.AbstractSession;
-import org.kin.transport.netty.core.Bytes2ProtocolTransfer;
-import org.kin.transport.netty.core.common.ProtocolConstants;
-import org.kin.transport.netty.core.domain.ProtocolByteBuf;
-import org.kin.transport.netty.core.domain.Request;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
+import org.kin.transport.netty.core.protocol.Bytes2ProtocolTransfer;
+import org.kin.transport.netty.core.protocol.domain.ProtocolByteBuf;
+import org.kin.transport.netty.core.protocol.domain.Request;
 import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +51,6 @@ public class ProtocolCodec extends MessageToMessageCodec<List<ByteBuf>, Protocol
             ByteBuf outByteBuf = ctx.alloc().buffer();
 
             outByteBuf.writeBoolean(tuple.first());
-            outByteBuf.writeInt(getRespSN(ctx.channel()));
             outByteBuf.writeBytes(tuple.second());
             out.add(outByteBuf);
 
@@ -75,36 +72,30 @@ public class ProtocolCodec extends MessageToMessageCodec<List<ByteBuf>, Protocol
         //合并解包
         List<AbstractProtocol> protocols = new ArrayList<>();
         for (ByteBuf inByteBuf : in) {
-            boolean compression = inByteBuf.readBoolean();
-            if (serverElseClient) {
-                inByteBuf = getRealInByteBuff(inByteBuf, compression);
-                Request byteBufRequest = new ProtocolByteBuf(inByteBuf);
-                protocols.add(transfer.transfer(byteBufRequest));
+            try {
+                boolean compression = inByteBuf.readBoolean();
+                if (serverElseClient) {
+                    inByteBuf = getRealInByteBuff(inByteBuf, compression);
+                    Request byteBufRequest = new ProtocolByteBuf(inByteBuf);
+                    protocols.add(transfer.transfer(byteBufRequest));
 
-                //server receive request
-                InOutBoundStatisicService.instance()
-                        .statisticReq(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
-            } else {
-                //client 需要解析respSN
-                int respSN = inByteBuf.readInt();
-                inByteBuf = getRealInByteBuff(inByteBuf, compression);
-                Request byteBufRequest = new ProtocolByteBuf(inByteBuf, respSN);
-                protocols.add(transfer.transfer(byteBufRequest));
+                    //server receive request
+                    InOutBoundStatisicService.instance()
+                            .statisticReq(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
+                } else {
+                    inByteBuf = getRealInByteBuff(inByteBuf, compression);
+                    Request byteBufRequest = new ProtocolByteBuf(inByteBuf);
+                    protocols.add(transfer.transfer(byteBufRequest));
 
-                //client receive response
-                InOutBoundStatisicService.instance()
-                        .statisticResp(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
+                    //client receive response
+                    InOutBoundStatisicService.instance()
+                            .statisticResp(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
+                }
+            } finally {
+                ReferenceCountUtil.release(in);
             }
         }
         out.add(protocols);
-    }
-
-    private int getRespSN(Channel channel) {
-        AbstractSession session = ProtocolConstants.session(channel);
-        if (session != null) {
-            return session.getRespSN();
-        }
-        return -1;
     }
 
     /**

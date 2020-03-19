@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.kin.transport.netty.core.handler.ChannelHandlerInitializer;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,7 +94,7 @@ public class Client extends AbstractConnection {
     }
 
     public void request(AbstractProtocol protocol) {
-        if (isActive()) {
+        if (isActive() && Objects.nonNull(protocol)) {
             channel.writeAndFlush(protocol.write());
         }
     }

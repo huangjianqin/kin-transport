@@ -1,4 +1,4 @@
-package org.kin.transport.netty.core.domain;
+package org.kin.transport.netty.core.protocol.domain;
 
 import io.netty.buffer.ByteBuf;
 

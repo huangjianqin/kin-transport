@@ -1,9 +1,8 @@
 package org.kin.transport.netty.core;
 
 import io.netty.channel.ChannelOption;
-import org.kin.transport.netty.core.listener.ChannelActiveListener;
-import org.kin.transport.netty.core.listener.ChannelIdleListener;
-import org.kin.transport.netty.core.listener.ChannelInactiveListener;
+import org.kin.transport.netty.core.protocol.Bytes2ProtocolTransfer;
+import org.kin.transport.netty.core.protocol.DefaultProtocolTransfer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,22 +12,21 @@ import java.util.Map;
  * @date 2019/7/29
  */
 public class TransportOption {
-    private ProtocolHandler protocolHandler;
-    private SessionBuilder sessionBuilder;
-
+    private TransportHandler transportHandler = TransportHandler.DO_NOTHING;
     private Map<ChannelOption, Object> channelOptions = new HashMap<>();
-    private Bytes2ProtocolTransfer protocolTransfer;
-    private ChannelActiveListener channelActiveListener;
-    private ChannelInactiveListener channelInactiveListener;
-    private ChannelExceptionHandler channelExceptionHandler;
-    private ChannelIdleListener channelIdleListener;
+    private Bytes2ProtocolTransfer protocolTransfer = DefaultProtocolTransfer.instance();
+    ;
 
+    /** 是否压缩 */
     private boolean compression;
-
-    public TransportOption() {
-        sessionBuilder = DefaultSessionBuilder.instance();
-        protocolTransfer = DefaultProtocolTransfer.instance();
-    }
+    /** 全局控流 */
+    private int globalRateLimit;
+    /** 读空闲时间(秒) */
+    private int readIdleTime;
+    /** 写空闲时间(秒) */
+    private int writeIdleTime;
+    /** 读写空闲时间(秒) */
+    private int readWriteIdleTime;
 
     public static ServerTransportOption server() {
         return new ServerTransportOption();
@@ -40,13 +38,8 @@ public class TransportOption {
 
     //------------------------------------------------------------------------------------------------------------------
 
-    public <T extends TransportOption> T protocolHandler(ProtocolHandler protocolHandler) {
-        this.protocolHandler = protocolHandler;
-        return (T) this;
-    }
-
-    public <T extends TransportOption> T sessionBuilder(SessionBuilder sessionBuilder) {
-        this.sessionBuilder = sessionBuilder;
+    public <T extends TransportOption> T transportHandler(TransportHandler transportHandler) {
+        this.transportHandler = transportHandler;
         return (T) this;
     }
 
@@ -65,26 +58,6 @@ public class TransportOption {
         return (T) this;
     }
 
-    public <T extends TransportOption> T channelActiveListener(ChannelActiveListener channelActiveListener) {
-        this.channelActiveListener = channelActiveListener;
-        return (T) this;
-    }
-
-    public <T extends TransportOption> T channelInactiveListener(ChannelInactiveListener channelInactiveListener) {
-        this.channelInactiveListener = channelInactiveListener;
-        return (T) this;
-    }
-
-    public <T extends TransportOption> T channelExceptionHandler(ChannelExceptionHandler channelExceptionHandler) {
-        this.channelExceptionHandler = channelExceptionHandler;
-        return (T) this;
-    }
-
-    public <T extends TransportOption> T channelIdleListener(ChannelIdleListener channelIdleListener) {
-        this.channelIdleListener = channelIdleListener;
-        return (T) this;
-    }
-
     public <T extends TransportOption> T compress() {
         this.compression = true;
         return (T) this;
@@ -95,14 +68,29 @@ public class TransportOption {
         return (T) this;
     }
 
-    //getter
-
-    public ProtocolHandler getProtocolHandler() {
-        return protocolHandler;
+    public <T extends TransportOption> T globalRateLimit(int globalRateLimit) {
+        this.globalRateLimit = globalRateLimit;
+        return (T) this;
     }
 
-    public SessionBuilder getSessionBuilder() {
-        return sessionBuilder;
+    public <T extends TransportOption> T readIdleTime(int readIdleTime) {
+        this.readIdleTime = readIdleTime;
+        return (T) this;
+    }
+
+    public <T extends TransportOption> T writeIdleTime(int writeIdleTime) {
+        this.writeIdleTime = writeIdleTime;
+        return (T) this;
+    }
+
+    public <T extends TransportOption> T readWriteIdleTime(int readWriteIdleTime) {
+        this.readWriteIdleTime = readWriteIdleTime;
+        return (T) this;
+    }
+
+    //getter
+    public TransportHandler getTransportHandler() {
+        return transportHandler;
     }
 
     public Map<ChannelOption, Object> getChannelOptions() {
@@ -113,23 +101,23 @@ public class TransportOption {
         return protocolTransfer;
     }
 
-    public ChannelActiveListener getChannelActiveListener() {
-        return channelActiveListener;
-    }
-
-    public ChannelInactiveListener getChannelInactiveListener() {
-        return channelInactiveListener;
-    }
-
-    public ChannelExceptionHandler getChannelExceptionHandler() {
-        return channelExceptionHandler;
-    }
-
-    public ChannelIdleListener getChannelIdleListener() {
-        return channelIdleListener;
-    }
-
     public boolean isCompression() {
         return compression;
+    }
+
+    public int getGlobalRateLimit() {
+        return globalRateLimit;
+    }
+
+    public int getReadIdleTime() {
+        return readIdleTime;
+    }
+
+    public int getWriteIdleTime() {
+        return writeIdleTime;
+    }
+
+    public int getReadWriteIdleTime() {
+        return readWriteIdleTime;
     }
 }

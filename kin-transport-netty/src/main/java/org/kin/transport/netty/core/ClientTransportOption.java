@@ -1,5 +1,6 @@
 package org.kin.transport.netty.core;
 
+import org.kin.transport.netty.core.handler.ChannelHandlerInitializer;
 import org.kin.transport.netty.socket.SocketHandlerInitializer;
 
 import java.net.InetSocketAddress;

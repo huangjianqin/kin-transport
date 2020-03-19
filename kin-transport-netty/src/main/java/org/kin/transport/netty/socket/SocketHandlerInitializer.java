@@ -1,9 +1,9 @@
 package org.kin.transport.netty.socket;
 
 import io.netty.channel.ChannelHandler;
-import org.kin.transport.netty.core.AbstractChannelHandlerInitializer;
 import org.kin.transport.netty.core.TransportOption;
-import org.kin.transport.netty.socket.handler.BaseFrameCodec;
+import org.kin.transport.netty.core.handler.AbstractChannelHandlerInitializer;
+import org.kin.transport.netty.socket.handler.ByteFrameCodec;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -23,8 +23,8 @@ public class SocketHandlerInitializer extends AbstractChannelHandlerInitializer 
     @Override
     protected Collection<ChannelHandler> beforeHandlers() {
         return serverElseClient ?
-                Collections.singleton(BaseFrameCodec.serverFrameCodec()) :
-                Collections.singleton(BaseFrameCodec.clientFrameCodec());
+                Collections.singleton(ByteFrameCodec.serverFrameCodec(transportOption.getGlobalRateLimit())) :
+                Collections.singleton(ByteFrameCodec.clientFrameCodec());
     }
 
     @Override

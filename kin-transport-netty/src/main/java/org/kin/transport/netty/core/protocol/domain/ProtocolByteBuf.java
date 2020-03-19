@@ -1,4 +1,4 @@
-package org.kin.transport.netty.core.domain;
+package org.kin.transport.netty.core.protocol.domain;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -17,7 +17,6 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     private static final int READ_WRITE_MODE = 2;
 
     private ByteBuf byteBuf;
-    private int respSN = -1;
     private int protocolId;
     private int contentSize;
     private final int mode;
@@ -29,11 +28,6 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
         this.mode = READ_MODE;
     }
 
-    public ProtocolByteBuf(ByteBuf byteBuf, int respSN) {
-        this(byteBuf);
-        this.respSN = respSN;
-    }
-
     public ProtocolByteBuf(int protocolId) {
         byteBuf = Unpooled.buffer();
         byteBuf.writeShort(protocolId);
@@ -42,11 +36,6 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     }
 
     //--------------------------------------------request----------------------------------------------------
-
-    @Override
-    public int getRespSN() {
-        return respSN;
-    }
 
     @Override
     public int getContentSize() {

@@ -1,6 +1,6 @@
 package org.kin.transport.netty.core.protocol;
 
-import org.kin.transport.netty.core.domain.Response;
+import org.kin.transport.netty.core.protocol.domain.Response;
 
 /**
  *

@@ -1,7 +1,7 @@
-package org.kin.transport.netty;
+package org.kin.transport.core;
 
-import org.kin.transport.netty.core.domain.Response;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
+import org.kin.transport.netty.core.protocol.domain.Response;
 
 /**
  * @author huangjianqin

@@ -3,11 +3,11 @@ package org.kin.transport.netty.core.handler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.Attribute;
-import org.kin.transport.netty.core.*;
-import org.kin.transport.netty.core.common.ProtocolConstants;
-import org.kin.transport.netty.core.listener.ChannelActiveListener;
-import org.kin.transport.netty.core.listener.ChannelInactiveListener;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import org.kin.transport.netty.core.TransportHandler;
+import org.kin.transport.netty.core.domain.GlobalRatelimitEvent;
+import org.kin.transport.netty.core.domain.ProtocolRateLimiter;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.utils.ChannelUtils;
 import org.slf4j.Logger;
@@ -18,50 +18,15 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- *
  * @author huangjianqin
  * @date 2019/6/3
  */
 public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     private static final Logger log = LoggerFactory.getLogger(ChannelProtocolHandler.class);
-    private final ProtocolHandler protocolHandler;
-    private final SessionBuilder sessionBuilder;
-    private ChannelActiveListener channelActiveListener;
-    private ChannelInactiveListener channelInactiveListener;
-    private ChannelExceptionHandler channelExceptionHandler;
+    private final TransportHandler transportHandler;
 
-    public ChannelProtocolHandler(ProtocolHandler protocolHandler,
-                                  SessionBuilder sessionBuilder,
-                                  ChannelActiveListener channelActiveListener,
-                                  ChannelInactiveListener channelInactiveListener,
-                                  ChannelExceptionHandler channelExceptionHandler) {
-        this.protocolHandler = protocolHandler;
-        this.sessionBuilder = sessionBuilder;
-        this.channelActiveListener = channelActiveListener;
-        this.channelInactiveListener = channelInactiveListener;
-        this.channelExceptionHandler = channelExceptionHandler;
-    }
-
-    public ChannelProtocolHandler(ProtocolHandler protocolHandler, SessionBuilder sessionBuilder) {
-        this(protocolHandler, sessionBuilder, null, null, null);
-    }
-
-    public ChannelProtocolHandler(ProtocolHandler protocolHandler,
-                                  SessionBuilder sessionBuilder,
-                                  ChannelActiveListener channelActiveListener) {
-        this(protocolHandler, sessionBuilder, channelActiveListener, null, null);
-    }
-
-    public ChannelProtocolHandler(ProtocolHandler protocolHandler,
-                                  SessionBuilder sessionBuilder,
-                                  ChannelInactiveListener channelInactiveListener) {
-        this(protocolHandler, sessionBuilder, null, channelInactiveListener, null);
-    }
-
-    public ChannelProtocolHandler(ProtocolHandler protocolHandler,
-                                  SessionBuilder sessionBuilder,
-                                  ChannelExceptionHandler channelExceptionHandler) {
-        this(protocolHandler, sessionBuilder, null, null, channelExceptionHandler);
+    public ChannelProtocolHandler(TransportHandler transportHandler) {
+        this.transportHandler = transportHandler;
     }
 
     @Override
@@ -76,60 +41,53 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
         }
 
         for (AbstractProtocol protocol : protocols) {
-            log.debug("Recv {} {} {}", protocol.getProtocolId(), protocol.getClass().getSimpleName(), ctx.channel());
+            log.debug("Recv {} {} {}", protocol.getProtocolId(), protocol.getClass().getSimpleName(), ChannelUtils.getIP(ctx.channel()));
 
-            if(ProtocolRateLimiter.valid(protocol, protocolHandler)){
-                AbstractSession session = ProtocolConstants.session(ctx.channel());
-                if (session != null) {
-                    protocolHandler.handleProtocol(session, protocol);
-                }
+            //流控
+            if (ProtocolRateLimiter.valid(protocol)) {
+                transportHandler.handleProtocol(ctx.channel(), protocol);
+            } else {
+                transportHandler.rateLimitReject(ctx.channel(), protocol);
             }
         }
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        log.info("channel active: {}", ctx.channel());
-        Attribute<AbstractSession> attr = ctx.channel().attr(ProtocolConstants.SESSION_KEY);
-        if (!attr.compareAndSet(null, sessionBuilder.create(ctx.channel()))) {
-            ctx.channel().close();
-            log.error("Duplicate Session! IP: {}", ChannelUtils.getIP(ctx.channel()));
-            return;
-        }
-        if (channelActiveListener != null) {
-            try {
-                channelActiveListener.channelActive(ctx.channel());
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-        }
+        Channel channel = ctx.channel();
+        log.info("channel active: {}", ChannelUtils.getIP(channel));
+        transportHandler.channelActive(ctx.channel());
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        log.info("channel inactive: {}", ctx.channel());
-        if (channelInactiveListener != null) {
-            try {
-                channelInactiveListener.channelInactive(ctx.channel());
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-        }
+        Channel channel = ctx.channel();
+        log.info("channel inactive: {}", ChannelUtils.getIP(channel));
+        transportHandler.channelInactive(ctx.channel());
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Channel channel = ctx.channel();
         log.error("server('{}') throw exception:{}", ChannelUtils.getIP(channel), cause);
-        if (channel.isOpen() || channel.isActive()) {
-            ctx.close();
-        }
-        if (channelExceptionHandler != null) {
-            try {
-                channelExceptionHandler.handleException(ctx.channel(), cause);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
+        transportHandler.handleException(channel, cause);
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
+        if (evt instanceof IdleStateEvent) {
+            IdleStateEvent event = (IdleStateEvent) evt;
+            if (event.state() == IdleState.READER_IDLE) {
+                transportHandler.readIdle(ctx.channel());
+            } else if (event.state() == IdleState.WRITER_IDLE) {
+                transportHandler.writeIdel(ctx.channel());
+            } else {
+                //All IDLE
+                transportHandler.readWriteIdle(ctx.channel());
             }
+        }
+        if (evt instanceof GlobalRatelimitEvent) {
+            transportHandler.globalRateLimitReject();
         }
     }
 }

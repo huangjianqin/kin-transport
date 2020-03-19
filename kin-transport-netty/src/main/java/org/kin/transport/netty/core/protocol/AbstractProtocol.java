@@ -1,8 +1,8 @@
 package org.kin.transport.netty.core.protocol;
 
-import org.kin.transport.netty.core.domain.ProtocolByteBuf;
-import org.kin.transport.netty.core.domain.Request;
-import org.kin.transport.netty.core.domain.Response;
+import org.kin.transport.netty.core.protocol.domain.ProtocolByteBuf;
+import org.kin.transport.netty.core.protocol.domain.Request;
+import org.kin.transport.netty.core.protocol.domain.Response;
 
 /**
  *
@@ -26,7 +26,6 @@ public abstract class AbstractProtocol {
 
     /**
      * in解析
-     *
      * @param request in协议(本质上是个byteBuf的封装)
      */
     public abstract void read(Request request);

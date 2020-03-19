@@ -4,21 +4,20 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
-import org.kin.transport.netty.core.listener.ChannelIdleListener;
+import org.kin.transport.netty.core.TransportHandler;
 
 /**
- *
  * @author huangjianqin
  * @date 2019/6/3
  */
 public class ChannelIdleHandler extends ChannelDuplexHandler {
-    private ChannelIdleListener channelIdleListener;
+    private TransportHandler transportHandler;
 
     public ChannelIdleHandler() {
     }
 
-    public ChannelIdleHandler(ChannelIdleListener channelIdleListener) {
-        this.channelIdleListener = channelIdleListener;
+    public ChannelIdleHandler(TransportHandler transportHandler) {
+        this.transportHandler = transportHandler;
     }
 
     @Override
@@ -26,18 +25,12 @@ public class ChannelIdleHandler extends ChannelDuplexHandler {
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state() == IdleState.READER_IDLE) {
-                if (channelIdleListener != null) {
-                    channelIdleListener.readIdle(ctx.channel());
-                }
+                transportHandler.readIdle(ctx.channel());
             } else if (event.state() == IdleState.WRITER_IDLE) {
-                if (channelIdleListener != null) {
-                    channelIdleListener.writeIdel(ctx.channel());
-                }
+                transportHandler.writeIdel(ctx.channel());
             } else {
                 //All IDLE
-                if (channelIdleListener != null) {
-                    channelIdleListener.allIdle(ctx.channel());
-                }
+                transportHandler.readWriteIdle(ctx.channel());
             }
         }
     }
