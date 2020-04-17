@@ -57,7 +57,7 @@ public class HttpUtilTest {
         });
     }
 
-    private static class ConfFindResult {
+    private class ConfFindResult {
         private int code;
         private String msg;
         private Map<String, Object> data;

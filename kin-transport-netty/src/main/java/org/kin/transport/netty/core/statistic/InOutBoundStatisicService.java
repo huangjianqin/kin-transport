@@ -2,7 +2,7 @@ package org.kin.transport.netty.core.statistic;
 
 import org.kin.framework.Closeable;
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.framework.concurrent.ThreadManager;
+import org.kin.framework.concurrent.ExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +26,12 @@ public class InOutBoundStatisicService implements Closeable {
 
     private InOutBoundStatisticHolder reqHolder = new InOutBoundStatisticHolder();
     private InOutBoundStatisticHolder respHolder = new InOutBoundStatisticHolder();
-    private ThreadManager threads = ThreadManager.fix(2, "inoutbound-statisic",
+    private ExecutionContext executionContext = ExecutionContext.fix(2, "inoutbound-statisic",
             1, "inoutbound-statisic-schedule");
 
     private InOutBoundStatisicService() {
         //一分钟打印一次
-        threads.scheduleAtFixedRate(() -> {
+        executionContext.scheduleAtFixedRate(() -> {
             logReqStatistic();
             logRespStatistic();
         }, 1, 1, TimeUnit.MINUTES);
@@ -43,7 +43,7 @@ public class InOutBoundStatisicService implements Closeable {
 
     @Override
     public void close() {
-        threads.shutdown();
+        executionContext.shutdown();
     }
 
     //-------------------------------------------------------------------------------------------------------
@@ -57,7 +57,7 @@ public class InOutBoundStatisicService implements Closeable {
     private void logReqStatistic0(InOutBoundStatisticHolder origin) {
         if (origin != null) {
             if (origin.getRef() > 0) {
-                threads.schedule(() -> logReqStatistic0(origin), 50, TimeUnit.MILLISECONDS);
+                executionContext.schedule(() -> logReqStatistic0(origin), 50, TimeUnit.MILLISECONDS);
                 return;
             }
             logReqStatistic1(origin);
@@ -80,7 +80,7 @@ public class InOutBoundStatisicService implements Closeable {
     private void logRespStatistic0(InOutBoundStatisticHolder origin) {
         if (origin != null) {
             if (origin.getRef() > 0) {
-                threads.schedule(() -> logRespStatistic0(origin), 50, TimeUnit.MILLISECONDS);
+                executionContext.schedule(() -> logRespStatistic0(origin), 50, TimeUnit.MILLISECONDS);
                 return;
             }
             logRespStatistic1(origin);
