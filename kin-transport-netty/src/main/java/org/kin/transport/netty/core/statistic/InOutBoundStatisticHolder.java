@@ -1,14 +1,13 @@
 package org.kin.transport.netty.core.statistic;
 
-import org.kin.framework.concurrent.Partitioner;
-import org.kin.framework.concurrent.impl.EfficientHashPartitioner;
+import org.kin.framework.concurrent.partition.partitioner.Partitioner;
+import org.kin.framework.concurrent.partition.partitioner.impl.EfficientHashPartitioner;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- *
  * @author huangjianqin
  * @date 2019/6/4
  */
@@ -18,7 +17,7 @@ public class InOutBoundStatisticHolder {
 
     private static final byte LOCK_NUM = 5;
     private final Object[] locks = new Object[LOCK_NUM];
-    private final Partitioner<String> partitioner = new EfficientHashPartitioner<>();
+    private final Partitioner<String> partitioner = EfficientHashPartitioner.INSTANCE;
 
     InOutBoundStatisticHolder() {
         for (int i = 0; i < locks.length; i++) {
