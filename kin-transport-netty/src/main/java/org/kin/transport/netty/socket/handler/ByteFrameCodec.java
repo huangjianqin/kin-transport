@@ -100,6 +100,7 @@ public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
 
                     int bodyReadableSize = in.readableBytes();
                     if (bodyReadableSize < bodySize) {
+                        in.skipBytes(bodyReadableSize);
                         throw new IllegalStateException(String.format("BodyReadableSize[%s] < BodySize[%s]!", bodyReadableSize, bodySize));
                     }
 
