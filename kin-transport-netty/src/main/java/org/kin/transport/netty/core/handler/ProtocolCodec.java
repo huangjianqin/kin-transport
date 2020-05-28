@@ -7,7 +7,6 @@ import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.framework.collection.Tuple;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.protocol.Bytes2ProtocolTransfer;
 import org.kin.transport.netty.core.protocol.domain.ProtocolByteBuf;
 import org.kin.transport.netty.core.protocol.domain.Request;
@@ -17,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.xerial.snappy.Snappy;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,7 +23,7 @@ import java.util.List;
  * @author huangjianqin
  * @date 2019/5/29
  */
-public class ProtocolCodec extends MessageToMessageCodec<List<ByteBuf>, ProtocolByteBuf> {
+public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBuf> {
     private static final Logger log = LoggerFactory.getLogger(ProtocolCodec.class);
     private final Bytes2ProtocolTransfer transfer;
     /** true = server, false = client */
@@ -52,6 +50,7 @@ public class ProtocolCodec extends MessageToMessageCodec<List<ByteBuf>, Protocol
 
             outByteBuf.writeBoolean(tuple.first());
             outByteBuf.writeBytes(tuple.second());
+            ReferenceCountUtil.retain(outByteBuf);
             out.add(outByteBuf);
 
             InOutBoundStatisicService.instance().statisticResp(in.getProtocolId() + "", in.getSize());
@@ -61,6 +60,7 @@ public class ProtocolCodec extends MessageToMessageCodec<List<ByteBuf>, Protocol
 
             outByteBuf.writeBoolean(tuple.first());
             outByteBuf.writeBytes(tuple.second());
+            ReferenceCountUtil.retain(outByteBuf);
             out.add(outByteBuf);
 
             InOutBoundStatisicService.instance().statisticReq(in.getProtocolId() + "", in.getSize());
@@ -68,34 +68,29 @@ public class ProtocolCodec extends MessageToMessageCodec<List<ByteBuf>, Protocol
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, List<ByteBuf> in, List<Object> out) throws Exception {
-        //合并解包
-        List<AbstractProtocol> protocols = new ArrayList<>();
-        for (ByteBuf inByteBuf : in) {
-            try {
-                boolean compression = inByteBuf.readBoolean();
-                if (serverElseClient) {
-                    inByteBuf = getRealInByteBuff(inByteBuf, compression);
-                    Request byteBufRequest = new ProtocolByteBuf(inByteBuf);
-                    protocols.add(transfer.transfer(byteBufRequest));
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        try {
+            boolean compression = in.readBoolean();
+            if (serverElseClient) {
+                in = getRealInByteBuff(in, compression);
+                Request byteBufRequest = new ProtocolByteBuf(in);
+                out.add(transfer.transfer(byteBufRequest));
 
-                    //server receive request
-                    InOutBoundStatisicService.instance()
-                            .statisticReq(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
-                } else {
-                    inByteBuf = getRealInByteBuff(inByteBuf, compression);
-                    Request byteBufRequest = new ProtocolByteBuf(inByteBuf);
-                    protocols.add(transfer.transfer(byteBufRequest));
+                //server receive request
+                InOutBoundStatisicService.instance()
+                        .statisticReq(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
+            } else {
+                in = getRealInByteBuff(in, compression);
+                Request byteBufRequest = new ProtocolByteBuf(in);
+                out.add(transfer.transfer(byteBufRequest));
 
-                    //client receive response
-                    InOutBoundStatisicService.instance()
-                            .statisticResp(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
-                }
-            } finally {
-                ReferenceCountUtil.release(in);
+                //client receive response
+                InOutBoundStatisicService.instance()
+                        .statisticResp(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
             }
+        } finally {
+            ReferenceCountUtil.release(in);
         }
-        out.add(protocols);
     }
 
     /**
