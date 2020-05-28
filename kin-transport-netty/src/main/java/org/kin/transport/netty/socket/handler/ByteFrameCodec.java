@@ -22,6 +22,7 @@ import java.util.Objects;
  */
 public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
     private static final Logger log = LoggerFactory.getLogger(ByteFrameCodec.class);
+
     private static final byte[] FRAME_MAGIC = "kin-transport".getBytes();
     /** 协议帧长度字段占位大小 */
     private final int FRAME_BODY_SIZE = 4;
@@ -75,17 +76,18 @@ public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
-        while (in.readableBytes() > 0) {
+        try {
             if (Objects.nonNull(globalRateLimiter) && !globalRateLimiter.tryAcquire()) {
                 //全局流控
                 ctx.fireUserEventTriggered(GlobalRatelimitEvent.INSTANCE);
-                break;
+                return;
             }
+            //解决拆包问题
+            in.markReaderIndex();
             //合并解包
             int bodySize;
             if (serverElseClient) {
                 if (in.readableBytes() < FRAME_BASE_LENGTH) {
-                    in.skipBytes(in.readableBytes());
                     return;
                 }
 
@@ -95,6 +97,7 @@ public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
                 //校验魔数
                 if (!isMagicRight(magic)) {
                     String hexDump = ByteBufUtil.hexDump(in);
+                    //校验不通过, 直接清空inbound, 存在丢包的可能, 保证client存在重试机制
                     in.skipBytes(in.readableBytes());
                     throw new CorruptedFrameException(String.format("FrameHeaderError: magic=%s, HexDump=%s", Arrays.toString(magic), hexDump));
                 }
@@ -102,12 +105,12 @@ public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
                 bodySize = in.readInt();
 
                 if (bodySize > MAX_BODY_SIZE) {
+                    //校验不通过, 直接清空inbound, 存在丢包的可能, 保证client存在重试机制
                     in.skipBytes(in.readableBytes());
                     throw new IllegalStateException(String.format("BodySize[%s] too large!", bodySize));
                 }
             } else {
                 if (in.readableBytes() < FRAME_BODY_SIZE) {
-                    in.skipBytes(in.readableBytes());
                     return;
                 }
 
@@ -116,14 +119,17 @@ public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
 
             int bodyReadableSize = in.readableBytes();
             if (bodyReadableSize < bodySize) {
-                in.skipBytes(bodyReadableSize);
-                throw new IllegalStateException(String.format("BodyReadableSize[%s] < BodySize[%s]!", bodyReadableSize, bodySize));
+                //解决拆包, 等待下次数据帧补满
+                in.resetReaderIndex();
+                return;
             }
 
             ByteBuf frameBuf = ctx.alloc().buffer(bodySize);
             frameBuf.writeBytes(in, bodySize);
             ReferenceCountUtil.retain(frameBuf);
             out.add(frameBuf);
+        } catch (Exception e) {
+            log.warn("", e);
         }
     }
 }
