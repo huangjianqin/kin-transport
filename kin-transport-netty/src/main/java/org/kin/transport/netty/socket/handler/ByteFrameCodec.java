@@ -45,7 +45,8 @@ public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
     }
 
     public static ByteFrameCodec clientFrameCodec() {
-        return new ByteFrameCodec(1024000, false, 0);
+        //默认包体最大18M
+        return new ByteFrameCodec(18 * 1024 * 1024, false, 0);
     }
 
     public static ByteFrameCodec serverFrameCodec() {
@@ -53,7 +54,7 @@ public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
     }
 
     public static ByteFrameCodec serverFrameCodec(int globalRateLimit) {
-        return new ByteFrameCodec(1024000, true, globalRateLimit);
+        return new ByteFrameCodec(18 * 1024 * 1024, true, globalRateLimit);
     }
 
     private boolean isMagicRight(byte[] magic) {
