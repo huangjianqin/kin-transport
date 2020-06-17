@@ -43,7 +43,7 @@ public class InOutBoundStatisicService implements Closeable {
 
     @Override
     public void close() {
-        executionContext.shutdownNow();
+        executionContext.shutdown();
     }
 
     //-------------------------------------------------------------------------------------------------------
