@@ -55,7 +55,7 @@ public class Server extends AbstractConnection {
         bootstrap.group(this.bossGroup, this.workerGroup).channel(NioServerSocketChannel.class);
 
         for (Map.Entry<ChannelOption, Object> entry : channelOptions.entrySet()) {
-            bootstrap.option(entry.getKey(), entry.getValue());
+            bootstrap.childOption(entry.getKey(), entry.getValue());
         }
 
         bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
