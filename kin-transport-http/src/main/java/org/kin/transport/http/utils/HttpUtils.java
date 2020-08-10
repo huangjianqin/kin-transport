@@ -3,7 +3,6 @@ package org.kin.transport.http.utils;
 import com.alibaba.fastjson.JSONObject;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,7 +159,7 @@ public class HttpUtils {
                 return response.body().string();
             }
         } catch (IOException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
 
         return null;
@@ -207,7 +206,7 @@ public class HttpUtils {
                 return response.body().string();
             }
         } catch (IOException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
 
         return null;

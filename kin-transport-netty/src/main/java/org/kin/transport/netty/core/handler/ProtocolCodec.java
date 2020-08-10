@@ -6,7 +6,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.framework.collection.Tuple;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.transport.netty.core.protocol.Bytes2ProtocolTransfer;
 import org.kin.transport.netty.core.protocol.domain.ProtocolByteBuf;
 import org.kin.transport.netty.core.protocol.domain.Request;
@@ -106,7 +105,7 @@ public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBu
                 bytes = Snappy.compress(bytes);
                 return new Tuple<>(true, bytes);
             } catch (Exception e) {
-                ExceptionUtils.log(e, "compress error, back >>> {}");
+                log.error("compress error, back >>> ", e);
             }
         }
 
