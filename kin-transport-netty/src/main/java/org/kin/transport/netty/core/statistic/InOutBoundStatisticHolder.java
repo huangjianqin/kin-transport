@@ -13,10 +13,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * @date 2019/6/4
  */
 public class InOutBoundStatisticHolder {
-    private AtomicLong ref = new AtomicLong(0);
-    private Map<String, InOutBoundStatistic> statisticMap = new HashMap<>();
-
     private static final byte LOCK_NUM = 5;
+
+    private final AtomicLong ref = new AtomicLong(0);
+    private final Map<String, InOutBoundStatistic> statisticMap = new HashMap<>();
+
     private final Object[] locks = new Object[LOCK_NUM];
     private final Partitioner<String> partitioner = EfficientHashPartitioner.INSTANCE;
 
