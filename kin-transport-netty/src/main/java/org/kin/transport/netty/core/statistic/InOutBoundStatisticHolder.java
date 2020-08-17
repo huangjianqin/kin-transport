@@ -1,7 +1,8 @@
 package org.kin.transport.netty.core.statistic;
 
-import org.kin.framework.concurrent.partition.partitioner.Partitioner;
-import org.kin.framework.concurrent.partition.partitioner.impl.EfficientHashPartitioner;
+
+import org.kin.framework.concurrent.partition.EfficientHashPartitioner;
+import org.kin.framework.concurrent.partition.Partitioner;
 
 import java.util.HashMap;
 import java.util.Map;
