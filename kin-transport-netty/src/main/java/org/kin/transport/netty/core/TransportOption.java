@@ -1,21 +1,26 @@
 package org.kin.transport.netty.core;
 
 import io.netty.channel.ChannelOption;
-import org.kin.transport.netty.core.protocol.Bytes2ProtocolTransfer;
 import org.kin.transport.netty.core.protocol.DefaultProtocolTransfer;
+import org.kin.transport.netty.core.protocol.ProtocolTransfer;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * ransport配置
+ *
  * @author huangjianqin
  * @date 2019/7/29
  */
 public class TransportOption {
     private TransportHandler transportHandler = TransportHandler.DO_NOTHING;
+    /** server/selector channel 配置 */
+    private Map<ChannelOption, Object> serverOptions = new HashMap<>();
+    /** channel 配置 */
     private Map<ChannelOption, Object> channelOptions = new HashMap<>();
-    private Bytes2ProtocolTransfer protocolTransfer = DefaultProtocolTransfer.instance();
-    ;
+    private ProtocolTransfer protocolTransfer = DefaultProtocolTransfer.instance();
+
 
     /** 是否压缩 */
     private boolean compression;
@@ -28,10 +33,12 @@ public class TransportOption {
     /** 读写空闲时间(秒) */
     private int readWriteIdleTime;
 
+    /** server配置 */
     public static ServerTransportOption server() {
         return new ServerTransportOption();
     }
 
+    /** client配置 */
     public static ClientTransportOption client() {
         return new ClientTransportOption();
     }
@@ -40,6 +47,16 @@ public class TransportOption {
 
     public <T extends TransportOption> T transportHandler(TransportHandler transportHandler) {
         this.transportHandler = transportHandler;
+        return (T) this;
+    }
+
+    public <T extends TransportOption> T serverOptions(Map<ChannelOption, Object> channelOptions) {
+        this.serverOptions.putAll(channelOptions);
+        return (T) this;
+    }
+
+    public <T extends TransportOption, E> T serverOption(ChannelOption<E> channelOption, E value) {
+        this.serverOptions.put(channelOption, value);
         return (T) this;
     }
 
@@ -53,7 +70,7 @@ public class TransportOption {
         return (T) this;
     }
 
-    public <T extends TransportOption> T protocolTransfer(Bytes2ProtocolTransfer transfer) {
+    public <T extends TransportOption> T protocolTransfer(ProtocolTransfer transfer) {
         this.protocolTransfer = transfer;
         return (T) this;
     }
@@ -93,11 +110,15 @@ public class TransportOption {
         return transportHandler;
     }
 
+    public Map<ChannelOption, Object> getServerOptions() {
+        return serverOptions;
+    }
+
     public Map<ChannelOption, Object> getChannelOptions() {
         return channelOptions;
     }
 
-    public Bytes2ProtocolTransfer getProtocolTransfer() {
+    public ProtocolTransfer getProtocolTransfer() {
         return protocolTransfer;
     }
 

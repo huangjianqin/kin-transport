@@ -11,11 +11,12 @@ public abstract class TransportHandler<T extends AbstractProtocol> {
     public static TransportHandler DO_NOTHING = new TransportHandler() {
         @Override
         public void handleProtocol(Channel channel, AbstractProtocol protocol) {
-
+            //do nothing
         }
     };
 
     /**
+     * 处理解析到的协议
      * 在channel线程调用
      *
      * @param protocol 协议
@@ -23,6 +24,7 @@ public abstract class TransportHandler<T extends AbstractProtocol> {
     public abstract void handleProtocol(Channel channel, T protocol);
 
     /**
+     * channel有效
      * 在channel线程调用
      *
      * @param channel 触发listener的channel
@@ -31,6 +33,7 @@ public abstract class TransportHandler<T extends AbstractProtocol> {
     }
 
     /**
+     * channel无效
      * 在channel线程调用
      *
      * @param channel 触发该listener的channel
@@ -39,6 +42,7 @@ public abstract class TransportHandler<T extends AbstractProtocol> {
     }
 
     /**
+     * 异常处理
      * 在channel线程调用
      *
      * @param channel 发生异常的channel
@@ -48,23 +52,24 @@ public abstract class TransportHandler<T extends AbstractProtocol> {
     }
 
     /**
+     * channel流量达到上限时触发
      * 在channel线程调用
-     * 流控, 拒绝服务
      *
-     * @param channel  拒绝的channel
+     * @param channel  channel
      * @param protocol 协议
      */
     public void rateLimitReject(Channel channel, AbstractProtocol protocol) {
     }
 
     /**
+     * 全局流量达到上限时触发
      * 在channel线程调用
-     * 全局流控, 拒绝服务
      */
     public void globalRateLimitReject() {
     }
 
     /**
+     * 读写空闲
      * 在channel线程调用
      *
      * @param channel 触发该listener的channel
@@ -73,6 +78,7 @@ public abstract class TransportHandler<T extends AbstractProtocol> {
     }
 
     /**
+     * 读空闲
      * 在channel线程调用
      *
      * @param channel 触发该listener的channel
@@ -81,6 +87,7 @@ public abstract class TransportHandler<T extends AbstractProtocol> {
     }
 
     /**
+     * 写空闲
      * 在channel线程调用
      *
      * @param channel 触发该listener的channel

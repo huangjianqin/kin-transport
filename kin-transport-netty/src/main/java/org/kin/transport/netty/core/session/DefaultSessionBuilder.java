@@ -3,10 +3,12 @@ package org.kin.transport.netty.core.session;
 import io.netty.channel.Channel;
 
 /**
+ * 默认session实现的builder
+ *
  * @author huangjianqin
  * @date 2019/7/29
  */
-public class DefaultSessionBuilder implements SessionBuilder {
+public class DefaultSessionBuilder implements SessionBuilder<DefaultSession> {
     private static final SessionBuilder INSTANCE = new DefaultSessionBuilder();
 
     private DefaultSessionBuilder() {
@@ -17,8 +19,7 @@ public class DefaultSessionBuilder implements SessionBuilder {
     }
 
     @Override
-    public AbstractSession create(Channel channel) {
-        return new AbstractSession(channel, false) {
-        };
+    public DefaultSession create(Channel channel) {
+        return new DefaultSession(channel);
     }
 }

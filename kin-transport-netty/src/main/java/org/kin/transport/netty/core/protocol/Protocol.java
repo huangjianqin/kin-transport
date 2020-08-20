@@ -1,17 +1,20 @@
 package org.kin.transport.netty.core.protocol;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
+ * 协议标识注解
+ *
  * @author huangjianqin
  * @date 2019/7/4
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
+@Inherited
 public @interface Protocol {
+    /**
+     * 协议号
+     */
     int id();
 
     /**

@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.framework.collection.Tuple;
-import org.kin.transport.netty.core.protocol.Bytes2ProtocolTransfer;
+import org.kin.transport.netty.core.protocol.ProtocolTransfer;
 import org.kin.transport.netty.core.protocol.domain.ProtocolByteBuf;
 import org.kin.transport.netty.core.protocol.domain.Request;
 import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
@@ -18,25 +18,27 @@ import java.io.IOException;
 import java.util.List;
 
 /**
+ * 协议解析
  *
  * @author huangjianqin
  * @date 2019/5/29
  */
 public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBuf> {
     private static final Logger log = LoggerFactory.getLogger(ProtocolCodec.class);
-    private final Bytes2ProtocolTransfer transfer;
+    /** 协议转换 */
+    private final ProtocolTransfer transfer;
     /** true = server, false = client */
     private final boolean serverElseClient;
     /** 是否压缩 */
     private final boolean compression;
 
-    public ProtocolCodec(Bytes2ProtocolTransfer transfer, boolean serverElseClient, boolean compression) {
+    public ProtocolCodec(ProtocolTransfer transfer, boolean serverElseClient, boolean compression) {
         this.transfer = transfer;
         this.serverElseClient = serverElseClient;
         this.compression = compression;
     }
 
-    public ProtocolCodec(Bytes2ProtocolTransfer transfer, boolean serverElseClient) {
+    public ProtocolCodec(ProtocolTransfer transfer, boolean serverElseClient) {
         this(transfer, serverElseClient, false);
     }
 

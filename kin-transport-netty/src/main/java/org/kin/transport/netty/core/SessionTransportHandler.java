@@ -2,7 +2,7 @@ package org.kin.transport.netty.core;
 
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
-import org.kin.transport.netty.core.common.ChannelAttrKeys;
+import io.netty.util.AttributeKey;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.session.AbstractSession;
 import org.kin.transport.netty.core.session.SessionBuilder;
@@ -13,50 +13,40 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 /**
+ * 会自动创建Session的{@link TransportHandler}
+ *
  * @author huangjianqin
  * @date 2020-03-19
  */
 public abstract class SessionTransportHandler<T extends AbstractProtocol, S extends AbstractSession> extends TransportHandler<T> {
     private static Logger log = LoggerFactory.getLogger(SessionTransportHandler.class);
+    private final AttributeKey<S> SESSION_KEY = AttributeKey.valueOf("session");
+    /** seesion构建逻辑 */
     private SessionBuilder<S> sessionBuilder;
 
     public SessionTransportHandler(SessionBuilder<S> sessionBuilder) {
         this.sessionBuilder = sessionBuilder;
     }
 
-    public abstract void handleProtocol(S seesion, AbstractProtocol protocol);
-
-    public abstract void handleException(S seesion, Throwable cause);
-
-    private S session(Channel channel) {
-        Attribute<AbstractSession> attr = channel.attr(ChannelAttrKeys.SESSION_KEY);
-        return (S) attr.get();
-    }
-
-    @Override
-    public final void handleProtocol(Channel channel, AbstractProtocol protocol) {
-        handleProtocol(session(channel), protocol);
+    protected S session(Channel channel) {
+        Attribute<S> attr = channel.attr(SESSION_KEY);
+        return attr.get();
     }
 
     @Override
     public void channelActive(Channel channel) {
-        Attribute<AbstractSession> attr = channel.attr(ChannelAttrKeys.SESSION_KEY);
+        Attribute<S> attr = channel.attr(SESSION_KEY);
         if (!attr.compareAndSet(null, sessionBuilder.create(channel))) {
             channel.close();
-            log.error("Duplicate Session! IP: {}", ChannelUtils.getIP(channel));
+            log.error("Duplicate Session! IP: {}", ChannelUtils.getRemoteIp(channel));
         }
     }
 
     @Override
     public void channelInactive(Channel channel) {
-        Attribute<AbstractSession> attr = channel.attr(ChannelAttrKeys.SESSION_KEY);
+        Attribute<S> attr = channel.attr(SESSION_KEY);
         if (Objects.nonNull(attr)) {
             attr.remove();
         }
-    }
-
-    @Override
-    public void handleException(Channel channel, Throwable cause) {
-        handleException(session(channel), cause);
     }
 }

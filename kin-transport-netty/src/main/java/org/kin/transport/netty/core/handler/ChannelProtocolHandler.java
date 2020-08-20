@@ -6,9 +6,9 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.kin.transport.netty.core.TransportHandler;
-import org.kin.transport.netty.core.domain.GlobalRatelimitEvent;
 import org.kin.transport.netty.core.domain.ProtocolRateLimiter;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
+import org.kin.transport.netty.core.userevent.GlobalRatelimitEvent;
 import org.kin.transport.netty.core.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * 协议处理
+ *
  * @author huangjianqin
  * @date 2019/6/3
  */
@@ -41,7 +43,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
         }
 
         for (AbstractProtocol protocol : protocols) {
-            log.debug("Recv {} {} {}", protocol.getProtocolId(), protocol.getClass().getSimpleName(), ChannelUtils.getIP(ctx.channel()));
+            log.debug("Recv {} {} {}", protocol.getProtocolId(), protocol.getClass().getSimpleName(), ChannelUtils.getRemoteIp(ctx.channel()));
 
             //流控
             if (ProtocolRateLimiter.valid(protocol)) {
@@ -55,21 +57,21 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
-        log.info("channel active: {}", ChannelUtils.getIP(channel));
+        log.info("channel active: {}", ChannelUtils.getRemoteIp(channel));
         transportHandler.channelActive(ctx.channel());
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
-        log.info("channel inactive: {}", ChannelUtils.getIP(channel));
+        log.info("channel inactive: {}", ChannelUtils.getRemoteIp(channel));
         transportHandler.channelInactive(ctx.channel());
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Channel channel = ctx.channel();
-        log.error("server('{}') throw exception:{}", ChannelUtils.getIP(channel), cause);
+        log.error("server('{}') throw exception:{}", ChannelUtils.getRemoteIp(channel), cause);
         transportHandler.handleException(channel, cause);
     }
 

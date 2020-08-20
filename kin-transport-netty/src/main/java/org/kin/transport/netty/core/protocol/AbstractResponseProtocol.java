@@ -3,6 +3,7 @@ package org.kin.transport.netty.core.protocol;
 import org.kin.transport.netty.core.protocol.domain.Request;
 
 /**
+ * out抽象
  *
  * @author huangjianqin
  * @date 2019/5/30

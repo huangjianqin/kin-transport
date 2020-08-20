@@ -2,6 +2,7 @@ package org.kin.transport.netty.core.session;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import org.kin.framework.utils.NetUtils;
 import org.kin.transport.netty.core.domain.SessionCloseCause;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.protocol.domain.Response;
@@ -14,47 +15,63 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * session抽象
+ *
  * @author huangjianqin
  * @date 2019/5/30
  */
 public abstract class AbstractSession {
     private static final Logger log = LoggerFactory.getLogger(AbstractSession.class);
-
+    /** session绑定的channel */
     private volatile Channel channel;
+    /** 标识每次write, 是否马上flush */
     private boolean isFlush;
 
+    /** session ip */
     private volatile String ip;
+    /** session ip hash */
     private volatile long ipHashCode;
+    /** 标识是否closed */
     private volatile boolean isClosed;
+    /** session closed原因 */
     private SessionCloseCause sessionCloseCause;
-
+    /** 标识是否正调度flush */
     private AtomicBoolean flushChannelScheduleTag = new AtomicBoolean(false);
 
     public AbstractSession(Channel channel, boolean isFlush) {
         this.channel = channel;
-        this.ip = ChannelUtils.getIP(channel);
-        this.ipHashCode = ChannelUtils.ipHashCode(ip);
+        this.ip = ChannelUtils.getRemoteIp(channel);
+        this.ipHashCode = NetUtils.ipHashCode(ip);
         this.isFlush = isFlush;
     }
 
+    /**
+     * seesion 切换channel
+     */
     public final Channel change(Channel channel) {
         if (!isClosed) {
             Channel old = this.channel;
             this.channel = channel;
-            this.ip = ChannelUtils.getIP(channel);
-            this.ipHashCode = ChannelUtils.ipHashCode(ip);
+            this.ip = ChannelUtils.getRemoteIp(channel);
+            this.ipHashCode = NetUtils.ipHashCode(ip);
             return old;
         }
 
         return null;
     }
 
+    /**
+     * write out
+     */
     public void sendProtocol(AbstractProtocol protocol) {
         if (Objects.nonNull(protocol)) {
             write(protocol.write());
         }
     }
 
+    /**
+     * write out
+     */
     protected final void write(Response response) {
         if (isActive()) {
             if (response != null) {
@@ -70,6 +87,9 @@ public abstract class AbstractSession {
         }
     }
 
+    /**
+     * 调度flush
+     */
     private void scheduleFlush() {
         channel.eventLoop().schedule(() -> {
             if (flushChannelScheduleTag.compareAndSet(true, false)) {
@@ -78,6 +98,9 @@ public abstract class AbstractSession {
         }, 50, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * write out and close session
+     */
     public final void writeAndClose(Response response, SessionCloseCause cause, String ip) {
         if (response != null) {
             ChannelFuture writeFuture = channel.writeAndFlush(response);
@@ -90,6 +113,9 @@ public abstract class AbstractSession {
         }
     }
 
+    /**
+     * close session
+     */
     public final ChannelFuture close(SessionCloseCause cause, String ip) {
         this.isClosed = true;
         this.sessionCloseCause = cause;
@@ -102,6 +128,9 @@ public abstract class AbstractSession {
         }
     }
 
+    /**
+     * session是否有效
+     */
     public boolean isActive() {
         return channel != null && channel.isActive();
     }

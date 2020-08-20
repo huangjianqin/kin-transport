@@ -8,17 +8,26 @@ import io.netty.util.ReferenceCounted;
 import java.nio.charset.StandardCharsets;
 
 /**
+ * 字节类协议封装
+ *
  * @author huangjianqin
  * @date 2019/6/4
  */
 public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
+    /** 读模式 */
     private static final int READ_MODE = 0;
+    /** 写模式 */
     private static final int WRITE_MODE = 1;
+    /** 读写模式 */
     private static final int READ_WRITE_MODE = 2;
 
+    /** 字节buffer */
     private ByteBuf byteBuf;
+    /** 协议id */
     private int protocolId;
+    /** 协议成都 */
     private int contentSize;
+    /** 模式 */
     private final int mode;
 
     public ProtocolByteBuf(ByteBuf byteBuf) {
@@ -155,34 +164,29 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
 
     @Override
     public ReferenceCounted retain(int i) {
-//        Preconditions.checkArgument(mode == READ_MODE);
         byteBuf.retain(i);
         return this;
     }
 
     @Override
     public ReferenceCounted touch() {
-//        Preconditions.checkArgument(mode == READ_MODE);
         byteBuf.touch();
         return this;
     }
 
     @Override
     public ReferenceCounted touch(Object o) {
-//        Preconditions.checkArgument(mode == READ_MODE);
         byteBuf.touch(o);
         return this;
     }
 
     @Override
     public boolean release() {
-//        Preconditions.checkArgument(mode == READ_MODE);
         return byteBuf.release();
     }
 
     @Override
     public boolean release(int i) {
-//        Preconditions.checkArgument(mode == READ_MODE);
         return byteBuf.release(i);
     }
 

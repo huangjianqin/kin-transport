@@ -1,14 +1,16 @@
 package org.kin.transport.netty.socket;
 
 import io.netty.channel.ChannelHandler;
+import org.kin.transport.netty.core.AbstractChannelHandlerInitializer;
 import org.kin.transport.netty.core.TransportOption;
-import org.kin.transport.netty.core.handler.AbstractChannelHandlerInitializer;
 import org.kin.transport.netty.socket.handler.ByteFrameCodec;
 
 import java.util.Collection;
 import java.util.Collections;
 
 /**
+ * socket的channel handler初始化
+ *
  * @author huangjianqin
  * @date 2019-09-12
  */

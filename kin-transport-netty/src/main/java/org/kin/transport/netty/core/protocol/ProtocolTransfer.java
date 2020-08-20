@@ -3,12 +3,13 @@ package org.kin.transport.netty.core.protocol;
 import org.kin.transport.netty.core.protocol.domain.Request;
 
 /**
+ * 协议转换
  *
  * @author huangjianqin
  * @date 2019/6/3
  */
 @FunctionalInterface
-public interface Bytes2ProtocolTransfer {
+public interface ProtocolTransfer {
     /**
      * 解析从字节数组转换成协议对象
      *

@@ -10,8 +10,10 @@ import io.netty.channel.Channel;
 @FunctionalInterface
 public interface SessionBuilder<S extends AbstractSession> {
     /**
+     * session构建逻辑
      * 在channel线程调用
-     * @param channel 连接channel
+     *
+     * @param channel 连接的channel
      * @return 绑定该channel的seesion实现
      */
     S create(Channel channel);

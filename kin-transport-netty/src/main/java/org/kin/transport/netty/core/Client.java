@@ -7,7 +7,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.transport.netty.core.handler.ChannelHandlerInitializer;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,13 +17,16 @@ import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 /**
+ * client
+ * 阻塞连接远程服务器
+ *
  * @author huangjianqin
  * @date 2019/5/30
  */
-public class Client extends AbstractConnection {
+public class Client extends ClientConnection {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
 
-    private EventLoopGroup eventLoopGroup = new NioEventLoopGroup(1);
+    private EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
     private volatile Channel channel;
     private volatile boolean isStopped;
 
@@ -33,8 +35,10 @@ public class Client extends AbstractConnection {
     }
 
     @Override
-    public void connect(Map<ChannelOption, Object> channelOptions, ChannelHandlerInitializer channelHandlerInitializer) {
+    public void connect(ClientTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
         log.info("client({}) connecting...", address);
+
+        Map<ChannelOption, Object> channelOptions = transportOption.getChannelOptions();
 
         Preconditions.checkArgument(channelOptions != null);
         Preconditions.checkArgument(channelHandlerInitializer != null);
@@ -62,6 +66,7 @@ public class Client extends AbstractConnection {
                 channel = channelFuture.channel();
                 latch.countDown();
             } else {
+                log.error("connect to remote server fail: {}", address);
                 latch.countDown();
             }
         });
@@ -70,11 +75,6 @@ public class Client extends AbstractConnection {
         } catch (InterruptedException e) {
 
         }
-    }
-
-    @Override
-    public void bind(Map<ChannelOption, Object> channelOptions, ChannelHandlerInitializer channelHandlerInitializer) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

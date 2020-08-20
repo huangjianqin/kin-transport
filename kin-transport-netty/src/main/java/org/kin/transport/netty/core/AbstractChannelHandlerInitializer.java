@@ -1,9 +1,10 @@
-package org.kin.transport.netty.core.handler;
+package org.kin.transport.netty.core;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
-import org.kin.transport.netty.core.TransportOption;
+import org.kin.transport.netty.core.handler.ChannelProtocolHandler;
+import org.kin.transport.netty.core.handler.ProtocolCodec;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,14 +23,14 @@ public abstract class AbstractChannelHandlerInitializer implements ChannelHandle
     }
 
     /**
-     * 返回解析协议需要的handlers
+     * 解析协议前 需要的handlers
      */
     protected Collection<ChannelHandler> beforeHandlers() {
         return Collections.emptyList();
     }
 
     /**
-     * 返回处理完请求协议之后需要执行的handlers
+     * 处理完请求协议之后 需要的handlers
      */
     protected Collection<ChannelHandler> afterHandlers() {
         return Collections.emptyList();
@@ -53,7 +54,6 @@ public abstract class AbstractChannelHandlerInitializer implements ChannelHandle
         if (readIdleTime > 0 || writeIdleTime > 0 || readWriteIdleTime > 0) {
             //其中一个>0就设置Handler
             channelHandlers.add(new IdleStateHandler(readIdleTime, writeIdleTime, readWriteIdleTime));
-            channelHandlers.add(new ChannelIdleHandler(transportOption.getTransportHandler()));
         }
 
         channelHandlers.addAll(beforeHandlers());

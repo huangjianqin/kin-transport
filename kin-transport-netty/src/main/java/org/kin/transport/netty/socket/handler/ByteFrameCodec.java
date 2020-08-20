@@ -7,7 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 import io.netty.handler.codec.CorruptedFrameException;
 import io.netty.util.ReferenceCountUtil;
-import org.kin.transport.netty.core.domain.GlobalRatelimitEvent;
+import org.kin.transport.netty.core.userevent.GlobalRatelimitEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,34 +16,27 @@ import java.util.List;
 import java.util.Objects;
 
 /**
+ * 主要是校验协议头
+ *
  * @author huangjianqin
  * @date 2019/5/29
- * 主要是校验协议头
  */
 public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
     private static final Logger log = LoggerFactory.getLogger(ByteFrameCodec.class);
-
+    /** 魔数 */
     private static final byte[] FRAME_MAGIC = "kin-transport".getBytes();
     /** 协议帧长度字段占位大小 */
-    private final int FRAME_BODY_SIZE = 4;
-    private final int MAX_BODY_SIZE;
+    private static final int FRAME_BODY_SIZE = 4;
+    /** 协议体最大大小 */
+    private final int maxBodySize;
     /** true = in, false = out */
     private final boolean serverElseClient;
-    private final int FRAME_BASE_LENGTH;
-
+    /** 协议头+协议体大小字段的字节长度 */
+    private final int frameBaseLength;
+    /** 限流 */
     private final RateLimiter globalRateLimiter;
 
-    public ByteFrameCodec(int maxBodySize, boolean serverElseClient, int globalRateLimit) {
-        this.MAX_BODY_SIZE = maxBodySize;
-        this.serverElseClient = serverElseClient;
-        this.FRAME_BASE_LENGTH = FRAME_MAGIC.length + FRAME_BODY_SIZE;
-        if (globalRateLimit > 0) {
-            globalRateLimiter = RateLimiter.create(globalRateLimit);
-        } else {
-            globalRateLimiter = null;
-        }
-    }
-
+    //---------------------------------------------------------------------------------------------------------------
     public static ByteFrameCodec clientFrameCodec() {
         //默认包体最大18M
         return new ByteFrameCodec(18 * 1024 * 1024, false, 0);
@@ -57,6 +50,21 @@ public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
         return new ByteFrameCodec(18 * 1024 * 1024, true, globalRateLimit);
     }
 
+    //---------------------------------------------------------------------------------------------------------------
+    public ByteFrameCodec(int maxBodySize, boolean serverElseClient, int globalRateLimit) {
+        this.maxBodySize = maxBodySize;
+        this.serverElseClient = serverElseClient;
+        this.frameBaseLength = FRAME_MAGIC.length + FRAME_BODY_SIZE;
+        if (globalRateLimit > 0) {
+            globalRateLimiter = RateLimiter.create(globalRateLimit);
+        } else {
+            globalRateLimiter = null;
+        }
+    }
+
+    /**
+     * 判断魔数是否一致
+     */
     private boolean isMagicRight(byte[] magic) {
         return Arrays.equals(magic, FRAME_MAGIC);
     }
@@ -88,7 +96,7 @@ public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
             //合并解包
             int bodySize;
             if (serverElseClient) {
-                if (in.readableBytes() < FRAME_BASE_LENGTH) {
+                if (in.readableBytes() < frameBaseLength) {
                     return;
                 }
 
@@ -105,7 +113,7 @@ public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
 
                 bodySize = in.readInt();
 
-                if (bodySize > MAX_BODY_SIZE) {
+                if (bodySize > maxBodySize) {
                     //校验不通过, 直接清空inbound, 存在丢包的可能, 保证client存在重试机制
                     in.skipBytes(in.readableBytes());
                     throw new IllegalStateException(String.format("BodySize[%s] too large!", bodySize));

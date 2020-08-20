@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 协议流控缓存
+ *
  * @author huangjianqin
  * @date 2019-09-17
  */

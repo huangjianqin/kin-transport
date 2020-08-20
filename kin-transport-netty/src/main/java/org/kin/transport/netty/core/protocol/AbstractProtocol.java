@@ -5,12 +5,15 @@ import org.kin.transport.netty.core.protocol.domain.Request;
 import org.kin.transport.netty.core.protocol.domain.Response;
 
 /**
+ * 协议抽象
  *
  * @author huangjianqin
  * @date 2019/5/30
  */
 public abstract class AbstractProtocol {
+    /** 协议id */
     private int protocolId;
+    /** 创建时间 */
     private long createTime = System.currentTimeMillis();
 
     public AbstractProtocol() {

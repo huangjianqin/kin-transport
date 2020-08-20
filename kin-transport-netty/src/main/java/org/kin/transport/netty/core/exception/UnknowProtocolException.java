@@ -1,6 +1,8 @@
 package org.kin.transport.netty.core.exception;
 
 /**
+ * 未知协议异常
+ *
  * @author huangjianqin
  * @date 2019/7/4
  */

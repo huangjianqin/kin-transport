@@ -1,6 +1,7 @@
 package org.kin.transport.netty.core.domain;
 
 /**
+ * session close 原因
  *
  * @author huangjianqin
  * @date 2019/6/3

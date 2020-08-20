@@ -11,11 +11,14 @@ import java.lang.reflect.Field;
 import java.util.Set;
 
 /**
+ * 协议生成工厂
+ *
  * @author huangjianqin
  * @date 2019/7/4
  */
 public class ProtocolFactory {
     private static final Logger log = LoggerFactory.getLogger(ProtocolFactory.class);
+    //协议类信息缓存
     private static final Cache<Integer, ProtocolInfo> PROTOCOL_CACHE = CacheBuilder.newBuilder().build();
 
     private ProtocolFactory() {
@@ -32,7 +35,7 @@ public class ProtocolFactory {
                 if (protocolAnnotation != null) {
                     int rate = protocolAnnotation.rate();
                     PROTOCOL_CACHE.put(protocolAnnotation.id(), new ProtocolInfo(protocolClass, rate));
-                    log.info("find protocol(id={}) >>> {}, interval={}, callback={}", protocolAnnotation.id(), protocolClass, rate);
+                    log.info("find protocol(id={}) >>> {}, rate={}", protocolAnnotation.id(), protocolClass, rate);
                 }
             }
         }
@@ -69,6 +72,11 @@ public class ProtocolFactory {
         throw new UnknowProtocolException(id);
     }
 
+    /**
+     * 获取协议限流流量
+     *
+     * @param id 协议id
+     */
     public static int getProtocolRate(int id) {
         ProtocolInfo protocolInfo = PROTOCOL_CACHE.getIfPresent(id);
         if (protocolInfo != null) {
@@ -78,9 +86,12 @@ public class ProtocolFactory {
         return Integer.MAX_VALUE;
     }
 
+    //------------------------------------------------------------------------------------------------------
     private static class ProtocolInfo {
-        private Class<? extends AbstractProtocol> protocolClass;
-        private int rate;
+        /** 协议类 */
+        private final Class<? extends AbstractProtocol> protocolClass;
+        /** 协议限流流量 */
+        private final int rate;
 
         public ProtocolInfo(Class<? extends AbstractProtocol> protocolClass, int rate) {
             this.protocolClass = protocolClass;
