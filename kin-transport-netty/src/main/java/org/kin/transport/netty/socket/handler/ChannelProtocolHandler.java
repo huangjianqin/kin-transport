@@ -5,7 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
-import org.kin.transport.netty.socket.TransportHandler;
+import org.kin.transport.netty.TransportHandler;
 import org.kin.transport.netty.socket.domain.ProtocolRateLimiter;
 import org.kin.transport.netty.socket.protocol.AbstractProtocol;
 import org.kin.transport.netty.socket.userevent.GlobalRatelimitEvent;
@@ -25,9 +25,9 @@ import java.util.List;
  */
 public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     private static final Logger log = LoggerFactory.getLogger(ChannelProtocolHandler.class);
-    private final TransportHandler transportHandler;
+    private final TransportHandler<AbstractProtocol> transportHandler;
 
-    public ChannelProtocolHandler(TransportHandler transportHandler) {
+    public ChannelProtocolHandler(TransportHandler<AbstractProtocol> transportHandler) {
         this.transportHandler = transportHandler;
     }
 

@@ -1,16 +1,15 @@
-package org.kin.transport.netty.socket;
+package org.kin.transport.netty;
 
 import io.netty.channel.Channel;
-import org.kin.transport.netty.socket.protocol.AbstractProtocol;
 
 /**
  * @author huangjianqin
  * @date 2019/5/30
  */
-public abstract class TransportHandler<T extends AbstractProtocol> {
+public abstract class TransportHandler<MSG> {
     public static TransportHandler DO_NOTHING = new TransportHandler() {
         @Override
-        public void handleProtocol(Channel channel, AbstractProtocol protocol) {
+        public void handleProtocol(Channel channel, Object protocol) {
             //do nothing
         }
     };
@@ -21,7 +20,7 @@ public abstract class TransportHandler<T extends AbstractProtocol> {
      *
      * @param protocol 协议
      */
-    public abstract void handleProtocol(Channel channel, T protocol);
+    public abstract void handleProtocol(Channel channel, MSG protocol);
 
     /**
      * channel有效
@@ -58,7 +57,7 @@ public abstract class TransportHandler<T extends AbstractProtocol> {
      * @param channel  channel
      * @param protocol 协议
      */
-    public void rateLimitReject(Channel channel, AbstractProtocol protocol) {
+    public void rateLimitReject(Channel channel, MSG protocol) {
     }
 
     /**
