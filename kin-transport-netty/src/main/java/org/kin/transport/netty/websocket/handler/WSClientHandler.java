@@ -36,11 +36,6 @@ public class WSClientHandler extends SimpleChannelInboundHandler<Object> impleme
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
-        ctx.fireChannelInactive();
-    }
-
-    @Override
     public void channelRead0(ChannelHandlerContext ctx, Object msg) {
         Channel ch = ctx.channel();
         if (!handshaker.isHandshakeComplete()) {
