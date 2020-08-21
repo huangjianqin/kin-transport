@@ -1,6 +1,4 @@
-package org.kin.transport.core;
-
-import org.kin.transport.netty.core.protocol.ProtocolFactory;
+package org.kin.transport.netty.core.protocol;
 
 /**
  * @author huangjianqin

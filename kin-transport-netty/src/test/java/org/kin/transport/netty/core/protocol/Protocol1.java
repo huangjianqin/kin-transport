@@ -1,7 +1,5 @@
-package org.kin.transport.core;
+package org.kin.transport.netty.core.protocol;
 
-import org.kin.transport.netty.core.protocol.AbstractProtocol;
-import org.kin.transport.netty.core.protocol.Protocol;
 import org.kin.transport.netty.core.protocol.domain.Request;
 import org.kin.transport.netty.core.protocol.domain.Response;
 
