@@ -8,7 +8,7 @@ import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketSe
 import org.kin.transport.netty.socket.SocketChannelHandlerInitializer;
 import org.kin.transport.netty.socket.SocketTransportOption;
 import org.kin.transport.netty.websocket.handler.ByteBuf2BinaryFrameCodec;
-import org.kin.transport.netty.websocket.handler.WsServerhandler;
+import org.kin.transport.netty.websocket.handler.WsServerHandler;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,7 +32,7 @@ public class WsServerHandlerInitializer extends SocketChannelHandlerInitializer 
                 new WebSocketServerCompressionHandler(),
                 //适配指定url
                 new WebSocketServerProtocolHandler(WsConstants.WS_PATH),
-                new WsServerhandler(),
+                new WsServerHandler(),
                 new ByteBuf2BinaryFrameCodec());
     }
 

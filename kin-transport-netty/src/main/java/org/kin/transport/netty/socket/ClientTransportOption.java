@@ -8,7 +8,7 @@ import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.websocket.WsClientHandlerInitializer;
 import org.kin.transport.netty.websocket.WsConstants;
-import org.kin.transport.netty.websocket.handler.WSClientHandler;
+import org.kin.transport.netty.websocket.handler.WsClientHandler;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -66,8 +66,8 @@ public class ClientTransportOption extends SocketTransportOption {
         }
 
         //websocker frame处理
-        WSClientHandler wsClientHandler =
-                new WSClientHandler(
+        WsClientHandler wsClientHandler =
+                new WsClientHandler(
                         WebSocketClientHandshakerFactory.newHandshaker(
                                 uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders()));
 

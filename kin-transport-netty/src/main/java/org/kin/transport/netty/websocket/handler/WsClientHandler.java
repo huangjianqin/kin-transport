@@ -10,13 +10,13 @@ import org.kin.framework.log.LoggerOprs;
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class WSClientHandler extends SimpleChannelInboundHandler<Object> implements LoggerOprs {
+public class WsClientHandler extends SimpleChannelInboundHandler<Object> implements LoggerOprs {
     /** ws握手 */
     private final WebSocketClientHandshaker handshaker;
     /** ws握手future */
     private ChannelPromise handshakeFuture;
 
-    public WSClientHandler(WebSocketClientHandshaker handshaker) {
+    public WsClientHandler(WebSocketClientHandshaker handshaker) {
         this.handshaker = handshaker;
     }
 

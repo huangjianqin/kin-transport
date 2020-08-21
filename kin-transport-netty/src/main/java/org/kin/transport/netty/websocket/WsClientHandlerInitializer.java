@@ -7,8 +7,8 @@ import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketCl
 import org.kin.transport.netty.socket.SocketChannelHandlerInitializer;
 import org.kin.transport.netty.socket.SocketTransportOption;
 import org.kin.transport.netty.websocket.handler.ByteBuf2BinaryFrameCodec;
-import org.kin.transport.netty.websocket.handler.WSClientHandler;
-import org.kin.transport.netty.websocket.handler.WsServerhandler;
+import org.kin.transport.netty.websocket.handler.WsClientHandler;
+import org.kin.transport.netty.websocket.handler.WsServerHandler;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,9 +18,9 @@ import java.util.Collection;
  * @date 2020/8/21
  */
 public class WsClientHandlerInitializer extends SocketChannelHandlerInitializer {
-    private final WSClientHandler wsClientHandler;
+    private final WsClientHandler wsClientHandler;
 
-    public WsClientHandlerInitializer(SocketTransportOption transportOption, WSClientHandler wsClientHandler) {
+    public WsClientHandlerInitializer(SocketTransportOption transportOption, WsClientHandler wsClientHandler) {
         super(transportOption);
         this.wsClientHandler = wsClientHandler;
     }
@@ -32,7 +32,7 @@ public class WsClientHandlerInitializer extends SocketChannelHandlerInitializer 
                 new HttpObjectAggregator(65536),
                 WebSocketClientCompressionHandler.INSTANCE,
                 wsClientHandler,
-                new WsServerhandler(),
+                new WsServerHandler(),
                 new ByteBuf2BinaryFrameCodec());
     }
 

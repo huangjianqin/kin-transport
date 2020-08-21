@@ -12,7 +12,7 @@ import org.kin.framework.log.LoggerOprs;
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class WsServerhandler extends SimpleChannelInboundHandler<WebSocketFrame> implements LoggerOprs {
+public class WsServerHandler extends SimpleChannelInboundHandler<WebSocketFrame> implements LoggerOprs {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame msg) throws Exception {
         if (msg instanceof BinaryWebSocketFrame) {
