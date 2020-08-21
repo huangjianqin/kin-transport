@@ -31,7 +31,7 @@ public class WsServerHandlerInitializer extends AbstractChannelHandlerInitialize
                 new HttpObjectAggregator(65536),
                 new WebSocketServerCompressionHandler(),
                 //适配指定url
-                new WebSocketServerProtocolHandler(WSConstants.WS_PATH),
+                new WebSocketServerProtocolHandler(WsConstants.WS_PATH),
                 new WsServerhandler(),
                 new ByteBuf2BinaryFrameCodec());
     }

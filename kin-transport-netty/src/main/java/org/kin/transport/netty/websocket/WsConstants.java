@@ -6,7 +6,7 @@ package org.kin.transport.netty.websocket;
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class WSConstants {
+public class WsConstants {
     /** websocket 握手url */
     public static final String WS_PATH = "/";
 }

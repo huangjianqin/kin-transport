@@ -5,8 +5,8 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import org.kin.framework.utils.NetUtils;
 import org.kin.transport.netty.socket.SocketHandlerInitializer;
-import org.kin.transport.netty.websocket.WSConstants;
 import org.kin.transport.netty.websocket.WsClientHandlerInitializer;
+import org.kin.transport.netty.websocket.WsConstants;
 import org.kin.transport.netty.websocket.handler.WSClientHandler;
 
 import java.net.InetSocketAddress;
@@ -29,7 +29,7 @@ public class ClientTransportOption extends TransportOption {
 
     public Client ws(InetSocketAddress address) {
         String prefix = isSsl() ? "wss" : "ws";
-        return ws(prefix.concat(address.toString()).concat(WSConstants.WS_PATH));
+        return ws(prefix.concat(address.toString()).concat(WsConstants.WS_PATH));
     }
 
     public Client ws(String url) {

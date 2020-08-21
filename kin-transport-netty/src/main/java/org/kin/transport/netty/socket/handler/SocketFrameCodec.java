@@ -21,8 +21,8 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2019/5/29
  */
-public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
-    private static final Logger log = LoggerFactory.getLogger(ByteFrameCodec.class);
+public class SocketFrameCodec extends ByteToMessageCodec<ByteBuf> {
+    private static final Logger log = LoggerFactory.getLogger(SocketFrameCodec.class);
     /** 魔数 */
     private static final byte[] FRAME_MAGIC = "kin-transport".getBytes();
     /** 协议帧长度字段占位大小 */
@@ -37,21 +37,21 @@ public class ByteFrameCodec extends ByteToMessageCodec<ByteBuf> {
     private final RateLimiter globalRateLimiter;
 
     //---------------------------------------------------------------------------------------------------------------
-    public static ByteFrameCodec clientFrameCodec() {
+    public static SocketFrameCodec clientFrameCodec() {
         //默认包体最大18M
-        return new ByteFrameCodec(18 * 1024 * 1024, false, 0);
+        return new SocketFrameCodec(18 * 1024 * 1024, false, 0);
     }
 
-    public static ByteFrameCodec serverFrameCodec() {
+    public static SocketFrameCodec serverFrameCodec() {
         return serverFrameCodec(0);
     }
 
-    public static ByteFrameCodec serverFrameCodec(int globalRateLimit) {
-        return new ByteFrameCodec(18 * 1024 * 1024, true, globalRateLimit);
+    public static SocketFrameCodec serverFrameCodec(int globalRateLimit) {
+        return new SocketFrameCodec(18 * 1024 * 1024, true, globalRateLimit);
     }
 
     //---------------------------------------------------------------------------------------------------------------
-    public ByteFrameCodec(int maxBodySize, boolean serverElseClient, int globalRateLimit) {
+    public SocketFrameCodec(int maxBodySize, boolean serverElseClient, int globalRateLimit) {
         this.maxBodySize = maxBodySize;
         this.serverElseClient = serverElseClient;
         this.frameBaseLength = FRAME_MAGIC.length + FRAME_BODY_SIZE;
