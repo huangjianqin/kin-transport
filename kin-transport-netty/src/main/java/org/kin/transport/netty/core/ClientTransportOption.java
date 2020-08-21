@@ -5,8 +5,8 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import org.kin.framework.utils.NetUtils;
 import org.kin.transport.netty.socket.SocketHandlerInitializer;
-import org.kin.transport.netty.websocket.BinaryWsClientHandlerInitializer;
 import org.kin.transport.netty.websocket.WSConstants;
+import org.kin.transport.netty.websocket.WsClientHandlerInitializer;
 import org.kin.transport.netty.websocket.handler.WSClientHandler;
 
 import java.net.InetSocketAddress;
@@ -70,9 +70,9 @@ public class ClientTransportOption extends TransportOption {
                         WebSocketClientHandshakerFactory.newHandshaker(
                                 uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders()));
 
-        BinaryWsClientHandlerInitializer binaryWSClientHandlerInitializer = new BinaryWsClientHandlerInitializer(this, wsClientHandler);
+        WsClientHandlerInitializer WSClientHandlerInitializer = new WsClientHandlerInitializer(this, wsClientHandler);
         Client client = new Client(InetSocketAddress.createUnresolved(host, port));
-        client.connect(this, binaryWSClientHandlerInitializer);
+        client.connect(this, WSClientHandlerInitializer);
 
         try {
             wsClientHandler.handshakeFuture().sync();

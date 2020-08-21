@@ -8,5 +8,5 @@ package org.kin.transport.netty.websocket;
  */
 public class WSConstants {
     /** websocket 握手url */
-    public static final String WS_PATH = "/kin-transport-ws";
+    public static final String WS_PATH = "/";
 }

@@ -1,7 +1,7 @@
 package org.kin.transport.netty.core;
 
 import org.kin.transport.netty.socket.SocketHandlerInitializer;
-import org.kin.transport.netty.websocket.BinaryWsServerHandlerInitializer;
+import org.kin.transport.netty.websocket.WsServerHandlerInitializer;
 
 import java.net.InetSocketAddress;
 
@@ -20,9 +20,9 @@ public class ServerTransportOption extends TransportOption {
     }
 
     public Server ws(InetSocketAddress address) {
-        BinaryWsServerHandlerInitializer binaryWSServerHandlerInitializer = new BinaryWsServerHandlerInitializer(this);
+        WsServerHandlerInitializer WSServerHandlerInitializer = new WsServerHandlerInitializer(this);
         Server server = new Server(address);
-        server.bind(this, binaryWSServerHandlerInitializer);
+        server.bind(this, WSServerHandlerInitializer);
         return server;
     }
 }
