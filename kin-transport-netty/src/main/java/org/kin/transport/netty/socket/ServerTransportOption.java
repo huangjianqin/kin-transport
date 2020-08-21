@@ -14,7 +14,7 @@ import java.net.InetSocketAddress;
  */
 public class ServerTransportOption extends SocketTransportOption {
     public Server tcp(InetSocketAddress address) {
-        ChannelHandlerInitializer channelHandlerInitializer = new SocketHandlerInitializer(this, true);
+        ChannelHandlerInitializer channelHandlerInitializer = new TcpHandlerInitializer(this, true);
         Server server = new Server(address);
         server.bind(this, channelHandlerInitializer);
         return server;

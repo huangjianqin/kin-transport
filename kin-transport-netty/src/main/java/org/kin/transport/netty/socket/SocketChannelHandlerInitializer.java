@@ -16,10 +16,10 @@ import java.util.List;
  * @author huangjianqin
  * @date 2019-09-12
  */
-public abstract class AbstractChannelHandlerInitializer implements ChannelHandlerInitializer {
+public abstract class SocketChannelHandlerInitializer implements ChannelHandlerInitializer {
     protected final SocketTransportOption transportOption;
 
-    public AbstractChannelHandlerInitializer(SocketTransportOption transportOption) {
+    public SocketChannelHandlerInitializer(SocketTransportOption transportOption) {
         this.transportOption = transportOption;
     }
 

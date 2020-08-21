@@ -22,7 +22,7 @@ import java.net.URISyntaxException;
  */
 public class ClientTransportOption extends SocketTransportOption {
     public Client tcp(InetSocketAddress address) {
-        ChannelHandlerInitializer channelHandlerInitializer = new SocketHandlerInitializer(this, false);
+        ChannelHandlerInitializer channelHandlerInitializer = new TcpHandlerInitializer(this, false);
         Client client = new Client(address);
         client.connect(this, channelHandlerInitializer);
         return client;

@@ -12,10 +12,10 @@ import java.util.Collections;
  * @author huangjianqin
  * @date 2019-09-12
  */
-public class SocketHandlerInitializer extends AbstractChannelHandlerInitializer {
+public class TcpHandlerInitializer extends SocketChannelHandlerInitializer {
     private final boolean serverElseClient;
 
-    public SocketHandlerInitializer(SocketTransportOption transportOption, boolean serverElseClient) {
+    public TcpHandlerInitializer(SocketTransportOption transportOption, boolean serverElseClient) {
         super(transportOption);
         this.serverElseClient = serverElseClient;
     }
