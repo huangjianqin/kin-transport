@@ -4,6 +4,7 @@ import io.netty.channel.ChannelOption;
 import org.kin.transport.netty.core.protocol.DefaultProtocolTransfer;
 import org.kin.transport.netty.core.protocol.ProtocolTransfer;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +33,13 @@ public class TransportOption {
     private int writeIdleTime;
     /** 读写空闲时间(秒) */
     private int readWriteIdleTime;
+    /** ssl */
+    private boolean ssl;
+    /** 证书路径 */
+    private String certFilePath;
+    /** 证书密钥路径 */
+    private String certKeyFilePath;
+
 
     /** server配置 */
     public static ServerTransportOption server() {
@@ -105,6 +113,16 @@ public class TransportOption {
         return (T) this;
     }
 
+    public <T extends TransportOption> T certFile(String certFilePath) {
+        this.certFilePath = certFilePath;
+        return (T) this;
+    }
+
+    public <T extends TransportOption> T certKeyFile(String certKeyFilePath) {
+        this.certKeyFilePath = certKeyFilePath;
+        return (T) this;
+    }
+
     //getter
     public TransportHandler getTransportHandler() {
         return transportHandler;
@@ -140,5 +158,33 @@ public class TransportOption {
 
     public int getReadWriteIdleTime() {
         return readWriteIdleTime;
+    }
+
+    public boolean isSsl() {
+        return ssl;
+    }
+
+    public String getCertFilePath() {
+        return certFilePath;
+    }
+
+    public String getCertKeyFilePath() {
+        return certKeyFilePath;
+    }
+
+    public File getCertFile() {
+        File certFile = new File(getCertFilePath());
+        if (!certFile.exists()) {
+            throw new IllegalArgumentException("cert certFile not exists");
+        }
+        return certFile;
+    }
+
+    public File getCertKeyFile() {
+        File certKeyFile = new File(getCertKeyFilePath());
+        if (!certKeyFile.exists()) {
+            throw new IllegalArgumentException("cert certKeyFile not exists");
+        }
+        return certKeyFile;
     }
 }

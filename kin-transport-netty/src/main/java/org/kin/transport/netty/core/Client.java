@@ -6,11 +6,14 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
@@ -51,11 +54,27 @@ public class Client extends ClientConnection {
             bootstrap.option(entry.getKey(), entry.getValue());
         }
 
+        final SslContext sslCtx;
+        if (transportOption.isSsl()) {
+            try {
+                sslCtx = SslContextBuilder.forClient().keyManager(transportOption.getCertFile(), transportOption.getCertKeyFile()).build();
+            } catch (SSLException e) {
+                throw new IllegalStateException(e);
+            }
+        } else {
+            sslCtx = null;
+        }
+
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) {
+                ChannelPipeline pipeline = socketChannel.pipeline();
+                if (Objects.nonNull(sslCtx)) {
+                    pipeline.addLast(sslCtx.newHandler(socketChannel.alloc(), address.getHostString(), address.getPort()));
+                }
+
                 for (ChannelHandler channelHandler : channelHandlerInitializer.getChannelHandlers()) {
-                    socketChannel.pipeline().addLast(channelHandler.getClass().getSimpleName(), channelHandler);
+                    pipeline.addLast(channelHandler.getClass().getSimpleName(), channelHandler);
                 }
             }
         });

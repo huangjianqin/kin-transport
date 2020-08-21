@@ -6,10 +6,13 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.utils.SysUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
@@ -37,7 +40,7 @@ public class Server extends ServerConnection {
     }
 
     @Override
-    public void bind(ServerTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) throws Exception {
+    public void bind(ServerTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
         log.info("server({}) connection binding...", address);
 
         Map<ChannelOption, Object> serverOptions = transportOption.getServerOptions();
@@ -69,11 +72,27 @@ public class Server extends ServerConnection {
             bootstrap.childOption(entry.getKey(), entry.getValue());
         }
 
+        final SslContext sslCtx;
+        if (transportOption.isSsl()) {
+            try {
+                sslCtx = SslContextBuilder.forServer(transportOption.getCertFile(), transportOption.getCertKeyFile()).build();
+            } catch (SSLException e) {
+                throw new IllegalStateException(e);
+            }
+        } else {
+            sslCtx = null;
+        }
+
         bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) {
+                ChannelPipeline pipeline = socketChannel.pipeline();
+                if (Objects.nonNull(sslCtx)) {
+                    pipeline.addLast(sslCtx.newHandler(socketChannel.alloc()));
+                }
+
                 for (ChannelHandler channelHandler : channelHandlerInitializer.getChannelHandlers()) {
-                    socketChannel.pipeline().addLast(channelHandler.getClass().getSimpleName(), channelHandler);
+                    pipeline.addLast(channelHandler.getClass().getSimpleName(), channelHandler);
                 }
             }
         });
@@ -88,7 +107,11 @@ public class Server extends ServerConnection {
             latch.countDown();
         });
 
-        latch.await();
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+
+        }
         if (selector == null) {
             throw new RuntimeException("server connection bind fail: " + address);
         }
