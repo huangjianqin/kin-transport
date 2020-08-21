@@ -1,8 +1,6 @@
 package org.kin.transport.netty.socket;
 
 import io.netty.channel.ChannelHandler;
-import org.kin.transport.netty.core.AbstractChannelHandlerInitializer;
-import org.kin.transport.netty.core.TransportOption;
 import org.kin.transport.netty.socket.handler.SocketFrameCodec;
 
 import java.util.Collection;
@@ -17,7 +15,7 @@ import java.util.Collections;
 public class SocketHandlerInitializer extends AbstractChannelHandlerInitializer {
     private final boolean serverElseClient;
 
-    public SocketHandlerInitializer(TransportOption transportOption, boolean serverElseClient) {
+    public SocketHandlerInitializer(SocketTransportOption transportOption, boolean serverElseClient) {
         super(transportOption);
         this.serverElseClient = serverElseClient;
     }

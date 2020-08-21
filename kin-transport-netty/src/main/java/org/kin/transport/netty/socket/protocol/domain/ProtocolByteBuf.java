@@ -1,0 +1,407 @@
+package org.kin.transport.netty.socket.protocol.domain;
+
+import com.google.common.base.Preconditions;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.ReferenceCounted;
+
+import java.nio.charset.StandardCharsets;
+
+/**
+ * 字节类协议封装
+ *
+ * @author huangjianqin
+ * @date 2019/6/4
+ */
+public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
+    /** 读模式 */
+    private static final int READ_MODE = 0;
+    /** 写模式 */
+    private static final int WRITE_MODE = 1;
+    /** 读写模式 */
+    private static final int READ_WRITE_MODE = 2;
+
+    /** 字节buffer */
+    private ByteBuf byteBuf;
+    /** 协议id */
+    private int protocolId;
+    /** 协议成都 */
+    private int contentSize;
+    /** 模式 */
+    private final int mode;
+
+    public ProtocolByteBuf(ByteBuf byteBuf) {
+        this.byteBuf = byteBuf;
+        this.protocolId = byteBuf.readUnsignedShort();
+        this.contentSize = byteBuf.readableBytes();
+        this.mode = READ_MODE;
+    }
+
+    public ProtocolByteBuf(int protocolId) {
+        byteBuf = Unpooled.buffer();
+        byteBuf.writeShort(protocolId);
+        this.protocolId = protocolId;
+        this.mode = WRITE_MODE;
+    }
+
+    //--------------------------------------------request----------------------------------------------------
+
+    @Override
+    public int getContentSize() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return contentSize;
+    }
+
+    @Override
+    public byte readByte() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return byteBuf.readByte();
+    }
+
+    @Override
+    public short readUnsignedByte() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return byteBuf.readUnsignedByte();
+    }
+
+    @Override
+    public boolean readBoolean() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return byteBuf.readBoolean();
+    }
+
+    @Override
+    public byte[] readBytes(int length) {
+        Preconditions.checkArgument(mode == READ_MODE);
+        Preconditions.checkArgument(length > 0);
+        Preconditions.checkArgument(length <= byteBuf.readableBytes());
+        byte[] result = new byte[length];
+        byteBuf.readBytes(result);
+        return result;
+    }
+
+    @Override
+    public byte[] readBytes() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        byte[] result = new byte[byteBuf.readableBytes()];
+        byteBuf.readBytes(result);
+        return result;
+    }
+
+    @Override
+    public short readShort() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return byteBuf.readShort();
+    }
+
+    @Override
+    public int readUnsignedShort() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return byteBuf.readUnsignedShort();
+    }
+
+    @Override
+    public int readInt() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return byteBuf.readInt();
+    }
+
+    @Override
+    public long readUnsignedInt() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return byteBuf.readUnsignedInt();
+    }
+
+    @Override
+    public float readFloat() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return byteBuf.readFloat();
+    }
+
+    @Override
+    public long readLong() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return byteBuf.readLong();
+    }
+
+    @Override
+    public double readDouble() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return byteBuf.readDouble();
+    }
+
+    @Override
+    public String readString() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        int length = byteBuf.readShort();
+        byte[] content = new byte[length];
+        byteBuf.readBytes(content);
+        return new String(content, StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public String readBigString() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        int length = byteBuf.readUnsignedShort();
+        byte[] content = new byte[length];
+        byteBuf.readBytes(content);
+        return new String(content, StandardCharsets.UTF_8);
+    }
+
+
+    @Override
+    public int refCnt() {
+//        Preconditions.checkArgument(mode == READ_MODE);
+        return byteBuf.refCnt();
+    }
+
+    @Override
+    public ReferenceCounted retain() {
+//        Preconditions.checkArgument(mode == READ_MODE);
+        byteBuf.retain();
+        return this;
+    }
+
+    @Override
+    public ReferenceCounted retain(int i) {
+        byteBuf.retain(i);
+        return this;
+    }
+
+    @Override
+    public ReferenceCounted touch() {
+        byteBuf.touch();
+        return this;
+    }
+
+    @Override
+    public ReferenceCounted touch(Object o) {
+        byteBuf.touch(o);
+        return this;
+    }
+
+    @Override
+    public boolean release() {
+        return byteBuf.release();
+    }
+
+    @Override
+    public boolean release(int i) {
+        return byteBuf.release(i);
+    }
+
+    //--------------------------------------------response----------------------------------------------------
+
+    @Override
+    public ByteBuf getByteBuf() {
+        return byteBuf;
+    }
+
+    @Override
+    public Response setProtocolId(int protocolId) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        byteBuf.setShort(0, protocolId);
+        return this;
+    }
+
+    @Override
+    public int getProtocolId() {
+        return protocolId;
+    }
+
+    @Override
+    public int getSize() {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        return byteBuf.readableBytes();
+    }
+
+    @Override
+    public Response writeByte(int value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE, "value: %s", value);
+        byteBuf.writeByte(value);
+        return this;
+    }
+
+    @Override
+    public Response writeUnsignedByte(short value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value >= 0 && value <= Byte.MAX_VALUE - Byte.MIN_VALUE, "value: %s", value);
+        byteBuf.writeByte(value);
+        return this;
+    }
+
+    @Override
+    public Response writeBoolean(boolean value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        byteBuf.writeByte(value ? 1 : 0);
+        return this;
+    }
+
+    @Override
+    public Response writeBytes(byte[] value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value != null);
+        byteBuf.writeBytes(value);
+        return this;
+    }
+
+    @Override
+    public Response writeShort(int value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value >= Short.MIN_VALUE && value <= Short.MAX_VALUE, "value: %s", value);
+        byteBuf.writeShort(value);
+        return this;
+    }
+
+    @Override
+    public Response writeUnsignedShort(int value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value >= 0 && value <= Short.MAX_VALUE - Short.MIN_VALUE, "value: %s", value);
+        byteBuf.writeShort(value);
+        return this;
+    }
+
+    @Override
+    public Response writeInt(int value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        byteBuf.writeInt(value);
+        return this;
+    }
+
+    @Override
+    public Response writeUnsignedInt(long value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        byteBuf.writeInt((int) value);
+        return this;
+    }
+
+    @Override
+    public Response writeFloat(float value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value >= Float.MIN_VALUE && value <= Float.MAX_VALUE, "value: %s", value);
+        byteBuf.writeFloat(value);
+        return this;
+    }
+
+    @Override
+    public Response writeLong(long value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        byteBuf.writeLong(value);
+        return this;
+    }
+
+    @Override
+    public Response writeDouble(double value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value >= Double.MIN_VALUE && value <= Double.MAX_VALUE, "value: %s", value);
+        byteBuf.writeDouble(value);
+        return this;
+    }
+
+    private void writeString0(String value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value != null);
+        byte[] content = value.getBytes(StandardCharsets.UTF_8);
+        byteBuf.writeShort(content.length);
+        byteBuf.writeBytes(content);
+    }
+
+    @Override
+    public Response writeString(String value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        writeString0(value);
+        return this;
+    }
+
+    @Override
+    public Response writeBigString(String value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        writeString0(value);
+        return this;
+    }
+
+    @Override
+    public Response setBoolean(int index, boolean value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        byteBuf.setBoolean(index, value);
+        return this;
+    }
+
+    @Override
+    public Response setByte(int index, int value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE, "value: %s", value);
+        byteBuf.setByte(index, value);
+        return this;
+    }
+
+    @Override
+    public Response setUnsignedByte(int index, int value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value >= 0 && value <= Byte.MAX_VALUE - Byte.MIN_VALUE, "value: %s", value);
+        byteBuf.setByte(index, value);
+        return this;
+    }
+
+    @Override
+    public Response setShort(int index, int value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value >= Short.MIN_VALUE && value <= Short.MAX_VALUE, "value: %s", value);
+        byteBuf.setShort(index, value);
+        return this;
+    }
+
+    @Override
+    public Response setUnsignedShort(int index, int value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value >= 0 && value <= Short.MAX_VALUE - Short.MIN_VALUE, "value: %s", value);
+        byteBuf.setShort(index, value);
+        return this;
+    }
+
+    @Override
+    public Response setInt(int index, int value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        byteBuf.setInt(index, value);
+        return this;
+    }
+
+    @Override
+    public Response setUnsignedInt(int index, long value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        byteBuf.setInt(index, (int) value);
+        return this;
+    }
+
+    @Override
+    public Response setLong(int index, long value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        byteBuf.setLong(index, value);
+        return this;
+    }
+
+    @Override
+    public Response setFloat(int index, float value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value >= Float.MIN_VALUE && value <= Float.MAX_VALUE, "value: %s", value);
+        byteBuf.setFloat(index, value);
+        return this;
+    }
+
+    @Override
+    public Response setDouble(int index, double value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value >= Double.MIN_VALUE && value <= Double.MAX_VALUE, "value: %s", value);
+        byteBuf.setDouble(index, value);
+        return this;
+    }
+
+    @Override
+    public Response setBytes(int index, byte[] value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        Preconditions.checkArgument(value != null);
+        byteBuf.setBytes(index, value);
+        return this;
+    }
+}

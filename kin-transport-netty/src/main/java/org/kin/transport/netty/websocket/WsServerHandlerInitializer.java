@@ -5,8 +5,8 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
-import org.kin.transport.netty.core.AbstractChannelHandlerInitializer;
-import org.kin.transport.netty.core.TransportOption;
+import org.kin.transport.netty.socket.AbstractChannelHandlerInitializer;
+import org.kin.transport.netty.socket.SocketTransportOption;
 import org.kin.transport.netty.websocket.handler.ByteBuf2BinaryFrameCodec;
 import org.kin.transport.netty.websocket.handler.WsServerhandler;
 
@@ -20,7 +20,7 @@ import java.util.Collection;
  * @date 2020/8/20
  */
 public class WsServerHandlerInitializer extends AbstractChannelHandlerInitializer {
-    public WsServerHandlerInitializer(TransportOption transportOption) {
+    public WsServerHandlerInitializer(SocketTransportOption transportOption) {
         super(transportOption);
     }
 
