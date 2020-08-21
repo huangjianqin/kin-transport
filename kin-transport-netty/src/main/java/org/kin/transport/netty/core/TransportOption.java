@@ -1,8 +1,8 @@
 package org.kin.transport.netty.core;
 
 import io.netty.channel.ChannelOption;
-import org.kin.transport.netty.core.protocol.DefaultProtocolTransfer;
 import org.kin.transport.netty.core.protocol.ProtocolTransfer;
+import org.kin.transport.netty.core.protocol.SocketProtocolTransfer;
 
 import java.io.File;
 import java.util.HashMap;
@@ -20,7 +20,7 @@ public class TransportOption {
     private Map<ChannelOption, Object> serverOptions = new HashMap<>();
     /** channel 配置 */
     private Map<ChannelOption, Object> channelOptions = new HashMap<>();
-    private ProtocolTransfer protocolTransfer = DefaultProtocolTransfer.instance();
+    private ProtocolTransfer protocolTransfer = SocketProtocolTransfer.instance();
 
 
     /** 是否压缩 */

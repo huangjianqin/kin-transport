@@ -17,5 +17,5 @@ public interface ProtocolTransfer {
      * @param <T>     协议实现类
      * @return 协议实现类
      */
-    <T extends AbstractProtocol> T transfer(Request request);
+    <T extends AbstractProtocol> T transfer(Request msg);
 }
