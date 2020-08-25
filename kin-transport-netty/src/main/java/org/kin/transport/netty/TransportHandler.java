@@ -9,7 +9,7 @@ import io.netty.channel.Channel;
 public abstract class TransportHandler<MSG> {
     public static TransportHandler DO_NOTHING = new TransportHandler() {
         @Override
-        public void handleProtocol(Channel channel, Object protocol) {
+        public void handle(Channel channel, Object protocol) {
             //do nothing
         }
     };
@@ -20,7 +20,7 @@ public abstract class TransportHandler<MSG> {
      *
      * @param protocol 协议
      */
-    public abstract void handleProtocol(Channel channel, MSG protocol);
+    public abstract void handle(Channel channel, MSG protocol);
 
     /**
      * channel有效

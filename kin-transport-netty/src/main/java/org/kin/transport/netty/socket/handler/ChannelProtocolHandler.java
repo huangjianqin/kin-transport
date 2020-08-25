@@ -47,7 +47,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
 
             //流控
             if (ProtocolRateLimiter.valid(protocol)) {
-                transportHandler.handleProtocol(ctx.channel(), protocol);
+                transportHandler.handle(ctx.channel(), protocol);
             } else {
                 transportHandler.rateLimitReject(ctx.channel(), protocol);
             }

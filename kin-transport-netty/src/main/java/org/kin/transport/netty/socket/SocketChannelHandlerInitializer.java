@@ -1,13 +1,10 @@
 package org.kin.transport.netty.socket;
 
 import io.netty.channel.ChannelHandler;
-import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.socket.handler.ChannelProtocolHandler;
 import org.kin.transport.netty.socket.handler.ProtocolCodec;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -46,16 +43,7 @@ public abstract class SocketChannelHandlerInitializer implements ChannelHandlerI
 
     @Override
     public final ChannelHandler[] getChannelHandlers() {
-        List<ChannelHandler> channelHandlers = new ArrayList<>();
-        channelHandlers.add(new WriteTimeoutHandler(3));
-
-        int readIdleTime = transportOption.getReadIdleTime();
-        int writeIdleTime = transportOption.getWriteIdleTime();
-        int readWriteIdleTime = transportOption.getReadWriteIdleTime();
-        if (readIdleTime > 0 || writeIdleTime > 0 || readWriteIdleTime > 0) {
-            //其中一个>0就设置Handler
-            channelHandlers.add(new IdleStateHandler(readIdleTime, writeIdleTime, readWriteIdleTime));
-        }
+        List<ChannelHandler> channelHandlers = setUpChannelHandlers(transportOption);
 
         channelHandlers.addAll(beforeHandlers());
         channelHandlers.add(new ProtocolCodec(transportOption.getProtocolTransfer(), serverElseClient(), transportOption.isCompression()));

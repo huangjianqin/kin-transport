@@ -12,8 +12,7 @@ import java.util.Map;
  * @author huangjianqin
  * @date 2019/7/29
  */
-public abstract class TransportOption<MSG> {
-    private TransportHandler<MSG> transportHandler = TransportHandler.DO_NOTHING;
+public abstract class TransportOption {
     /** server/selector channel 配置 */
     private Map<ChannelOption, Object> serverOptions = new HashMap<>();
     /** channel 配置 */
@@ -37,11 +36,6 @@ public abstract class TransportOption<MSG> {
     private String certKeyFilePath;
 
     //------------------------------------------------------------------------------------------------------------------
-    public <T extends TransportOption> T transportHandler(TransportHandler<MSG> transportHandler) {
-        this.transportHandler = transportHandler;
-        return (T) this;
-    }
-
     public <T extends TransportOption> T serverOptions(Map<ChannelOption, Object> channelOptions) {
         this.serverOptions.putAll(channelOptions);
         return (T) this;
@@ -108,10 +102,6 @@ public abstract class TransportOption<MSG> {
     }
 
     //getter
-    public TransportHandler getTransportHandler() {
-        return transportHandler;
-    }
-
     public Map<ChannelOption, Object> getServerOptions() {
         return serverOptions;
     }
