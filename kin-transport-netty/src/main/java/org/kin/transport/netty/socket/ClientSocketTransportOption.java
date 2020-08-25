@@ -20,9 +20,9 @@ import java.net.URISyntaxException;
  * @author huangjianqin
  * @date 2019-09-13
  */
-public class ClientTransportOption extends SocketTransportOption {
+public class ClientSocketTransportOption extends SocketTransportOption {
     public Client tcp(InetSocketAddress address) {
-        ChannelHandlerInitializer channelHandlerInitializer = new TcpHandlerInitializer(this, false);
+        ChannelHandlerInitializer channelHandlerInitializer = new SocketHandlerInitializer(this, false);
         Client client = new Client(address);
         client.connect(this, channelHandlerInitializer);
         return client;

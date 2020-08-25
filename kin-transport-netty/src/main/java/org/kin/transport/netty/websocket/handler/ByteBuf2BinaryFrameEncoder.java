@@ -11,7 +11,7 @@ import java.util.List;
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class ByteBuf2BinaryFrameCodec extends MessageToMessageEncoder<ByteBuf> {
+public class ByteBuf2BinaryFrameEncoder extends MessageToMessageEncoder<ByteBuf> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {

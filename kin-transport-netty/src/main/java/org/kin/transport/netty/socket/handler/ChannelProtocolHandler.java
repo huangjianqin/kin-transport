@@ -59,6 +59,8 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
         Channel channel = ctx.channel();
         log.info("channel active: {}", ChannelUtils.getRemoteIp(channel));
         transportHandler.channelActive(ctx.channel());
+
+        ctx.fireChannelActive();
     }
 
     @Override
@@ -66,6 +68,8 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
         Channel channel = ctx.channel();
         log.info("channel inactive: {}", ChannelUtils.getRemoteIp(channel));
         transportHandler.channelInactive(ctx.channel());
+
+        ctx.fireChannelInactive();
     }
 
     @Override
@@ -73,6 +77,8 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
         Channel channel = ctx.channel();
         log.error("server('{}') throw exception:{}", ChannelUtils.getRemoteIp(channel), cause);
         transportHandler.handleException(channel, cause);
+
+        ctx.fireExceptionCaught(cause);
     }
 
     @Override
@@ -91,5 +97,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
         if (evt instanceof GlobalRatelimitEvent) {
             transportHandler.globalRateLimitReject();
         }
+
+        ctx.fireUserEventTriggered(evt);
     }
 }

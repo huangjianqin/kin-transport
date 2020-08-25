@@ -13,13 +13,13 @@ public class SocketTransportOption extends TransportOption<AbstractProtocol> {
     private ProtocolTransfer protocolTransfer = SocketProtocolTransfer.instance();
 
     /** server配置 */
-    public static ServerTransportOption server() {
-        return new ServerTransportOption();
+    public static ServerSocketTransportOption server() {
+        return new ServerSocketTransportOption();
     }
 
     /** client配置 */
-    public static ClientTransportOption client() {
-        return new ClientTransportOption();
+    public static ClientSocketTransportOption client() {
+        return new ClientSocketTransportOption();
     }
 
     //----------------------------------------------------------------------------------------------------------------

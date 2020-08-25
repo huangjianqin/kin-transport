@@ -6,7 +6,7 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
 import org.kin.transport.netty.socket.SocketChannelHandlerInitializer;
 import org.kin.transport.netty.socket.SocketTransportOption;
-import org.kin.transport.netty.websocket.handler.ByteBuf2BinaryFrameCodec;
+import org.kin.transport.netty.websocket.handler.ByteBuf2BinaryFrameEncoder;
 import org.kin.transport.netty.websocket.handler.WsClientHandler;
 import org.kin.transport.netty.websocket.handler.WsServerHandler;
 
@@ -33,7 +33,7 @@ public class WsClientHandlerInitializer extends SocketChannelHandlerInitializer 
                 WebSocketClientCompressionHandler.INSTANCE,
                 wsClientHandler,
                 new WsServerHandler(),
-                new ByteBuf2BinaryFrameCodec());
+                new ByteBuf2BinaryFrameEncoder());
     }
 
     @Override

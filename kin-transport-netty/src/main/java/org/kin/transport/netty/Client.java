@@ -9,7 +9,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.transport.netty.socket.ClientTransportOption;
+import org.kin.transport.netty.socket.ClientSocketTransportOption;
 import org.kin.transport.netty.socket.protocol.AbstractProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class Client extends ClientConnection {
     }
 
     @Override
-    public void connect(ClientTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+    public void connect(ClientSocketTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
         log.info("client({}) connecting...", address);
 
         Map<ChannelOption, Object> channelOptions = transportOption.getChannelOptions();

@@ -18,13 +18,13 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020-03-19
  */
-public abstract class SessionTransportHandler<S extends AbstractSession> extends SocketTransportHandler {
-    private static Logger log = LoggerFactory.getLogger(SessionTransportHandler.class);
+public abstract class SocketSessionTransportHandler<S extends AbstractSession> extends SocketTransportHandler {
+    private static Logger log = LoggerFactory.getLogger(SocketSessionTransportHandler.class);
     private final AttributeKey<S> SESSION_KEY = AttributeKey.valueOf("session");
     /** seesion构建逻辑 */
     private SessionBuilder<S> sessionBuilder;
 
-    public SessionTransportHandler(SessionBuilder<S> sessionBuilder) {
+    public SocketSessionTransportHandler(SessionBuilder<S> sessionBuilder) {
         this.sessionBuilder = sessionBuilder;
     }
 

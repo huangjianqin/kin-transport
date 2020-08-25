@@ -12,9 +12,9 @@ import java.net.InetSocketAddress;
  * @author huangjianqin
  * @date 2019-09-13
  */
-public class ServerTransportOption extends SocketTransportOption {
+public class ServerSocketTransportOption extends SocketTransportOption {
     public Server tcp(InetSocketAddress address) {
-        ChannelHandlerInitializer channelHandlerInitializer = new TcpHandlerInitializer(this, true);
+        ChannelHandlerInitializer channelHandlerInitializer = new SocketHandlerInitializer(this, true);
         Server server = new Server(address);
         server.bind(this, channelHandlerInitializer);
         return server;

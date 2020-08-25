@@ -9,7 +9,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.utils.SysUtils;
-import org.kin.transport.netty.socket.ServerTransportOption;
+import org.kin.transport.netty.socket.ServerSocketTransportOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public class Server extends ServerConnection {
     }
 
     @Override
-    public void bind(ServerTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+    public void bind(ServerSocketTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
         log.info("server({}) connection binding...", address);
 
         Map<ChannelOption, Object> serverOptions = transportOption.getServerOptions();

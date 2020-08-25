@@ -1,6 +1,6 @@
 package org.kin.transport.netty;
 
-import org.kin.transport.netty.socket.ClientTransportOption;
+import org.kin.transport.netty.socket.ClientSocketTransportOption;
 
 import java.net.InetSocketAddress;
 
@@ -21,6 +21,6 @@ public abstract class ClientConnection extends AbstractConnection {
      * @param transportOption           client transport配置
      * @param channelHandlerInitializer netty channel handler 初始化
      */
-    public abstract void connect(ClientTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer);
+    public abstract void connect(ClientSocketTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer);
 
 }
