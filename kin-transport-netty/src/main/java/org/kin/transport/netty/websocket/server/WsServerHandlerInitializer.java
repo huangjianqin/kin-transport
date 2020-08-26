@@ -1,28 +1,28 @@
-package org.kin.transport.netty.websocket;
+package org.kin.transport.netty.websocket.server;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
+import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import org.kin.transport.netty.socket.SocketChannelHandlerInitializer;
 import org.kin.transport.netty.socket.SocketTransportOption;
+import org.kin.transport.netty.websocket.WsConstants;
 import org.kin.transport.netty.websocket.handler.ByteBuf2BinaryFrameEncoder;
-import org.kin.transport.netty.websocket.handler.WsClientHandler;
-import org.kin.transport.netty.websocket.handler.WsServerHandler;
+import org.kin.transport.netty.websocket.server.handler.WsServerHandler;
 
 import java.util.Arrays;
 import java.util.Collection;
 
 /**
+ * websocket server的channel handler初始化
+ *
  * @author huangjianqin
- * @date 2020/8/21
+ * @date 2020/8/20
  */
-public class WsClientHandlerInitializer extends SocketChannelHandlerInitializer {
-    private final WsClientHandler wsClientHandler;
-
-    public WsClientHandlerInitializer(SocketTransportOption transportOption, WsClientHandler wsClientHandler) {
+public class WsServerHandlerInitializer extends SocketChannelHandlerInitializer {
+    public WsServerHandlerInitializer(SocketTransportOption transportOption) {
         super(transportOption);
-        this.wsClientHandler = wsClientHandler;
     }
 
     @Override
@@ -30,15 +30,15 @@ public class WsClientHandlerInitializer extends SocketChannelHandlerInitializer 
         return Arrays.asList(
                 new HttpServerCodec(),
                 new HttpObjectAggregator(65536),
-                WebSocketClientCompressionHandler.INSTANCE,
-                wsClientHandler,
+                new WebSocketServerCompressionHandler(),
+                //适配指定url
+                new WebSocketServerProtocolHandler(WsConstants.WS_PATH),
                 new WsServerHandler(),
                 new ByteBuf2BinaryFrameEncoder());
     }
 
     @Override
     protected boolean serverElseClient() {
-        return false;
+        return true;
     }
 }
-

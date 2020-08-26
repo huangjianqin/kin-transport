@@ -2,7 +2,7 @@ package org.kin.transport.netty.socket;
 
 import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.Server;
-import org.kin.transport.netty.websocket.WsServerHandlerInitializer;
+import org.kin.transport.netty.websocket.server.WsServerHandlerInitializer;
 
 import java.net.InetSocketAddress;
 

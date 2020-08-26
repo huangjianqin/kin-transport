@@ -6,9 +6,9 @@ import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import org.kin.framework.utils.NetUtils;
 import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.Client;
-import org.kin.transport.netty.websocket.WsClientHandlerInitializer;
 import org.kin.transport.netty.websocket.WsConstants;
-import org.kin.transport.netty.websocket.handler.WsClientHandler;
+import org.kin.transport.netty.websocket.client.WsClientHandlerInitializer;
+import org.kin.transport.netty.websocket.client.handler.WsClientHandler;
 
 import java.net.InetSocketAddress;
 import java.net.URI;

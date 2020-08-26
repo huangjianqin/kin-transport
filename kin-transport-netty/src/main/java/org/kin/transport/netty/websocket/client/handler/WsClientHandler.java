@@ -1,4 +1,4 @@
-package org.kin.transport.netty.websocket.handler;
+package org.kin.transport.netty.websocket.client.handler;
 
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;

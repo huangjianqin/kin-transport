@@ -1,4 +1,4 @@
-package org.kin.transport.netty.websocket.handler;
+package org.kin.transport.netty.websocket.server.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
