@@ -1,6 +1,9 @@
 package org.kin.transport.netty.http.client;
 
+import org.kin.transport.netty.Client;
 import org.kin.transport.netty.TransportOption;
+
+import java.net.InetSocketAddress;
 
 /**
  * @author huangjianqin
@@ -8,6 +11,17 @@ import org.kin.transport.netty.TransportOption;
  */
 public class HttpClientTransportOption extends TransportOption {
     private HttpClientTransportHandler transportHandler;
+
+    public final Client http(InetSocketAddress address) {
+        HttpClientHandlerInitializer httpClientHandlerInitializer = handlerInitializer();
+        Client client = new Client(address);
+        client.connect(this, httpClientHandlerInitializer);
+        return client;
+    }
+
+    protected HttpClientHandlerInitializer handlerInitializer() {
+        return new HttpClientHandlerInitializer(this);
+    }
 
     //----------------------------------------------------------------------------------------------------------------
     public <T extends HttpClientTransportOption> T transportHandler(HttpClientTransportHandler transportHandler) {
