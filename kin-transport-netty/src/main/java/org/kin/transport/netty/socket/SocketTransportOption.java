@@ -2,9 +2,11 @@ package org.kin.transport.netty.socket;
 
 import org.kin.transport.netty.TransportHandler;
 import org.kin.transport.netty.TransportOption;
+import org.kin.transport.netty.socket.client.SocketClientTransportOption;
 import org.kin.transport.netty.socket.protocol.AbstractProtocol;
 import org.kin.transport.netty.socket.protocol.ProtocolTransfer;
 import org.kin.transport.netty.socket.protocol.SocketProtocolTransfer;
+import org.kin.transport.netty.socket.server.SocketServerTransportOption;
 
 /**
  * @author huangjianqin
@@ -15,13 +17,13 @@ public class SocketTransportOption extends TransportOption {
     private ProtocolTransfer protocolTransfer = SocketProtocolTransfer.instance();
 
     /** server配置 */
-    public static ServerSocketTransportOption server() {
-        return new ServerSocketTransportOption();
+    public static SocketServerTransportOption server() {
+        return new SocketServerTransportOption();
     }
 
     /** client配置 */
-    public static ClientSocketTransportOption client() {
-        return new ClientSocketTransportOption();
+    public static SocketClientTransportOption client() {
+        return new SocketClientTransportOption();
     }
 
     //----------------------------------------------------------------------------------------------------------------

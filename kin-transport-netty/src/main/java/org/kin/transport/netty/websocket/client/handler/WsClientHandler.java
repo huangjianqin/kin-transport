@@ -5,6 +5,8 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.transport.netty.utils.ChannelUtils;
+import org.kin.transport.netty.websocket.WsTransportHandler;
 
 /**
  * @author huangjianqin
@@ -15,9 +17,12 @@ public class WsClientHandler extends SimpleChannelInboundHandler<Object> impleme
     private final WebSocketClientHandshaker handshaker;
     /** ws握手future */
     private ChannelPromise handshakeFuture;
+    /** transport handler */
+    private final WsTransportHandler transportHandler;
 
-    public WsClientHandler(WebSocketClientHandshaker handshaker) {
+    public WsClientHandler(WebSocketClientHandshaker handshaker, WsTransportHandler transportHandler) {
         this.handshaker = handshaker;
+        this.transportHandler = transportHandler;
     }
 
     public ChannelFuture handshakeFuture() {
@@ -62,18 +67,36 @@ public class WsClientHandler extends SimpleChannelInboundHandler<Object> impleme
             return;
         }
 
-        WebSocketFrame frame = (WebSocketFrame) msg;
-        if (frame instanceof TextWebSocketFrame) {
-            TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
-            log().info("websocket client received message: " + textFrame.text());
-        } else if (frame instanceof BinaryWebSocketFrame) {
-            ctx.fireChannelRead(((BinaryWebSocketFrame) frame).content());
-        } else if (frame instanceof PongWebSocketFrame) {
-            log().debug("websocket client received pong");
-        } else if (frame instanceof CloseWebSocketFrame) {
-            log().info("websocket client received closing");
-            ch.close();
-            ctx.fireChannelInactive();
+        if (msg instanceof PongWebSocketFrame) {
+            //TODO
+            log().debug("websocket server received pong");
+        } else if (msg instanceof CloseWebSocketFrame) {
+            log().info("websocket server received closing");
+            ctx.channel().close();
+        } else {
+            //其他类型的的websocket frame
+            transportHandler.handle(ctx, (WebSocketFrame) msg);
         }
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        transportHandler.channelInactive(ctx);
+
+        super.channelInactive(ctx);
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        ChannelUtils.handleUserEvent(evt, ctx, transportHandler);
+
+        super.userEventTriggered(ctx, evt);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        transportHandler.handleException(ctx, cause);
+
+        super.exceptionCaught(ctx, cause);
     }
 }

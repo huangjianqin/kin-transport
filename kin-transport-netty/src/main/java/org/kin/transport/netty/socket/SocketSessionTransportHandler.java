@@ -1,6 +1,7 @@
 package org.kin.transport.netty.socket;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import org.kin.transport.netty.TransportHandler;
@@ -34,7 +35,8 @@ public abstract class SocketSessionTransportHandler<S extends AbstractSession> e
     }
 
     @Override
-    public void channelActive(Channel channel) {
+    public void channelActive(ChannelHandlerContext ctx) {
+        Channel channel = ctx.channel();
         Attribute<S> attr = channel.attr(SESSION_KEY);
         if (!attr.compareAndSet(null, sessionBuilder.create(channel))) {
             channel.close();
@@ -43,7 +45,8 @@ public abstract class SocketSessionTransportHandler<S extends AbstractSession> e
     }
 
     @Override
-    public void channelInactive(Channel channel) {
+    public void channelInactive(ChannelHandlerContext ctx) {
+        Channel channel = ctx.channel();
         Attribute<S> attr = channel.attr(SESSION_KEY);
         if (Objects.nonNull(attr)) {
             attr.remove();

@@ -1,6 +1,6 @@
 package org.kin.transport.netty;
 
-import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 
 /**
  * @author huangjianqin
@@ -9,7 +9,7 @@ import io.netty.channel.Channel;
 public abstract class TransportHandler<MSG> {
     public static TransportHandler DO_NOTHING = new TransportHandler() {
         @Override
-        public void handle(Channel channel, Object protocol) {
+        public void handle(ChannelHandlerContext ctx, Object protocol) {
             //do nothing
         }
     };
@@ -18,46 +18,47 @@ public abstract class TransportHandler<MSG> {
      * 处理解析到的协议
      * 在channel线程调用
      *
+     * @param ctx      channel上下文
      * @param protocol 协议
      */
-    public abstract void handle(Channel channel, MSG protocol);
+    public abstract void handle(ChannelHandlerContext ctx, MSG protocol);
 
     /**
      * channel有效
      * 在channel线程调用
      *
-     * @param channel 触发listener的channel
+     * @param ctx channel上下文
      */
-    public void channelActive(Channel channel) {
+    public void channelActive(ChannelHandlerContext ctx) {
     }
 
     /**
      * channel无效
      * 在channel线程调用
      *
-     * @param channel 触发该listener的channel
+     * @param ctx channel上下文
      */
-    public void channelInactive(Channel channel) {
+    public void channelInactive(ChannelHandlerContext ctx) {
     }
 
     /**
      * 异常处理
      * 在channel线程调用
      *
-     * @param channel 发生异常的channel
-     * @param cause   具体异常
+     * @param ctx   channel上下文
+     * @param cause 具体异常
      */
-    public void handleException(Channel channel, Throwable cause) {
+    public void handleException(ChannelHandlerContext ctx, Throwable cause) {
     }
 
     /**
      * channel流量达到上限时触发
      * 在channel线程调用
      *
-     * @param channel  channel
+     * @param ctx      channel上下文
      * @param protocol 协议
      */
-    public void rateLimitReject(Channel channel, MSG protocol) {
+    public void rateLimitReject(ChannelHandlerContext ctx, MSG protocol) {
     }
 
     /**
@@ -71,26 +72,26 @@ public abstract class TransportHandler<MSG> {
      * 读写空闲
      * 在channel线程调用
      *
-     * @param channel 触发该listener的channel
+     * @param ctx channel上下文
      */
-    public void readWriteIdle(Channel channel) {
+    public void readWriteIdle(ChannelHandlerContext ctx) {
     }
 
     /**
      * 读空闲
      * 在channel线程调用
      *
-     * @param channel 触发该listener的channel
+     * @param ctx channel上下文
      */
-    public void readIdle(Channel channel) {
+    public void readIdle(ChannelHandlerContext ctx) {
     }
 
     /**
      * 写空闲
      * 在channel线程调用
      *
-     * @param channel 触发该listener的channel
+     * @param ctx channel上下文
      */
-    public void writeIdel(Channel channel) {
+    public void writeIdel(ChannelHandlerContext ctx) {
     }
 }

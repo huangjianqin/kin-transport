@@ -4,41 +4,53 @@ import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
-import org.kin.transport.netty.socket.SocketChannelHandlerInitializer;
-import org.kin.transport.netty.socket.SocketTransportOption;
+import org.kin.transport.netty.websocket.WsChannelHandlerInitializer;
+import org.kin.transport.netty.websocket.WsTransportOption;
 import org.kin.transport.netty.websocket.client.handler.WsClientHandler;
 import org.kin.transport.netty.websocket.handler.ByteBuf2BinaryFrameEncoder;
-import org.kin.transport.netty.websocket.server.handler.WsServerHandler;
+import org.kin.transport.netty.websocket.handler.ByteBuf2TextFrameEncoder;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class WsClientHandlerInitializer extends SocketChannelHandlerInitializer {
+public class WsClientHandlerInitializer extends WsChannelHandlerInitializer {
+    /** transport 配置 */
     private final WsClientHandler wsClientHandler;
 
-    public WsClientHandlerInitializer(SocketTransportOption transportOption, WsClientHandler wsClientHandler) {
+    public WsClientHandlerInitializer(WsTransportOption transportOption, WsClientHandler wsClientHandler) {
         super(transportOption);
         this.wsClientHandler = wsClientHandler;
     }
 
     @Override
-    protected Collection<ChannelHandler> beforeHandlers() {
-        return Arrays.asList(
-                new HttpServerCodec(),
-                new HttpObjectAggregator(65536),
-                WebSocketClientCompressionHandler.INSTANCE,
-                wsClientHandler,
-                new WsServerHandler(),
-                new ByteBuf2BinaryFrameEncoder());
+    protected Collection<ChannelHandler> firstHandlers() {
+        List<ChannelHandler> channelHandlers = new ArrayList<>();
+
+        channelHandlers.add(new HttpServerCodec());
+        channelHandlers.add(new HttpObjectAggregator(65536));
+        if (transportOption.isCompression()) {
+            channelHandlers.add(WebSocketClientCompressionHandler.INSTANCE);
+        }
+        channelHandlers.add(wsClientHandler);
+
+        return channelHandlers;
     }
 
     @Override
-    protected boolean serverElseClient() {
-        return false;
+    protected Collection<ChannelHandler> lastHandlers() {
+        List<ChannelHandler> channelHandlers = new ArrayList<>();
+        if (transportOption.isBinaryOrText()) {
+            channelHandlers.add(new ByteBuf2BinaryFrameEncoder());
+        } else {
+            channelHandlers.add(new ByteBuf2TextFrameEncoder());
+        }
+
+        return channelHandlers;
     }
 }
 

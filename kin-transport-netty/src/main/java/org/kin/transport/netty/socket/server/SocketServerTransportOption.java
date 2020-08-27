@@ -1,8 +1,9 @@
-package org.kin.transport.netty.socket;
+package org.kin.transport.netty.socket.server;
 
 import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.Server;
-import org.kin.transport.netty.websocket.server.WsServerHandlerInitializer;
+import org.kin.transport.netty.socket.SocketHandlerInitializer;
+import org.kin.transport.netty.socket.SocketTransportOption;
 
 import java.net.InetSocketAddress;
 
@@ -12,18 +13,11 @@ import java.net.InetSocketAddress;
  * @author huangjianqin
  * @date 2019-09-13
  */
-public class ServerSocketTransportOption extends SocketTransportOption {
+public class SocketServerTransportOption extends SocketTransportOption {
     public Server tcp(InetSocketAddress address) {
         ChannelHandlerInitializer channelHandlerInitializer = new SocketHandlerInitializer(this, true);
         Server server = new Server(address);
         server.bind(this, channelHandlerInitializer);
-        return server;
-    }
-
-    public Server ws(InetSocketAddress address) {
-        WsServerHandlerInitializer WSServerHandlerInitializer = new WsServerHandlerInitializer(this);
-        Server server = new Server(address);
-        server.bind(this, WSServerHandlerInitializer);
         return server;
     }
 }

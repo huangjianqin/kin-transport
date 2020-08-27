@@ -3,12 +3,9 @@ package org.kin.transport.netty.socket.handler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.timeout.IdleState;
-import io.netty.handler.timeout.IdleStateEvent;
 import org.kin.transport.netty.TransportHandler;
 import org.kin.transport.netty.socket.domain.ProtocolRateLimiter;
 import org.kin.transport.netty.socket.protocol.AbstractProtocol;
-import org.kin.transport.netty.socket.userevent.GlobalRatelimitEvent;
 import org.kin.transport.netty.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +44,9 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
 
             //流控
             if (ProtocolRateLimiter.valid(protocol)) {
-                transportHandler.handle(ctx.channel(), protocol);
+                transportHandler.handle(ctx, protocol);
             } else {
-                transportHandler.rateLimitReject(ctx.channel(), protocol);
+                transportHandler.rateLimitReject(ctx, protocol);
             }
         }
     }
@@ -58,7 +55,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
         log.info("channel active: {}", ChannelUtils.getRemoteIp(channel));
-        transportHandler.channelActive(ctx.channel());
+        transportHandler.channelActive(ctx);
 
         ctx.fireChannelActive();
     }
@@ -67,7 +64,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
         log.info("channel inactive: {}", ChannelUtils.getRemoteIp(channel));
-        transportHandler.channelInactive(ctx.channel());
+        transportHandler.channelInactive(ctx);
 
         ctx.fireChannelInactive();
     }
@@ -76,27 +73,14 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Channel channel = ctx.channel();
         log.error("server('{}') throw exception:{}", ChannelUtils.getRemoteIp(channel), cause);
-        transportHandler.handleException(channel, cause);
+        transportHandler.handleException(ctx, cause);
 
         ctx.fireExceptionCaught(cause);
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
-        if (evt instanceof IdleStateEvent) {
-            IdleStateEvent event = (IdleStateEvent) evt;
-            if (event.state() == IdleState.READER_IDLE) {
-                transportHandler.readIdle(ctx.channel());
-            } else if (event.state() == IdleState.WRITER_IDLE) {
-                transportHandler.writeIdel(ctx.channel());
-            } else {
-                //All IDLE
-                transportHandler.readWriteIdle(ctx.channel());
-            }
-        }
-        if (evt instanceof GlobalRatelimitEvent) {
-            transportHandler.globalRateLimitReject();
-        }
+        ChannelUtils.handleUserEvent(evt, ctx, transportHandler);
 
         ctx.fireUserEventTriggered(evt);
     }

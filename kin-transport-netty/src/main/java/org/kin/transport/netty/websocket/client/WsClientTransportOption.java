@@ -1,13 +1,11 @@
-package org.kin.transport.netty.socket;
+package org.kin.transport.netty.websocket.client;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import org.kin.framework.utils.NetUtils;
-import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.Client;
-import org.kin.transport.netty.websocket.WsConstants;
-import org.kin.transport.netty.websocket.client.WsClientHandlerInitializer;
+import org.kin.transport.netty.websocket.WsTransportOption;
 import org.kin.transport.netty.websocket.client.handler.WsClientHandler;
 
 import java.net.InetSocketAddress;
@@ -15,25 +13,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
- * client transport配置
- *
  * @author huangjianqin
- * @date 2019-09-13
+ * @date 2020/8/27
  */
-public class ClientSocketTransportOption extends SocketTransportOption {
-    public Client tcp(InetSocketAddress address) {
-        ChannelHandlerInitializer channelHandlerInitializer = new SocketHandlerInitializer(this, false);
-        Client client = new Client(address);
-        client.connect(this, channelHandlerInitializer);
-        return client;
-    }
-
-    public Client ws(InetSocketAddress address) {
+public class WsClientTransportOption extends WsTransportOption {
+    public final Client ws(InetSocketAddress address) {
         String prefix = isSsl() ? "wss" : "ws";
-        return ws(prefix.concat(address.toString()).concat(WsConstants.WS_PATH));
+        return ws(prefix.concat(address.toString()).concat(getHandshakeUrl()));
     }
 
-    public Client ws(String url) {
+    public final Client ws(String url) {
         URI uri;
         try {
             uri = new URI(url);
@@ -69,9 +58,9 @@ public class ClientSocketTransportOption extends SocketTransportOption {
         WsClientHandler wsClientHandler =
                 new WsClientHandler(
                         WebSocketClientHandshakerFactory.newHandshaker(
-                                uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders()));
+                                uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders()), getTransportHandler());
 
-        WsClientHandlerInitializer WSClientHandlerInitializer = new WsClientHandlerInitializer(this, wsClientHandler);
+        WsClientHandlerInitializer WSClientHandlerInitializer = handlerInitializer(wsClientHandler);
         Client client = new Client(InetSocketAddress.createUnresolved(host, port));
         client.connect(this, WSClientHandlerInitializer);
 
@@ -82,5 +71,9 @@ public class ClientSocketTransportOption extends SocketTransportOption {
         }
 
         return client;
+    }
+
+    protected WsClientHandlerInitializer handlerInitializer(WsClientHandler wsClientHandler) {
+        return new WsClientHandlerInitializer(this, wsClientHandler);
     }
 }
