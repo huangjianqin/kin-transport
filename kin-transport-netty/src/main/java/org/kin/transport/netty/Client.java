@@ -29,7 +29,7 @@ import java.util.concurrent.CountDownLatch;
 public class Client extends ClientConnection {
     protected static final Logger log = LoggerFactory.getLogger(Client.class);
 
-    protected EventLoopGroup eventLoopGroup;
+    protected EventLoopGroup group;
     protected volatile Channel channel;
     protected volatile boolean isStopped;
 
@@ -46,11 +46,11 @@ public class Client extends ClientConnection {
         Preconditions.checkArgument(channelOptions != null);
         Preconditions.checkArgument(channelHandlerInitializer != null);
 
-        eventLoopGroup = new NioEventLoopGroup();
+        group = new NioEventLoopGroup();
 
         CountDownLatch latch = new CountDownLatch(1);
         Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class);
+        bootstrap.group(group).channel(NioSocketChannel.class);
 
         for (Map.Entry<ChannelOption, Object> entry : channelOptions.entrySet()) {
             bootstrap.option(entry.getKey(), entry.getValue());
@@ -107,7 +107,7 @@ public class Client extends ClientConnection {
         if (channel != null) {
             channel.close();
         }
-        eventLoopGroup.shutdownGracefully();
+        group.shutdownGracefully();
         log.info("client({}) closed", address);
     }
 
