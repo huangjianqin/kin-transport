@@ -1,10 +1,14 @@
 package org.kin.transport.netty.http.client;
 
+import org.kin.transport.netty.Client;
+import org.kin.transport.netty.ProtocolBaseClient;
 import org.kin.transport.netty.TransportHandler;
 import org.kin.transport.netty.http.client.handler.ProtocolBaseHttpClientTransportHandler;
 import org.kin.transport.netty.socket.protocol.AbstractProtocol;
 import org.kin.transport.netty.socket.protocol.ProtocolTransfer;
 import org.kin.transport.netty.socket.protocol.SocketProtocolTransfer;
+
+import java.net.InetSocketAddress;
 
 /**
  * @author huangjianqin
@@ -32,6 +36,11 @@ public class ProtocolBaseHttpClientTransportOption extends HttpClientTransportOp
                 this,
                 protocolTransportHandler,
                 protocolTransfer);
+    }
+
+    @Override
+    protected <C extends Client> C client(InetSocketAddress address) {
+        return (C) new ProtocolBaseClient(address);
     }
 
     //----------------------------------------------------------------------------------------------------------------

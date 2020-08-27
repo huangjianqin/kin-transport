@@ -17,9 +17,9 @@ public class HttpClientTransportOption extends AbstractTransportOption {
     }
 
     //----------------------------------------------------------------------------------------------------------------
-    public final Client http(InetSocketAddress address) {
+    public final <C extends Client> C http(InetSocketAddress address) {
         HttpClientHandlerInitializer httpClientHandlerInitializer = handlerInitializer();
-        Client client = new Client(address);
+        C client = client(address);
         client.connect(this, httpClientHandlerInitializer);
         return client;
     }
@@ -27,6 +27,11 @@ public class HttpClientTransportOption extends AbstractTransportOption {
     protected HttpClientHandlerInitializer handlerInitializer() {
         return new HttpClientHandlerInitializer(this);
     }
+
+    protected <C extends Client> C client(InetSocketAddress address) {
+        return (C) new Client(address);
+    }
+
 
     //----------------------------------------------------------------------------------------------------------------
     public <T extends HttpClientTransportOption> T transportHandler(HttpClientTransportHandler transportHandler) {

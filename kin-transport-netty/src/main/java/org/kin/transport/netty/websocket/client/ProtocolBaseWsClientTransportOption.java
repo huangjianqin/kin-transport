@@ -1,5 +1,7 @@
 package org.kin.transport.netty.websocket.client;
 
+import org.kin.transport.netty.Client;
+import org.kin.transport.netty.ProtocolBaseClient;
 import org.kin.transport.netty.TransportHandler;
 import org.kin.transport.netty.socket.protocol.AbstractProtocol;
 import org.kin.transport.netty.socket.protocol.ProtocolTransfer;
@@ -8,6 +10,8 @@ import org.kin.transport.netty.websocket.AbstractWsTransportOption;
 import org.kin.transport.netty.websocket.WsTransportHandler;
 import org.kin.transport.netty.websocket.client.handler.WsClientHandler;
 import org.kin.transport.netty.websocket.handler.ProtocolBaseWsTransportHandler;
+
+import java.net.InetSocketAddress;
 
 /**
  * @author huangjianqin
@@ -36,6 +40,11 @@ public class ProtocolBaseWsClientTransportOption extends WsClientTransportOption
                 wsClientHandler,
                 protocolTransportHandler,
                 protocolTransfer);
+    }
+
+    @Override
+    protected <C extends Client> C client(InetSocketAddress address) {
+        return (C) new ProtocolBaseClient(address);
     }
 
     //----------------------------------------------------------------------------------------------------------------

@@ -2,6 +2,7 @@ package org.kin.transport.netty;
 
 import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -9,7 +10,6 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.transport.netty.socket.protocol.AbstractProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,11 +27,11 @@ import java.util.concurrent.CountDownLatch;
  * @date 2019/5/30
  */
 public class Client extends ClientConnection {
-    private static final Logger log = LoggerFactory.getLogger(Client.class);
+    protected static final Logger log = LoggerFactory.getLogger(Client.class);
 
-    private EventLoopGroup eventLoopGroup;
-    private volatile Channel channel;
-    private volatile boolean isStopped;
+    protected EventLoopGroup eventLoopGroup;
+    protected volatile Channel channel;
+    protected volatile boolean isStopped;
 
     public Client(InetSocketAddress address) {
         super(address);
@@ -116,13 +116,19 @@ public class Client extends ClientConnection {
         return !isStopped && channel != null && channel.isActive();
     }
 
-    public void request(AbstractProtocol protocol) {
-        request(protocol);
+    /**
+     * 请求消息
+     */
+    public void request(ByteBuf byteBuf) {
+        request(byteBuf);
     }
 
-    public void request(AbstractProtocol protocol, ChannelFutureListener... listeners) {
-        if (isActive() && Objects.nonNull(protocol)) {
-            ChannelFuture channelFuture = channel.writeAndFlush(protocol.write());
+    /**
+     * 请求消息
+     */
+    public void request(ByteBuf byteBuf, ChannelFutureListener... listeners) {
+        if (isActive() && Objects.nonNull(byteBuf) && byteBuf.readableBytes() > 0) {
+            ChannelFuture channelFuture = channel.writeAndFlush(byteBuf);
             if (CollectionUtils.isNonEmpty(listeners)) {
                 channelFuture.addListeners(listeners);
             }

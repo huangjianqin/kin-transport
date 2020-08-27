@@ -28,7 +28,7 @@ public class WsClientTransportOption extends AbstractWsTransportOption {
         return ws(prefix.concat(address.toString()).concat(getHandshakeUrl()));
     }
 
-    public final Client ws(String url) {
+    public final <C extends Client> C ws(String url) {
         URI uri;
         try {
             uri = new URI(url);
@@ -67,7 +67,7 @@ public class WsClientTransportOption extends AbstractWsTransportOption {
                                 uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders()), getTransportHandler());
 
         WsClientHandlerInitializer WSClientHandlerInitializer = handlerInitializer(wsClientHandler);
-        Client client = new Client(InetSocketAddress.createUnresolved(host, port));
+        C client = client(InetSocketAddress.createUnresolved(host, port));
         client.connect(this, WSClientHandlerInitializer);
 
         try {
@@ -81,5 +81,9 @@ public class WsClientTransportOption extends AbstractWsTransportOption {
 
     protected WsClientHandlerInitializer handlerInitializer(WsClientHandler wsClientHandler) {
         return new WsClientHandlerInitializer(this, wsClientHandler);
+    }
+
+    protected <C extends Client> C client(InetSocketAddress address) {
+        return (C) new Client(address);
     }
 }
