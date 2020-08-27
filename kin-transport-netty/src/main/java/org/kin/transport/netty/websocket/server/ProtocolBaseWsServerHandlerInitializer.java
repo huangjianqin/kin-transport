@@ -6,7 +6,7 @@ import org.kin.transport.netty.socket.handler.ChannelProtocolHandler;
 import org.kin.transport.netty.socket.handler.ProtocolCodec;
 import org.kin.transport.netty.socket.protocol.AbstractProtocol;
 import org.kin.transport.netty.socket.protocol.ProtocolTransfer;
-import org.kin.transport.netty.websocket.WsTransportOption;
+import org.kin.transport.netty.websocket.AbstractWsTransportOption;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,7 +22,7 @@ public class ProtocolBaseWsServerHandlerInitializer extends WsServerHandlerIniti
     private final TransportHandler<AbstractProtocol> transportHandler;
     private final ProtocolTransfer protocolTransfer;
 
-    public ProtocolBaseWsServerHandlerInitializer(WsTransportOption transportOption,
+    public ProtocolBaseWsServerHandlerInitializer(AbstractWsTransportOption transportOption,
                                                   TransportHandler<AbstractProtocol> transportHandler,
                                                   ProtocolTransfer protocolTransfer) {
         super(transportOption);

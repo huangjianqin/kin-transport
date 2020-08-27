@@ -5,7 +5,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import org.kin.framework.utils.NetUtils;
 import org.kin.transport.netty.Client;
-import org.kin.transport.netty.websocket.WsTransportOption;
+import org.kin.transport.netty.websocket.AbstractWsTransportOption;
 import org.kin.transport.netty.websocket.client.handler.WsClientHandler;
 
 import java.net.InetSocketAddress;
@@ -16,7 +16,13 @@ import java.net.URISyntaxException;
  * @author huangjianqin
  * @date 2020/8/27
  */
-public class WsClientTransportOption extends WsTransportOption {
+public class WsClientTransportOption extends AbstractWsTransportOption {
+    public ProtocolBaseWsClientTransportOption protocol() {
+        return new ProtocolBaseWsClientTransportOption();
+    }
+
+    //----------------------------------------------------------------------------------------------------------------
+
     public final Client ws(InetSocketAddress address) {
         String prefix = isSsl() ? "wss" : "ws";
         return ws(prefix.concat(address.toString()).concat(getHandshakeUrl()));

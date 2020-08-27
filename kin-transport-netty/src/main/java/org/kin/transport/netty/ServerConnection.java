@@ -20,5 +20,5 @@ public abstract class ServerConnection extends AbstractConnection {
      * @param channelHandlerInitializer netty channel handler 初始化
      * @throws Exception 异常
      */
-    public abstract void bind(TransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer);
+    public abstract void bind(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer);
 }

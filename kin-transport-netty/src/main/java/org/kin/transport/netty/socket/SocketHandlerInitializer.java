@@ -17,10 +17,10 @@ import java.util.List;
  * @date 2019-09-12
  */
 public class SocketHandlerInitializer extends AbstractChannelHandlerInitializer {
-    private final SocketTransportOption transportOption;
+    private final AbstractSocketTransportOption transportOption;
     private final boolean serverElseClient;
 
-    public SocketHandlerInitializer(SocketTransportOption transportOption, boolean serverElseClient) {
+    public SocketHandlerInitializer(AbstractSocketTransportOption transportOption, boolean serverElseClient) {
         this.transportOption = transportOption;
         this.serverElseClient = serverElseClient;
     }

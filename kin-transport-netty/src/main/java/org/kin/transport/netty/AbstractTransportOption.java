@@ -12,7 +12,7 @@ import java.util.Map;
  * @author huangjianqin
  * @date 2019/7/29
  */
-public abstract class TransportOption {
+public abstract class AbstractTransportOption {
     /** server/selector channel 配置 */
     private Map<ChannelOption, Object> serverOptions = new HashMap<>();
     /** channel 配置 */
@@ -36,67 +36,67 @@ public abstract class TransportOption {
     private String certKeyFilePath;
 
     //------------------------------------------------------------------------------------------------------------------
-    public <T extends TransportOption> T serverOptions(Map<ChannelOption, Object> channelOptions) {
+    public <T extends AbstractTransportOption> T serverOptions(Map<ChannelOption, Object> channelOptions) {
         this.serverOptions.putAll(channelOptions);
         return (T) this;
     }
 
-    public <T extends TransportOption, E> T serverOption(ChannelOption<E> channelOption, E value) {
+    public <T extends AbstractTransportOption, E> T serverOption(ChannelOption<E> channelOption, E value) {
         this.serverOptions.put(channelOption, value);
         return (T) this;
     }
 
-    public <T extends TransportOption> T channelOptions(Map<ChannelOption, Object> channelOptions) {
+    public <T extends AbstractTransportOption> T channelOptions(Map<ChannelOption, Object> channelOptions) {
         this.channelOptions.putAll(channelOptions);
         return (T) this;
     }
 
-    public <T extends TransportOption, E> T channelOption(ChannelOption<E> channelOption, E value) {
+    public <T extends AbstractTransportOption, E> T channelOption(ChannelOption<E> channelOption, E value) {
         this.channelOptions.put(channelOption, value);
         return (T) this;
     }
 
-    public <T extends TransportOption> T compress() {
+    public <T extends AbstractTransportOption> T compress() {
         this.compression = true;
         return (T) this;
     }
 
-    public <T extends TransportOption> T uncompress() {
+    public <T extends AbstractTransportOption> T uncompress() {
         this.compression = false;
         return (T) this;
     }
 
-    public <T extends TransportOption> T globalRateLimit(int globalRateLimit) {
+    public <T extends AbstractTransportOption> T globalRateLimit(int globalRateLimit) {
         this.globalRateLimit = globalRateLimit;
         return (T) this;
     }
 
-    public <T extends TransportOption> T readIdleTime(int readIdleTime) {
+    public <T extends AbstractTransportOption> T readIdleTime(int readIdleTime) {
         this.readIdleTime = readIdleTime;
         return (T) this;
     }
 
-    public <T extends TransportOption> T writeIdleTime(int writeIdleTime) {
+    public <T extends AbstractTransportOption> T writeIdleTime(int writeIdleTime) {
         this.writeIdleTime = writeIdleTime;
         return (T) this;
     }
 
-    public <T extends TransportOption> T readWriteIdleTime(int readWriteIdleTime) {
+    public <T extends AbstractTransportOption> T readWriteIdleTime(int readWriteIdleTime) {
         this.readWriteIdleTime = readWriteIdleTime;
         return (T) this;
     }
 
-    public <T extends TransportOption> T ssl() {
+    public <T extends AbstractTransportOption> T ssl() {
         this.ssl = true;
         return (T) this;
     }
 
-    public <T extends TransportOption> T certFile(String certFilePath) {
+    public <T extends AbstractTransportOption> T certFile(String certFilePath) {
         this.certFilePath = certFilePath;
         return (T) this;
     }
 
-    public <T extends TransportOption> T certKeyFile(String certKeyFilePath) {
+    public <T extends AbstractTransportOption> T certKeyFile(String certKeyFilePath) {
         this.certKeyFilePath = certKeyFilePath;
         return (T) this;
     }

@@ -38,7 +38,7 @@ public class Client extends ClientConnection {
     }
 
     @Override
-    public void connect(TransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+    public void connect(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
         log.info("client({}) connecting...", address);
 
         Map<ChannelOption, Object> channelOptions = transportOption.getChannelOptions();

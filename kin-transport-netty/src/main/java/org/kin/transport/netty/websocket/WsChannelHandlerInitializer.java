@@ -10,9 +10,9 @@ import java.util.List;
  * @date 2020/8/27
  */
 public abstract class WsChannelHandlerInitializer extends AbstractChannelHandlerInitializer {
-    protected final WsTransportOption transportOption;
+    protected final AbstractWsTransportOption transportOption;
 
-    public WsChannelHandlerInitializer(WsTransportOption transportOption) {
+    public WsChannelHandlerInitializer(AbstractWsTransportOption transportOption) {
         this.transportOption = transportOption;
     }
 

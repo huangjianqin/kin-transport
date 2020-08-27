@@ -40,7 +40,7 @@ public class Server extends ServerConnection {
     }
 
     @Override
-    public void bind(TransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+    public void bind(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
         log.info("server({}) connection binding...", address);
 
         Map<ChannelOption, Object> serverOptions = transportOption.getServerOptions();

@@ -21,7 +21,7 @@ public interface ChannelHandlerInitializer {
      */
     ChannelHandler[] getChannelHandlers();
 
-    default List<ChannelHandler> setUpChannelHandlers(TransportOption transportOption) {
+    default List<ChannelHandler> setUpChannelHandlers(AbstractTransportOption transportOption) {
         List<ChannelHandler> channelHandlers = new ArrayList<>();
         channelHandlers.add(new WriteTimeoutHandler(3));
 

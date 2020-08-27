@@ -4,8 +4,8 @@ import org.kin.transport.netty.TransportHandler;
 import org.kin.transport.netty.socket.protocol.AbstractProtocol;
 import org.kin.transport.netty.socket.protocol.ProtocolTransfer;
 import org.kin.transport.netty.socket.protocol.SocketProtocolTransfer;
+import org.kin.transport.netty.websocket.AbstractWsTransportOption;
 import org.kin.transport.netty.websocket.WsTransportHandler;
-import org.kin.transport.netty.websocket.WsTransportOption;
 import org.kin.transport.netty.websocket.client.handler.WsClientHandler;
 import org.kin.transport.netty.websocket.handler.ProtocolBaseWsTransportHandler;
 
@@ -25,7 +25,7 @@ public class ProtocolBaseWsClientTransportOption extends WsClientTransportOption
      * 自定义实现WsTransportHandler, 不允许修改
      */
     @Override
-    public <T extends WsTransportOption> T transportHandler(WsTransportHandler transportHandler) {
+    public <T extends AbstractWsTransportOption> T transportHandler(WsTransportHandler transportHandler) {
         return (T) this;
     }
 

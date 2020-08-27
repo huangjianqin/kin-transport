@@ -1,7 +1,7 @@
 package org.kin.transport.netty.http.server;
 
+import org.kin.transport.netty.AbstractTransportOption;
 import org.kin.transport.netty.Server;
-import org.kin.transport.netty.TransportOption;
 
 import java.net.InetSocketAddress;
 
@@ -9,9 +9,14 @@ import java.net.InetSocketAddress;
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class HttpServerTransportOption extends TransportOption {
+public class HttpServerTransportOption extends AbstractTransportOption {
     private HttpServerTransportHandler transportHandler;
 
+    public static ProtocolBaseHttpServerTransportOption protocol() {
+        return new ProtocolBaseHttpServerTransportOption();
+    }
+
+    //----------------------------------------------------------------------------------------------------------------
     public final Server http(InetSocketAddress address) {
         HttpServerHandlerInitializer httpServerHandlerInitializer = handlerInitializer();
         Server server = new Server(address);
