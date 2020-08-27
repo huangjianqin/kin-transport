@@ -31,11 +31,10 @@ public class ProtocolBaseWsServerHandlerInitializer extends WsServerHandlerIniti
     }
 
     @Override
-    protected Collection<ChannelHandler> lastHandlers() {
-        List<ChannelHandler> channelHandlers = new ArrayList<>();
+    protected Collection<ChannelHandler> firstHandlers() {
+        List<ChannelHandler> channelHandlers = new ArrayList<>(super.firstHandlers());
         channelHandlers.add(new ProtocolCodec(protocolTransfer, true, transportOption.isCompression()));
         channelHandlers.add(new ChannelProtocolHandler(transportHandler));
-        channelHandlers.addAll(super.lastHandlers());
         return channelHandlers;
     }
 }

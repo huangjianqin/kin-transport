@@ -39,18 +39,11 @@ public class WsServerHandlerInitializer extends WsChannelHandlerInitializer {
         //适配指定url
         channelHandlers.add(new WebSocketServerProtocolHandler(transportOption.getHandshakeUrl()));
         channelHandlers.add(new WsServerHandler(transportOption.getTransportHandler()));
-        return channelHandlers;
-    }
-
-    @Override
-    protected Collection<ChannelHandler> lastHandlers() {
-        List<ChannelHandler> channelHandlers = new ArrayList<>();
         if (transportOption.isBinaryOrText()) {
             channelHandlers.add(new ByteBuf2BinaryFrameEncoder());
         } else {
             channelHandlers.add(new ByteBuf2TextFrameEncoder());
         }
-
         return channelHandlers;
     }
 }

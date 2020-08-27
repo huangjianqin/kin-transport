@@ -2,8 +2,10 @@ package org.kin.transport.netty;
 
 import io.netty.channel.ChannelHandler;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * 增加前后handlers定义
@@ -24,5 +26,13 @@ public abstract class AbstractChannelHandlerInitializer implements ChannelHandle
      */
     protected Collection<ChannelHandler> lastHandlers() {
         return Collections.emptyList();
+    }
+
+    @Override
+    public ChannelHandler[] getChannelHandlers() {
+        List<ChannelHandler> channelHandlers = new ArrayList<>();
+        channelHandlers.addAll(firstHandlers());
+        channelHandlers.addAll(lastHandlers());
+        return channelHandlers.toArray(new ChannelHandler[0]);
     }
 }

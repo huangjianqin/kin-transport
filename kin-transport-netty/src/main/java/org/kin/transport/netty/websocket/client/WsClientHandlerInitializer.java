@@ -37,13 +37,6 @@ public class WsClientHandlerInitializer extends WsChannelHandlerInitializer {
             channelHandlers.add(WebSocketClientCompressionHandler.INSTANCE);
         }
         channelHandlers.add(wsClientHandler);
-
-        return channelHandlers;
-    }
-
-    @Override
-    protected Collection<ChannelHandler> lastHandlers() {
-        List<ChannelHandler> channelHandlers = new ArrayList<>();
         if (transportOption.isBinaryOrText()) {
             channelHandlers.add(new ByteBuf2BinaryFrameEncoder());
         } else {

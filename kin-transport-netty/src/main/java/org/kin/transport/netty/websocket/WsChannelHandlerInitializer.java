@@ -19,6 +19,7 @@ public abstract class WsChannelHandlerInitializer extends AbstractChannelHandler
     @Override
     public ChannelHandler[] getChannelHandlers() {
         List<ChannelHandler> channelHandlers = setUpChannelHandlers(transportOption);
+        channelHandlers.addAll(firstHandlers());
         channelHandlers.addAll(lastHandlers());
         return channelHandlers.toArray(new ChannelHandler[0]);
     }
