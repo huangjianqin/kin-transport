@@ -47,8 +47,6 @@ public class Server extends ServerConnection {
         Map<ChannelOption, Object> channelOptions = transportOption.getChannelOptions();
 
         //校验
-        Preconditions.checkArgument(bossGroup == null);
-        Preconditions.checkArgument(workerGroup == null);
         Preconditions.checkArgument(serverOptions != null);
         Preconditions.checkArgument(channelOptions != null);
         Preconditions.checkArgument(channelHandlerInitializer != null);

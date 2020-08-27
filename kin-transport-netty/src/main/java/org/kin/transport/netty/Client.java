@@ -29,7 +29,7 @@ import java.util.concurrent.CountDownLatch;
 public class Client extends ClientConnection {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
 
-    private EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+    private EventLoopGroup eventLoopGroup;
     private volatile Channel channel;
     private volatile boolean isStopped;
 
@@ -45,6 +45,8 @@ public class Client extends ClientConnection {
 
         Preconditions.checkArgument(channelOptions != null);
         Preconditions.checkArgument(channelHandlerInitializer != null);
+
+        eventLoopGroup = new NioEventLoopGroup();
 
         CountDownLatch latch = new CountDownLatch(1);
         Bootstrap bootstrap = new Bootstrap();
