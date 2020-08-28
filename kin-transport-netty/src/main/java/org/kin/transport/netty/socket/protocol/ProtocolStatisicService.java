@@ -1,4 +1,4 @@
-package org.kin.transport.netty.socket.statistic;
+package org.kin.transport.netty.socket.protocol;
 
 import org.kin.framework.Closeable;
 import org.kin.framework.JvmCloseCleaner;
@@ -14,21 +14,21 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2019/6/3
  */
-public class InOutBoundStatisicService implements Closeable {
+public class ProtocolStatisicService implements Closeable {
     private static final Logger reqStatisticLog = LoggerFactory.getLogger("reqStatistic");
     private static final Logger respStatisticLog = LoggerFactory.getLogger("respStatistic");
-    private static final InOutBoundStatisicService INSTANCE = new InOutBoundStatisicService();
+    private static final ProtocolStatisicService INSTANCE = new ProtocolStatisicService();
 
     static {
         JvmCloseCleaner.DEFAULT().add(INSTANCE);
     }
 
-    private InOutBoundStatisticHolder reqHolder = new InOutBoundStatisticHolder();
-    private InOutBoundStatisticHolder respHolder = new InOutBoundStatisticHolder();
+    private ProtocolStatisticHolder reqHolder = new ProtocolStatisticHolder();
+    private ProtocolStatisticHolder respHolder = new ProtocolStatisticHolder();
     private ExecutionContext executionContext = ExecutionContext.fix(2, "inoutbound-statisic",
             1, "inoutbound-statisic-schedule");
 
-    private InOutBoundStatisicService() {
+    private ProtocolStatisicService() {
         //一分钟打印一次
         executionContext.scheduleAtFixedRate(() -> {
             logReqStatistic();
@@ -36,7 +36,7 @@ public class InOutBoundStatisicService implements Closeable {
         }, 1, 1, TimeUnit.MINUTES);
     }
 
-    public static InOutBoundStatisicService instance() {
+    public static ProtocolStatisicService instance() {
         return INSTANCE;
     }
 
@@ -48,12 +48,12 @@ public class InOutBoundStatisicService implements Closeable {
     //-------------------------------------------------------------------------------------------------------
 
     private void logReqStatistic() {
-        InOutBoundStatisticHolder origin = reqHolder;
-        reqHolder = new InOutBoundStatisticHolder();
+        ProtocolStatisticHolder origin = reqHolder;
+        reqHolder = new ProtocolStatisticHolder();
         logReqStatistic0(origin);
     }
 
-    private void logReqStatistic0(InOutBoundStatisticHolder origin) {
+    private void logReqStatistic0(ProtocolStatisticHolder origin) {
         if (origin != null) {
             if (origin.getRef() > 0) {
                 executionContext.schedule(() -> logReqStatistic0(origin), 50, TimeUnit.MILLISECONDS);
@@ -63,7 +63,7 @@ public class InOutBoundStatisicService implements Closeable {
         }
     }
 
-    private void logReqStatistic1(InOutBoundStatisticHolder origin) {
+    private void logReqStatistic1(ProtocolStatisticHolder origin) {
         String content = origin.logContent();
         reqStatisticLog.info(content);
     }
@@ -71,12 +71,12 @@ public class InOutBoundStatisicService implements Closeable {
     //-------------------------------------------------------------------------------------------------------
 
     private void logRespStatistic() {
-        InOutBoundStatisticHolder origin = respHolder;
-        respHolder = new InOutBoundStatisticHolder();
+        ProtocolStatisticHolder origin = respHolder;
+        respHolder = new ProtocolStatisticHolder();
         logRespStatistic0(origin);
     }
 
-    private void logRespStatistic0(InOutBoundStatisticHolder origin) {
+    private void logRespStatistic0(ProtocolStatisticHolder origin) {
         if (origin != null) {
             if (origin.getRef() > 0) {
                 executionContext.schedule(() -> logRespStatistic0(origin), 50, TimeUnit.MILLISECONDS);
@@ -86,7 +86,7 @@ public class InOutBoundStatisicService implements Closeable {
         }
     }
 
-    private void logRespStatistic1(InOutBoundStatisticHolder origin) {
+    private void logRespStatistic1(ProtocolStatisticHolder origin) {
         String content = origin.logContent();
         respStatisticLog.info(content);
     }
@@ -95,14 +95,14 @@ public class InOutBoundStatisicService implements Closeable {
 
     public void statisticReq(String uuid, long size) {
         reqHolder.reference();
-        InOutBoundStatistic statistic = reqHolder.getstatistic(uuid);
+        ProtocolStatistic statistic = reqHolder.getstatistic(uuid);
         statistic.incr(size);
         reqHolder.release();
     }
 
     public void statisticResp(String uuid, long size) {
         respHolder.reference();
-        InOutBoundStatistic statistic = respHolder.getstatistic(uuid);
+        ProtocolStatistic statistic = respHolder.getstatistic(uuid);
         statistic.incr(size);
         respHolder.release();
     }

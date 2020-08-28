@@ -1,4 +1,4 @@
-package org.kin.transport.netty.socket.domain;
+package org.kin.transport.netty.socket.session;
 
 /**
  * session close 原因

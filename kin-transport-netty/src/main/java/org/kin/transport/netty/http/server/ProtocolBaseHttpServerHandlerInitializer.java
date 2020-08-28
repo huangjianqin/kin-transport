@@ -2,9 +2,9 @@ package org.kin.transport.netty.http.server;
 
 import io.netty.channel.ChannelHandler;
 import org.kin.transport.netty.TransportHandler;
-import org.kin.transport.netty.socket.handler.ChannelProtocolHandler;
-import org.kin.transport.netty.socket.handler.ProtocolCodec;
 import org.kin.transport.netty.socket.protocol.AbstractProtocol;
+import org.kin.transport.netty.socket.protocol.ChannelProtocolHandler;
+import org.kin.transport.netty.socket.protocol.ProtocolCodec;
 import org.kin.transport.netty.socket.protocol.ProtocolTransfer;
 
 import java.util.ArrayList;

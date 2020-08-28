@@ -1,4 +1,4 @@
-package org.kin.transport.netty.socket.handler;
+package org.kin.transport.netty.socket.protocol;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -6,10 +6,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.framework.collection.Tuple;
-import org.kin.transport.netty.socket.protocol.ProtocolTransfer;
-import org.kin.transport.netty.socket.protocol.domain.ProtocolByteBuf;
-import org.kin.transport.netty.socket.protocol.domain.Request;
-import org.kin.transport.netty.socket.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xerial.snappy.Snappy;
@@ -54,7 +50,7 @@ public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBu
             ReferenceCountUtil.retain(outByteBuf);
             out.add(outByteBuf);
 
-            InOutBoundStatisicService.instance().statisticResp(in.getProtocolId() + "", in.getSize());
+            ProtocolStatisicService.instance().statisticResp(in.getProtocolId() + "", in.getSize());
         } else {
             //client send request
             ByteBuf outByteBuf = ctx.alloc().buffer();
@@ -64,7 +60,7 @@ public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBu
             ReferenceCountUtil.retain(outByteBuf);
             out.add(outByteBuf);
 
-            InOutBoundStatisicService.instance().statisticReq(in.getProtocolId() + "", in.getSize());
+            ProtocolStatisicService.instance().statisticReq(in.getProtocolId() + "", in.getSize());
         }
     }
 
@@ -78,7 +74,7 @@ public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBu
                 out.add(transfer.transfer(byteBufRequest));
 
                 //server receive request
-                InOutBoundStatisicService.instance()
+                ProtocolStatisicService.instance()
                         .statisticReq(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
             } else {
                 in = getRealInByteBuff(in, compression);
@@ -86,7 +82,7 @@ public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBu
                 out.add(transfer.transfer(byteBufRequest));
 
                 //client receive response
-                InOutBoundStatisicService.instance()
+                ProtocolStatisicService.instance()
                         .statisticResp(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
             }
         } finally {

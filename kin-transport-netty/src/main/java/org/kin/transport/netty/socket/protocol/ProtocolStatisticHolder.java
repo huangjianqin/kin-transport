@@ -1,4 +1,4 @@
-package org.kin.transport.netty.socket.statistic;
+package org.kin.transport.netty.socket.protocol;
 
 
 import org.kin.framework.concurrent.partition.EfficientHashPartitioner;
@@ -12,27 +12,27 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author huangjianqin
  * @date 2019/6/4
  */
-public class InOutBoundStatisticHolder {
+public class ProtocolStatisticHolder {
     private static final byte LOCK_NUM = 5;
 
     private final AtomicLong ref = new AtomicLong(0);
-    private final Map<String, InOutBoundStatistic> statisticMap = new HashMap<>();
+    private final Map<String, ProtocolStatistic> statisticMap = new HashMap<>();
 
     private final Object[] locks = new Object[LOCK_NUM];
     private final Partitioner<String> partitioner = EfficientHashPartitioner.INSTANCE;
 
-    InOutBoundStatisticHolder() {
+    ProtocolStatisticHolder() {
         for (int i = 0; i < locks.length; i++) {
             locks[i] = new Object();
         }
     }
 
-    InOutBoundStatistic getstatistic(String uuid) {
+    ProtocolStatistic getstatistic(String uuid) {
         if (!statisticMap.containsKey(uuid)) {
             Object lock = locks[partitioner.toPartition(uuid, LOCK_NUM)];
             synchronized (lock) {
                 if (!statisticMap.containsKey(uuid)) {
-                    statisticMap.put(uuid, new InOutBoundStatistic(uuid));
+                    statisticMap.put(uuid, new ProtocolStatistic(uuid));
                 }
             }
         }
@@ -43,7 +43,7 @@ public class InOutBoundStatisticHolder {
     String logContent() {
         StringBuilder sb = new StringBuilder();
         sb.append(System.lineSeparator());
-        for (InOutBoundStatistic statistic : statisticMap.values()) {
+        for (ProtocolStatistic statistic : statisticMap.values()) {
             sb.append(statistic.toString()).append(System.lineSeparator());
         }
         return sb.toString();

@@ -1,11 +1,9 @@
-package org.kin.transport.netty.socket.handler;
+package org.kin.transport.netty.socket.protocol;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.kin.transport.netty.TransportHandler;
-import org.kin.transport.netty.socket.domain.ProtocolRateLimiter;
-import org.kin.transport.netty.socket.protocol.AbstractProtocol;
 import org.kin.transport.netty.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

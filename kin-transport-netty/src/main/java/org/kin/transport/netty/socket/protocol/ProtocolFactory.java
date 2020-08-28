@@ -3,7 +3,6 @@ package org.kin.transport.netty.socket.protocol;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.utils.ClassUtils;
-import org.kin.transport.netty.socket.exception.UnknowProtocolException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

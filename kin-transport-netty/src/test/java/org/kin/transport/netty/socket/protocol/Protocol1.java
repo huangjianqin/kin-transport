@@ -1,8 +1,5 @@
 package org.kin.transport.netty.socket.protocol;
 
-import org.kin.transport.netty.socket.protocol.domain.Request;
-import org.kin.transport.netty.socket.protocol.domain.Response;
-
 /**
  * @author huangjianqin
  * @date 2019/7/4

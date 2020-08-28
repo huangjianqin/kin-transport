@@ -1,8 +1,6 @@
-package org.kin.transport.netty.socket.domain;
+package org.kin.transport.netty.socket.protocol;
 
 import com.google.common.util.concurrent.RateLimiter;
-import org.kin.transport.netty.socket.protocol.AbstractProtocol;
-import org.kin.transport.netty.socket.protocol.ProtocolFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

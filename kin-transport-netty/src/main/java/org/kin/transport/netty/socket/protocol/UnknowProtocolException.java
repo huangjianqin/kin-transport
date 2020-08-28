@@ -1,4 +1,4 @@
-package org.kin.transport.netty.socket.exception;
+package org.kin.transport.netty.socket.protocol;
 
 /**
  * 未知协议异常

@@ -1,4 +1,4 @@
-package org.kin.transport.netty.socket.protocol.domain;
+package org.kin.transport.netty.socket.protocol;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;

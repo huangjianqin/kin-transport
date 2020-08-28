@@ -2,9 +2,9 @@ package org.kin.transport.netty.socket;
 
 import io.netty.channel.ChannelHandler;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
-import org.kin.transport.netty.socket.handler.ChannelProtocolHandler;
-import org.kin.transport.netty.socket.handler.ProtocolCodec;
 import org.kin.transport.netty.socket.handler.SocketFrameCodec;
+import org.kin.transport.netty.socket.protocol.ChannelProtocolHandler;
+import org.kin.transport.netty.socket.protocol.ProtocolCodec;
 
 import java.util.Collection;
 import java.util.Collections;

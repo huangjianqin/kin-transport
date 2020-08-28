@@ -1,7 +1,5 @@
 package org.kin.transport.netty.socket.protocol;
 
-import org.kin.transport.netty.socket.protocol.domain.Request;
-
 /**
  * 协议转换
  *

@@ -1,9 +1,5 @@
 package org.kin.transport.netty.socket.protocol;
 
-import org.kin.transport.netty.socket.protocol.domain.ProtocolByteBuf;
-import org.kin.transport.netty.socket.protocol.domain.Request;
-import org.kin.transport.netty.socket.protocol.domain.Response;
-
 /**
  * 协议抽象
  *
