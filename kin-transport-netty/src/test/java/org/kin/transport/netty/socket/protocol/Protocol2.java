@@ -10,10 +10,7 @@ public class Protocol2 extends RequestProtocol {
     private byte b;
 
     public static Protocol2 of(String s, byte b) {
-        Protocol2 protocol2 = new Protocol2();
-        protocol2.s = s;
-        protocol2.b = b;
-        return protocol2;
+        return ProtocolFactory.createProtocol(2, s, b);
     }
 
     @Override

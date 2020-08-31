@@ -9,9 +9,7 @@ public class Protocol1 extends AbstractSocketProtocol {
     private int f;
 
     public static Protocol1 of(int f) {
-        Protocol1 protocol1 = new Protocol1();
-        protocol1.f = f;
-        return protocol1;
+        return ProtocolFactory.createProtocol(1, f);
     }
 
     @Override
