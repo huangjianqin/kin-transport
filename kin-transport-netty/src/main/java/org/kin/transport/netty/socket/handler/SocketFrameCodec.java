@@ -7,7 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 import io.netty.handler.codec.CorruptedFrameException;
 import io.netty.util.ReferenceCountUtil;
-import org.kin.transport.netty.socket.userevent.GlobalRatelimitEvent;
+import org.kin.transport.netty.userevent.GlobalRatelimitEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

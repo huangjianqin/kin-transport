@@ -6,8 +6,8 @@ package org.kin.transport.netty.socket.protocol;
  * @author huangjianqin
  * @date 2019/7/4
  */
-public class UnknowProtocolException extends RuntimeException {
-    public UnknowProtocolException(int id) {
+public class UnknownProtocolException extends RuntimeException {
+    public UnknownProtocolException(int id) {
         super("unknow protocol '" + id + "'");
     }
 }

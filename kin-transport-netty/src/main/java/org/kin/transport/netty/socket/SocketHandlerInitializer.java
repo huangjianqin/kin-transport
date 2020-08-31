@@ -1,14 +1,13 @@
 package org.kin.transport.netty.socket;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
 import org.kin.transport.netty.socket.handler.SocketFrameCodec;
-import org.kin.transport.netty.socket.protocol.ChannelProtocolHandler;
-import org.kin.transport.netty.socket.protocol.ProtocolCodec;
+import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * socket的channel handler初始化
@@ -16,12 +15,11 @@ import java.util.List;
  * @author huangjianqin
  * @date 2019-09-12
  */
-public class SocketHandlerInitializer extends AbstractChannelHandlerInitializer {
-    private final AbstractSocketTransportOption transportOption;
+public class SocketHandlerInitializer extends AbstractChannelHandlerInitializer<ByteBuf, AbstractSocketProtocol, ByteBuf, AbstractSocketTransportOption> {
     private final boolean serverElseClient;
 
     public SocketHandlerInitializer(AbstractSocketTransportOption transportOption, boolean serverElseClient) {
-        this.transportOption = transportOption;
+        super(transportOption);
         this.serverElseClient = serverElseClient;
     }
 
@@ -30,17 +28,5 @@ public class SocketHandlerInitializer extends AbstractChannelHandlerInitializer 
         return serverElseClient ?
                 Collections.singleton(SocketFrameCodec.serverFrameCodec(transportOption.getGlobalRateLimit())) :
                 Collections.singleton(SocketFrameCodec.clientFrameCodec());
-    }
-
-    @Override
-    public final ChannelHandler[] getChannelHandlers() {
-        List<ChannelHandler> channelHandlers = setUpChannelHandlers(transportOption);
-
-        channelHandlers.addAll(firstHandlers());
-        channelHandlers.add(new ProtocolCodec(transportOption.getProtocolTransfer(), serverElseClient, transportOption.isCompression()));
-        channelHandlers.add(new ChannelProtocolHandler(transportOption.getTransportHandler()));
-        channelHandlers.addAll(lastHandlers());
-
-        return channelHandlers.toArray(new ChannelHandler[0]);
     }
 }

@@ -6,14 +6,14 @@ import io.netty.buffer.ByteBuf;
  * @author huangjianqin
  * @date 2019/5/30
  */
-public interface Response {
+public interface SocketByteBufResponse {
     /**
      * 设置协议id
      *
      * @param protocolId 协议id
      * @return 该response
      */
-    Response setProtocolId(int protocolId);
+    SocketByteBufResponse setProtocolId(int protocolId);
 
     /**
      * 获取底层的bytebuf
@@ -42,7 +42,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeByte(int value);
+    SocketByteBufResponse writeByte(int value);
 
     /**
      * 写无符号byte
@@ -50,7 +50,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeUnsignedByte(short value);
+    SocketByteBufResponse writeUnsignedByte(short value);
 
     /**
      * 写boolean
@@ -58,7 +58,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeBoolean(boolean value);
+    SocketByteBufResponse writeBoolean(boolean value);
 
     /**
      * 写bytes
@@ -66,7 +66,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeBytes(byte[] value);
+    SocketByteBufResponse writeBytes(byte[] value);
 
     /**
      * 写short
@@ -74,7 +74,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeShort(int value);
+    SocketByteBufResponse writeShort(int value);
 
     /**
      * 写无符号short
@@ -82,7 +82,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeUnsignedShort(int value);
+    SocketByteBufResponse writeUnsignedShort(int value);
 
     /**
      * 写int
@@ -90,7 +90,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeInt(int value);
+    SocketByteBufResponse writeInt(int value);
 
     /**
      * 写无符号int
@@ -98,7 +98,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeUnsignedInt(long value);
+    SocketByteBufResponse writeUnsignedInt(long value);
 
     /**
      * 写float
@@ -106,7 +106,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeFloat(float value);
+    SocketByteBufResponse writeFloat(float value);
 
     /**
      * 写long
@@ -114,7 +114,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeLong(long value);
+    SocketByteBufResponse writeLong(long value);
 
     /**
      * 写double
@@ -122,7 +122,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeDouble(double value);
+    SocketByteBufResponse writeDouble(double value);
 
     /**
      * 写String(length为short)
@@ -130,7 +130,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeString(String value);
+    SocketByteBufResponse writeString(String value);
 
     /**
      * 写String(length为无符号short)
@@ -138,7 +138,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response writeBigString(String value);
+    SocketByteBufResponse writeBigString(String value);
 
     /**
      * 在字节数组中某index开始设置boolean
@@ -147,7 +147,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response setBoolean(int index, boolean value);
+    SocketByteBufResponse setBoolean(int index, boolean value);
 
     /**
      * 在字节数组中某index开始设置byte
@@ -156,7 +156,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response setByte(int index, int value);
+    SocketByteBufResponse setByte(int index, int value);
 
     /**
      * 在字节数组中某index开始设置无符号byte
@@ -165,7 +165,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response setUnsignedByte(int index, int value);
+    SocketByteBufResponse setUnsignedByte(int index, int value);
 
     /**
      * 在字节数组中某index开始设置short
@@ -174,7 +174,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response setShort(int index, int value);
+    SocketByteBufResponse setShort(int index, int value);
 
     /**
      * 在字节数组中某index开始设置无符号short
@@ -183,7 +183,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response setUnsignedShort(int index, int value);
+    SocketByteBufResponse setUnsignedShort(int index, int value);
 
     /**
      * 在字节数组中某index开始设置int
@@ -192,7 +192,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response setInt(int index, int value);
+    SocketByteBufResponse setInt(int index, int value);
 
     /**
      * 在字节数组中某index开始设置无符号int
@@ -201,7 +201,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response setUnsignedInt(int index, long value);
+    SocketByteBufResponse setUnsignedInt(int index, long value);
 
     /**
      * 在字节数组中某index开始设置long
@@ -210,7 +210,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response setLong(int index, long value);
+    SocketByteBufResponse setLong(int index, long value);
 
     /**
      * 在字节数组中某index开始设置float
@@ -219,7 +219,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response setFloat(int index, float value);
+    SocketByteBufResponse setFloat(int index, float value);
 
     /**
      * 在字节数组中某index开始设置double
@@ -228,7 +228,7 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response setDouble(int index, double value);
+    SocketByteBufResponse setDouble(int index, double value);
 
     /**
      * 在字节数组中某index开始设置bytes
@@ -237,5 +237,5 @@ public interface Response {
      * @param value 值
      * @return 该response
      */
-    Response setBytes(int index, byte[] value);
+    SocketByteBufResponse setBytes(int index, byte[] value);
 }

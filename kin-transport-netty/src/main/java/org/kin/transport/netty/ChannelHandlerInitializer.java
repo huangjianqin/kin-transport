@@ -13,7 +13,7 @@ import java.util.List;
  * @author huangjianqin
  * @date 2019-09-12
  */
-public interface ChannelHandlerInitializer {
+public interface ChannelHandlerInitializer<IN, MSG, OUT> {
     /**
      * 返回channel需要的ChannelHandler
      *
@@ -21,7 +21,7 @@ public interface ChannelHandlerInitializer {
      */
     ChannelHandler[] getChannelHandlers();
 
-    default List<ChannelHandler> setUpChannelHandlers(AbstractTransportOption transportOption) {
+    default List<ChannelHandler> setUpChannelHandlers(AbstractTransportOption<IN, MSG, OUT> transportOption) {
         List<ChannelHandler> channelHandlers = new ArrayList<>();
         channelHandlers.add(new WriteTimeoutHandler(3));
 

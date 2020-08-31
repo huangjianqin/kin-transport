@@ -4,8 +4,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
-import org.kin.transport.netty.TransportHandler;
-import org.kin.transport.netty.socket.userevent.GlobalRatelimitEvent;
+import org.kin.transport.netty.ProtocolHandler;
+import org.kin.transport.netty.userevent.GlobalRatelimitEvent;
 
 import java.net.InetSocketAddress;
 
@@ -27,20 +27,20 @@ public class ChannelUtils {
         return ((InetSocketAddress) channel.remoteAddress()).getAddress().toString().substring(1);
     }
 
-    public static <T> void handleUserEvent(Object evt, ChannelHandlerContext ctx, TransportHandler<T> transportHandler) {
+    public static <T> void handleUserEvent(Object evt, ChannelHandlerContext ctx, ProtocolHandler<T> protocolHandler) {
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state() == IdleState.READER_IDLE) {
-                transportHandler.readIdle(ctx);
+                protocolHandler.readIdle(ctx);
             } else if (event.state() == IdleState.WRITER_IDLE) {
-                transportHandler.writeIdel(ctx);
+                protocolHandler.writeIdel(ctx);
             } else {
                 //All IDLE
-                transportHandler.readWriteIdle(ctx);
+                protocolHandler.readWriteIdle(ctx);
             }
         }
         if (evt instanceof GlobalRatelimitEvent) {
-            transportHandler.globalRateLimitReject();
+            protocolHandler.globalRateLimitReject();
         }
     }
 }

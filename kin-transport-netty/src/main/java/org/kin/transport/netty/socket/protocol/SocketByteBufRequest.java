@@ -4,7 +4,7 @@ package org.kin.transport.netty.socket.protocol;
  * @author huangjianqin
  * @date 2019/5/30
  */
-public interface Request {
+public interface SocketByteBufRequest {
     /**
      * 获取协议号
      *

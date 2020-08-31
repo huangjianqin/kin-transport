@@ -1,29 +1,32 @@
 package org.kin.transport.netty.websocket.server;
 
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.kin.transport.netty.Server;
+import org.kin.transport.netty.TransportProtocolTransfer;
 import org.kin.transport.netty.websocket.AbstractWsTransportOption;
 
 import java.net.InetSocketAddress;
+import java.util.Objects;
 
 /**
  * @author huangjianqin
  * @date 2020/8/27
  */
-public class WsServerTransportOption extends AbstractWsTransportOption {
-    public ProtocolBaseWsServerTransportOption protocol() {
-        return new ProtocolBaseWsServerTransportOption();
-    }
-
-    //----------------------------------------------------------------------------------------------------------------
+public class WsServerTransportOption<MSG, INOUT extends WebSocketFrame> extends AbstractWsTransportOption<MSG, INOUT> {
     public final Server ws(InetSocketAddress address) {
-        WsServerHandlerInitializer WSServerHandlerInitializer = handlerInitializer();
+        WsServerHandlerInitializer<MSG, INOUT> handlerInitializer = new WsServerHandlerInitializer<>(this);
         Server server = new Server(address);
-        server.bind(this, WSServerHandlerInitializer);
+        server.bind(this, handlerInitializer);
         return server;
     }
 
-    protected WsServerHandlerInitializer handlerInitializer() {
-        return new WsServerHandlerInitializer(this);
-    }
+    //----------------------------------------------------------------------------------------------------------------
+    @Override
+    public TransportProtocolTransfer<INOUT, MSG, INOUT> getTransportProtocolTransfer() {
+        if (Objects.isNull(super.getTransportProtocolTransfer())) {
+            return getDefaultTransportProtocolTransfer(true);
+        }
 
+        return super.getTransportProtocolTransfer();
+    }
 }

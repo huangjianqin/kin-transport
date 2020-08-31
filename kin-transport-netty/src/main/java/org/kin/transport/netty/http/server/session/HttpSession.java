@@ -29,11 +29,15 @@ public class HttpSession extends AbstractSession {
         attr.compareAndSet(null, new HttpSession(channel, request));
     }
 
-    public static void remove(Channel channel) {
+    public static HttpSession remove(Channel channel) {
         Attribute<HttpSession> attr = channel.attr(SESSION_KEY);
         if (Objects.nonNull(attr)) {
+            HttpSession httpSession = attr.get();
             attr.remove();
+            return httpSession;
         }
+
+        return null;
     }
 
     public static HttpSession get(Channel channel) {

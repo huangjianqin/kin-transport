@@ -17,7 +17,7 @@ import java.util.Set;
  */
 public class ProtocolFactory {
     private static final Logger log = LoggerFactory.getLogger(ProtocolFactory.class);
-    //协议类信息缓存
+    /** 协议类信息缓存 */
     private static final Cache<Integer, ProtocolInfo> PROTOCOL_CACHE = CacheBuilder.newBuilder().build();
 
     private ProtocolFactory() {
@@ -28,8 +28,8 @@ public class ProtocolFactory {
      */
     public static void init(String scanPath) {
         synchronized (ProtocolFactory.class) {
-            Set<Class<? extends AbstractProtocol>> protocolClasses = ClassUtils.getSubClass(scanPath, AbstractProtocol.class, true);
-            for (Class<? extends AbstractProtocol> protocolClass : protocolClasses) {
+            Set<Class<? extends AbstractSocketProtocol>> protocolClasses = ClassUtils.getSubClass(scanPath, AbstractSocketProtocol.class, true);
+            for (Class<? extends AbstractSocketProtocol> protocolClass : protocolClasses) {
                 Protocol protocolAnnotation = protocolClass.getAnnotation(Protocol.class);
                 if (protocolAnnotation != null) {
                     int rate = protocolAnnotation.rate();
@@ -43,11 +43,11 @@ public class ProtocolFactory {
     /**
      * 根据id创建protocol, 并依照field定义顺序设置field value, 从子类开始算
      */
-    public static <T extends AbstractProtocol> T createProtocol(int id, Object... fieldValues) {
+    public static <T extends AbstractSocketProtocol> T createProtocol(int id, Object... fieldValues) {
         ProtocolInfo protocolInfo = PROTOCOL_CACHE.getIfPresent(id);
         if (protocolInfo != null) {
-            Class<? extends AbstractProtocol> claxx = protocolInfo.getProtocolClass();
-            AbstractProtocol protocol = ClassUtils.instance(claxx);
+            Class<? extends AbstractSocketProtocol> claxx = protocolInfo.getProtocolClass();
+            AbstractSocketProtocol protocol = ClassUtils.instance(claxx);
             if (protocol != null) {
                 //设置协议id
                 Field[] fields = ClassUtils.getAllFields(claxx).toArray(new Field[0]);
@@ -68,7 +68,7 @@ public class ProtocolFactory {
             }
         }
 
-        throw new UnknowProtocolException(id);
+        throw new UnknownProtocolException(id);
     }
 
     /**
@@ -88,17 +88,17 @@ public class ProtocolFactory {
     //------------------------------------------------------------------------------------------------------
     private static class ProtocolInfo {
         /** 协议类 */
-        private final Class<? extends AbstractProtocol> protocolClass;
+        private final Class<? extends AbstractSocketProtocol> protocolClass;
         /** 协议限流流量 */
         private final int rate;
 
-        public ProtocolInfo(Class<? extends AbstractProtocol> protocolClass, int rate) {
+        public ProtocolInfo(Class<? extends AbstractSocketProtocol> protocolClass, int rate) {
             this.protocolClass = protocolClass;
             this.rate = rate;
         }
 
         //getter
-        public Class<? extends AbstractProtocol> getProtocolClass() {
+        public Class<? extends AbstractSocketProtocol> getProtocolClass() {
             return protocolClass;
         }
 

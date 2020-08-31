@@ -1,9 +1,10 @@
-package org.kin.transport.netty.socket.protocol;
+package org.kin.transport.netty.handler;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import org.kin.transport.netty.TransportHandler;
+import org.kin.transport.netty.ProtocolHandler;
+import org.kin.transport.netty.socket.ProtocolRateLimiter;
 import org.kin.transport.netty.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,38 +14,36 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 协议处理
+ * 协议层逻辑处理
  *
  * @author huangjianqin
  * @date 2019/6/3
  */
-public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
+public class ChannelProtocolHandler<MSG> extends ChannelInboundHandlerAdapter {
     private static final Logger log = LoggerFactory.getLogger(ChannelProtocolHandler.class);
-    private final TransportHandler<AbstractProtocol> transportHandler;
+    private final ProtocolHandler<MSG> protocolHandler;
 
-    public ChannelProtocolHandler(TransportHandler<AbstractProtocol> transportHandler) {
-        this.transportHandler = transportHandler;
+    public ChannelProtocolHandler(ProtocolHandler<MSG> protocolHandler) {
+        this.protocolHandler = protocolHandler;
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         //合并解包
-        List<AbstractProtocol> protocols = new ArrayList<>();
+        List<MSG> protocols = new ArrayList<>();
         if (msg instanceof List) {
-            protocols.addAll((Collection<? extends AbstractProtocol>) msg);
+            protocols.addAll((Collection<? extends MSG>) msg);
         }
-        if (msg instanceof AbstractProtocol) {
-            protocols.add((AbstractProtocol) msg);
-        }
+        protocols.add((MSG) msg);
 
-        for (AbstractProtocol protocol : protocols) {
-            log.debug("Recv {} {} {}", protocol.getProtocolId(), protocol.getClass().getSimpleName(), ChannelUtils.getRemoteIp(ctx.channel()));
+        for (MSG protocol : protocols) {
+            log.debug("Recv {} {}", protocol, ChannelUtils.getRemoteIp(ctx.channel()));
 
             //流控
             if (ProtocolRateLimiter.valid(protocol)) {
-                transportHandler.handle(ctx, protocol);
+                protocolHandler.handle(ctx, protocol);
             } else {
-                transportHandler.rateLimitReject(ctx, protocol);
+                protocolHandler.rateLimitReject(ctx, protocol);
             }
         }
     }
@@ -53,7 +52,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
         log.info("channel active: {}", ChannelUtils.getRemoteIp(channel));
-        transportHandler.channelActive(ctx);
+        protocolHandler.channelActive(ctx);
 
         ctx.fireChannelActive();
     }
@@ -62,7 +61,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
         log.info("channel inactive: {}", ChannelUtils.getRemoteIp(channel));
-        transportHandler.channelInactive(ctx);
+        protocolHandler.channelInactive(ctx);
 
         ctx.fireChannelInactive();
     }
@@ -71,14 +70,14 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Channel channel = ctx.channel();
         log.error("server('{}') throw exception:{}", ChannelUtils.getRemoteIp(channel), cause);
-        transportHandler.handleException(ctx, cause);
+        protocolHandler.handleException(ctx, cause);
 
         ctx.fireExceptionCaught(cause);
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
-        ChannelUtils.handleUserEvent(evt, ctx, transportHandler);
+        ChannelUtils.handleUserEvent(evt, ctx, protocolHandler);
 
         ctx.fireUserEventTriggered(evt);
     }

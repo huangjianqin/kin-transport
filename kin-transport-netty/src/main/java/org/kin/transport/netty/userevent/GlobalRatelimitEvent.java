@@ -1,4 +1,4 @@
-package org.kin.transport.netty.socket.userevent;
+package org.kin.transport.netty.userevent;
 
 /**
  * 全局限流事件

@@ -12,11 +12,14 @@ import java.util.Map;
  * @author huangjianqin
  * @date 2019/7/29
  */
-public abstract class AbstractTransportOption {
+public abstract class AbstractTransportOption<IN, MSG, OUT> {
     /** server/selector channel 配置 */
     private Map<ChannelOption, Object> serverOptions = new HashMap<>();
     /** channel 配置 */
     private Map<ChannelOption, Object> channelOptions = new HashMap<>();
+
+    private ProtocolHandler<MSG> protocolHandler;
+    private TransportProtocolTransfer<IN, MSG, OUT> transportProtocolTransfer;
 
     /** 是否压缩 */
     private boolean compression;
@@ -36,67 +39,77 @@ public abstract class AbstractTransportOption {
     private String certKeyFilePath;
 
     //------------------------------------------------------------------------------------------------------------------
-    public <T extends AbstractTransportOption> T serverOptions(Map<ChannelOption, Object> channelOptions) {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T serverOptions(Map<ChannelOption, Object> channelOptions) {
         this.serverOptions.putAll(channelOptions);
         return (T) this;
     }
 
-    public <T extends AbstractTransportOption, E> T serverOption(ChannelOption<E> channelOption, E value) {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>, E> T serverOption(ChannelOption<E> channelOption, E value) {
         this.serverOptions.put(channelOption, value);
         return (T) this;
     }
 
-    public <T extends AbstractTransportOption> T channelOptions(Map<ChannelOption, Object> channelOptions) {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T channelOptions(Map<ChannelOption, Object> channelOptions) {
         this.channelOptions.putAll(channelOptions);
         return (T) this;
     }
 
-    public <T extends AbstractTransportOption, E> T channelOption(ChannelOption<E> channelOption, E value) {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>, E> T channelOption(ChannelOption<E> channelOption, E value) {
         this.channelOptions.put(channelOption, value);
         return (T) this;
     }
 
-    public <T extends AbstractTransportOption> T compress() {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T protocolHandler(ProtocolHandler<MSG> protocolHandler) {
+        this.protocolHandler = protocolHandler;
+        return (T) this;
+    }
+
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T transportProtocolTransfer(TransportProtocolTransfer<IN, MSG, OUT> transfer) {
+        this.transportProtocolTransfer = transfer;
+        return (T) this;
+    }
+
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T compress() {
         this.compression = true;
         return (T) this;
     }
 
-    public <T extends AbstractTransportOption> T uncompress() {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T uncompress() {
         this.compression = false;
         return (T) this;
     }
 
-    public <T extends AbstractTransportOption> T globalRateLimit(int globalRateLimit) {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T globalRateLimit(int globalRateLimit) {
         this.globalRateLimit = globalRateLimit;
         return (T) this;
     }
 
-    public <T extends AbstractTransportOption> T readIdleTime(int readIdleTime) {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T readIdleTime(int readIdleTime) {
         this.readIdleTime = readIdleTime;
         return (T) this;
     }
 
-    public <T extends AbstractTransportOption> T writeIdleTime(int writeIdleTime) {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T writeIdleTime(int writeIdleTime) {
         this.writeIdleTime = writeIdleTime;
         return (T) this;
     }
 
-    public <T extends AbstractTransportOption> T readWriteIdleTime(int readWriteIdleTime) {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T readWriteIdleTime(int readWriteIdleTime) {
         this.readWriteIdleTime = readWriteIdleTime;
         return (T) this;
     }
 
-    public <T extends AbstractTransportOption> T ssl() {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T ssl() {
         this.ssl = true;
         return (T) this;
     }
 
-    public <T extends AbstractTransportOption> T certFile(String certFilePath) {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T certFile(String certFilePath) {
         this.certFilePath = certFilePath;
         return (T) this;
     }
 
-    public <T extends AbstractTransportOption> T certKeyFile(String certKeyFilePath) {
+    public <T extends AbstractTransportOption<IN, MSG, OUT>> T certKeyFile(String certKeyFilePath) {
         this.certKeyFilePath = certKeyFilePath;
         return (T) this;
     }
@@ -108,6 +121,14 @@ public abstract class AbstractTransportOption {
 
     public Map<ChannelOption, Object> getChannelOptions() {
         return channelOptions;
+    }
+
+    public ProtocolHandler<MSG> getProtocolHandler() {
+        return protocolHandler;
+    }
+
+    public TransportProtocolTransfer<IN, MSG, OUT> getTransportProtocolTransfer() {
+        return transportProtocolTransfer;
     }
 
     public boolean isCompression() {

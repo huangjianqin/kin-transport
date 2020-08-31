@@ -2,11 +2,12 @@ package org.kin.transport.netty.websocket.client.handler;
 
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.websocketx.*;
+import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
+import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
 import io.netty.util.CharsetUtil;
 import org.kin.framework.log.LoggerOprs;
-import org.kin.transport.netty.utils.ChannelUtils;
-import org.kin.transport.netty.websocket.WsTransportHandler;
 
 /**
  * @author huangjianqin
@@ -17,12 +18,9 @@ public class WsClientHandler extends SimpleChannelInboundHandler<Object> impleme
     private final WebSocketClientHandshaker handshaker;
     /** ws握手future */
     private ChannelPromise handshakeFuture;
-    /** transport handler */
-    private final WsTransportHandler transportHandler;
 
-    public WsClientHandler(WebSocketClientHandshaker handshaker, WsTransportHandler transportHandler) {
+    public WsClientHandler(WebSocketClientHandshaker handshaker) {
         this.handshaker = handshaker;
-        this.transportHandler = transportHandler;
     }
 
     public ChannelFuture handshakeFuture() {
@@ -75,28 +73,7 @@ public class WsClientHandler extends SimpleChannelInboundHandler<Object> impleme
             ctx.channel().close();
         } else {
             //其他类型的的websocket frame
-            transportHandler.handle(ctx, (WebSocketFrame) msg);
+            ctx.fireChannelRead(msg);
         }
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        transportHandler.channelInactive(ctx);
-
-        super.channelInactive(ctx);
-    }
-
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        ChannelUtils.handleUserEvent(evt, ctx, transportHandler);
-
-        super.userEventTriggered(ctx, evt);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        transportHandler.handleException(ctx, cause);
-
-        super.exceptionCaught(ctx, cause);
     }
 }

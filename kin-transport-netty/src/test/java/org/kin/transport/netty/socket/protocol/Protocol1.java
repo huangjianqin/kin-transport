@@ -5,16 +5,16 @@ package org.kin.transport.netty.socket.protocol;
  * @date 2019/7/4
  */
 @Protocol(id = 1)
-public class Protocol1 extends AbstractProtocol {
+public class Protocol1 extends AbstractSocketProtocol {
     private int f;
 
     @Override
-    public void read(Request request) {
+    public void read(SocketByteBufRequest request) {
         f = request.readInt();
     }
 
     @Override
-    public void write(Response response) {
+    public void write(SocketByteBufResponse response) {
         response.writeInt(f);
     }
 

@@ -6,20 +6,20 @@ package org.kin.transport.netty.socket.protocol;
  * @author huangjianqin
  * @date 2019/5/30
  */
-public abstract class AbstractProtocol {
+public abstract class AbstractSocketProtocol {
     /** 协议id */
     private int protocolId;
     /** 创建时间 */
     private long createTime = System.currentTimeMillis();
 
-    public AbstractProtocol() {
+    public AbstractSocketProtocol() {
     }
 
-    public AbstractProtocol(int protocolId) {
+    public AbstractSocketProtocol(int protocolId) {
         this.protocolId = protocolId;
     }
 
-    protected void beforeRead(Request request) {
+    protected void beforeRead(SocketByteBufRequest request) {
 
     }
 
@@ -28,17 +28,17 @@ public abstract class AbstractProtocol {
      *
      * @param request in协议(本质上是个byteBuf的封装)
      */
-    public abstract void read(Request request);
+    public abstract void read(SocketByteBufRequest request);
 
     /**
      * out封装
      *
      * @param response out协议(本质上是个byteBuf的封装
      */
-    public abstract void write(Response response);
+    public abstract void write(SocketByteBufResponse response);
 
-    public Response write() {
-        Response response = new ProtocolByteBuf(protocolId);
+    public SocketByteBufResponse write() {
+        SocketByteBufResponse response = new ProtocolByteBuf(protocolId);
         write(response);
         return response;
     }

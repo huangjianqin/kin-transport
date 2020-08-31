@@ -3,12 +3,11 @@ package org.kin.transport.netty.websocket.server;
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
+import org.kin.transport.netty.AbstractChannelHandlerInitializer;
 import org.kin.transport.netty.websocket.AbstractWsTransportOption;
-import org.kin.transport.netty.websocket.WsChannelHandlerInitializer;
-import org.kin.transport.netty.websocket.handler.ByteBuf2BinaryFrameEncoder;
-import org.kin.transport.netty.websocket.handler.ByteBuf2TextFrameEncoder;
 import org.kin.transport.netty.websocket.server.handler.WsServerHandler;
 
 import java.util.ArrayList;
@@ -21,9 +20,10 @@ import java.util.List;
  * @author huangjianqin
  * @date 2020/8/20
  */
-public class WsServerHandlerInitializer extends WsChannelHandlerInitializer {
+public class WsServerHandlerInitializer<MSG, INOUT extends WebSocketFrame>
+        extends AbstractChannelHandlerInitializer<INOUT, MSG, INOUT, AbstractWsTransportOption<MSG, INOUT>> {
 
-    public WsServerHandlerInitializer(AbstractWsTransportOption transportOption) {
+    public WsServerHandlerInitializer(AbstractWsTransportOption<MSG, INOUT> transportOption) {
         super(transportOption);
     }
 
@@ -38,12 +38,7 @@ public class WsServerHandlerInitializer extends WsChannelHandlerInitializer {
         }
         //适配指定url
         channelHandlers.add(new WebSocketServerProtocolHandler(transportOption.getHandshakeUrl()));
-        channelHandlers.add(new WsServerHandler(transportOption.getTransportHandler()));
-        if (transportOption.isBinaryOrText()) {
-            channelHandlers.add(new ByteBuf2BinaryFrameEncoder());
-        } else {
-            channelHandlers.add(new ByteBuf2TextFrameEncoder());
-        }
+        channelHandlers.add(new WsServerHandler());
         return channelHandlers;
     }
 }

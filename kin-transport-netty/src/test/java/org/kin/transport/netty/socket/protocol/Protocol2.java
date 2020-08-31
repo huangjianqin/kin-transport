@@ -10,7 +10,7 @@ public class Protocol2 extends RequestProtocol {
     private byte b;
 
     @Override
-    public void read(Request request) {
+    public void read(SocketByteBufRequest request) {
         s = request.readString();
         b = request.readByte();
     }

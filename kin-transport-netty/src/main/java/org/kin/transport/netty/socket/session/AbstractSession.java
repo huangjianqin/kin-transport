@@ -3,8 +3,7 @@ package org.kin.transport.netty.socket.session;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import org.kin.framework.utils.NetUtils;
-import org.kin.transport.netty.socket.protocol.AbstractProtocol;
-import org.kin.transport.netty.socket.protocol.Response;
+import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
 import org.kin.transport.netty.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,22 +61,22 @@ public abstract class AbstractSession {
     /**
      * write out
      */
-    public void sendProtocol(AbstractProtocol protocol) {
+    public void sendProtocol(AbstractSocketProtocol protocol) {
         if (Objects.nonNull(protocol)) {
-            write(protocol.write());
+            write(protocol);
         }
     }
 
     /**
      * write out
      */
-    protected final void write(Response response) {
+    protected final void write(AbstractSocketProtocol protocol) {
         if (isActive()) {
-            if (response != null) {
+            if (protocol != null) {
                 if (isFlush) {
-                    channel.writeAndFlush(response);
+                    channel.writeAndFlush(protocol);
                 } else {
-                    channel.write(response);
+                    channel.write(protocol);
                     if (flushChannelScheduleTag.compareAndSet(false, true)) {
                         scheduleFlush();
                     }
@@ -100,9 +99,9 @@ public abstract class AbstractSession {
     /**
      * write out and close session
      */
-    public final void writeAndClose(Response response, SessionCloseCause cause, String ip) {
-        if (response != null) {
-            ChannelFuture writeFuture = channel.writeAndFlush(response);
+    public final void writeAndClose(AbstractSocketProtocol protocol, SessionCloseCause cause, String ip) {
+        if (protocol != null) {
+            ChannelFuture writeFuture = channel.writeAndFlush(protocol);
             writeFuture.addListener((ChannelFuture channelFuture) -> close(cause, ip));
             channel.eventLoop().schedule(() -> {
                 if (!writeFuture.isDone()) {

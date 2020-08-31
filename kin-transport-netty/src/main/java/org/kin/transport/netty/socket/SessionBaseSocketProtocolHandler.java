@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
-import org.kin.transport.netty.TransportHandler;
+import org.kin.transport.netty.ProtocolHandler;
 import org.kin.transport.netty.socket.session.AbstractSession;
 import org.kin.transport.netty.socket.session.SessionBuilder;
 import org.kin.transport.netty.utils.ChannelUtils;
@@ -14,18 +14,18 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 /**
- * 会自动创建Session的{@link TransportHandler}
+ * 会自动创建Session的{@link ProtocolHandler}
  *
  * @author huangjianqin
  * @date 2020-03-19
  */
-public abstract class SocketSessionTransportHandler<S extends AbstractSession> extends SocketTransportHandler {
-    private static Logger log = LoggerFactory.getLogger(SocketSessionTransportHandler.class);
+public abstract class SessionBaseSocketProtocolHandler<S extends AbstractSession> extends SocketProtocolHandler {
+    private static final Logger log = LoggerFactory.getLogger(SessionBaseSocketProtocolHandler.class);
     private final AttributeKey<S> SESSION_KEY = AttributeKey.valueOf("session");
     /** seesion构建逻辑 */
-    private SessionBuilder<S> sessionBuilder;
+    private final SessionBuilder<S> sessionBuilder;
 
-    public SocketSessionTransportHandler(SessionBuilder<S> sessionBuilder) {
+    public SessionBaseSocketProtocolHandler(SessionBuilder<S> sessionBuilder) {
         this.sessionBuilder = sessionBuilder;
     }
 

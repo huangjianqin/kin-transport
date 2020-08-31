@@ -3,11 +3,13 @@ package org.kin.transport.netty;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
+ * 处理协议层消息
+ *
  * @author huangjianqin
  * @date 2019/5/30
  */
-public abstract class TransportHandler<MSG> {
-    public static TransportHandler DO_NOTHING = new TransportHandler() {
+public abstract class ProtocolHandler<MSG> {
+    public static ProtocolHandler DO_NOTHING = new ProtocolHandler() {
         @Override
         public void handle(ChannelHandlerContext ctx, Object protocol) {
             //do nothing

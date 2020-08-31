@@ -8,18 +8,18 @@ import org.kin.transport.netty.http.server.HttpServerTransportOption;
  * @author huangjianqin
  * @date 2020/8/27
  */
-public abstract class AbstractHttpTransportOption extends AbstractTransportOption {
+public abstract class AbstractHttpTransportOption<IN, MSG, OUT> extends AbstractTransportOption<IN, MSG, OUT> {
     public static final AbstractHttpTransportOption INSTANCE = new AbstractHttpTransportOption() {
     };
 
     /** server配置 */
-    public static HttpServerTransportOption server() {
-        return new HttpServerTransportOption();
+    public static <MSG> HttpServerTransportOption<MSG> server() {
+        return new HttpServerTransportOption<>();
     }
 
     /** client配置 */
-    public static HttpClientTransportOption client() {
-        return new HttpClientTransportOption();
+    public static <MSG> HttpClientTransportOption<MSG> client() {
+        return new HttpClientTransportOption<>();
     }
     //------------------------------------------------------------------------------------------------------------
 }

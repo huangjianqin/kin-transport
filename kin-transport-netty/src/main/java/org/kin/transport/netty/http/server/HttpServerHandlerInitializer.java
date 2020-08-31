@@ -1,12 +1,9 @@
 package org.kin.transport.netty.http.server;
 
 import io.netty.channel.ChannelHandler;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.codec.http.*;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
-import org.kin.transport.netty.http.server.handler.ByteBuf2HttpResponseEncoder;
-import org.kin.transport.netty.http.server.handler.HttpServerHandler;
+import org.kin.transport.netty.http.AbstractHttpTransportOption;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,11 +12,12 @@ import java.util.List;
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class HttpServerHandlerInitializer extends AbstractChannelHandlerInitializer {
-    protected final HttpServerTransportOption transportOption;
+public class HttpServerHandlerInitializer<MSG>
+        extends AbstractChannelHandlerInitializer<FullHttpRequest, MSG, FullHttpResponse,
+        AbstractHttpTransportOption<FullHttpRequest, MSG, FullHttpResponse>> {
 
-    public HttpServerHandlerInitializer(HttpServerTransportOption transportOption) {
-        this.transportOption = transportOption;
+    public HttpServerHandlerInitializer(HttpServerTransportOption<MSG> transportOption) {
+        super(transportOption);
     }
 
     @Override
@@ -29,8 +27,6 @@ public class HttpServerHandlerInitializer extends AbstractChannelHandlerInitiali
         channelHandlers.add(new HttpResponseEncoder());
         channelHandlers.add(new HttpRequestDecoder());
         channelHandlers.add(new HttpObjectAggregator(65536));
-        channelHandlers.add(new HttpServerHandler(transportOption.getTransportHandler()));
-        channelHandlers.add(new ByteBuf2HttpResponseEncoder());
         return channelHandlers;
     }
 }

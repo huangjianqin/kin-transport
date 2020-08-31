@@ -2,7 +2,6 @@ package org.kin.transport.netty;
 
 import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -26,7 +25,7 @@ import java.util.concurrent.CountDownLatch;
  * @author huangjianqin
  * @date 2019/5/30
  */
-public class Client extends ClientConnection {
+public class Client<MSG> extends ClientConnection {
     protected static final Logger log = LoggerFactory.getLogger(Client.class);
 
     protected EventLoopGroup group;
@@ -119,16 +118,16 @@ public class Client extends ClientConnection {
     /**
      * 请求消息
      */
-    public void request(ByteBuf byteBuf) {
-        request(byteBuf);
+    public void request(MSG msg) {
+        request(msg);
     }
 
     /**
      * 请求消息
      */
-    public void request(ByteBuf byteBuf, ChannelFutureListener... listeners) {
-        if (isActive() && Objects.nonNull(byteBuf) && byteBuf.readableBytes() > 0) {
-            ChannelFuture channelFuture = channel.writeAndFlush(byteBuf);
+    public void request(MSG msg, ChannelFutureListener... listeners) {
+        if (isActive() && Objects.nonNull(msg)) {
+            ChannelFuture channelFuture = channel.writeAndFlush(msg);
             if (CollectionUtils.isNonEmpty(listeners)) {
                 channelFuture.addListeners(listeners);
             }

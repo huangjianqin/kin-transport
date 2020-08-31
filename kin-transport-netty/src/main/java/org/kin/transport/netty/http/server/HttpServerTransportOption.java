@@ -1,41 +1,39 @@
 package org.kin.transport.netty.http.server;
 
-import org.kin.transport.netty.AbstractTransportOption;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import org.kin.framework.utils.ClassUtils;
 import org.kin.transport.netty.Server;
+import org.kin.transport.netty.TransportProtocolTransfer;
+import org.kin.transport.netty.http.AbstractHttpTransportOption;
+import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
 
 import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class HttpServerTransportOption extends AbstractTransportOption {
-    private HttpServerTransportHandler transportHandler;
-
-    public static ProtocolBaseHttpServerTransportOption protocol() {
-        return new ProtocolBaseHttpServerTransportOption();
-    }
-
-    //----------------------------------------------------------------------------------------------------------------
+public class HttpServerTransportOption<MSG> extends AbstractHttpTransportOption<FullHttpRequest, MSG, FullHttpResponse> {
     public final Server http(InetSocketAddress address) {
-        HttpServerHandlerInitializer httpServerHandlerInitializer = handlerInitializer();
+        HttpServerHandlerInitializer<MSG> httpServerHandlerInitializer = new HttpServerHandlerInitializer<>(this);
         Server server = new Server(address);
         server.bind(this, httpServerHandlerInitializer);
         return server;
     }
 
-    protected HttpServerHandlerInitializer handlerInitializer() {
-        return new HttpServerHandlerInitializer(this);
-    }
-
     //----------------------------------------------------------------------------------------------------------------
-    public <T extends HttpServerTransportOption> T transportHandler(HttpServerTransportHandler transportHandler) {
-        this.transportHandler = transportHandler;
-        return (T) this;
-    }
+    @Override
+    public TransportProtocolTransfer<FullHttpRequest, MSG, FullHttpResponse> getTransportProtocolTransfer() {
+        if (Objects.isNull(super.getTransportProtocolTransfer())) {
+            List<Class<?>> genericTypes = ClassUtils.getSuperClassGenericActualTypes(getClass());
+            if (AbstractSocketProtocol.class.isAssignableFrom(genericTypes.get(1))) {
+                return (TransportProtocolTransfer<FullHttpRequest, MSG, FullHttpResponse>) new HttpServerTransportProtocolTransfer(isCompression());
+            }
+        }
 
-    //getter
-    public HttpServerTransportHandler getTransportHandler() {
-        return transportHandler;
+        return super.getTransportProtocolTransfer();
     }
 }
