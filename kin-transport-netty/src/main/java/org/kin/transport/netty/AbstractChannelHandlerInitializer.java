@@ -16,11 +16,11 @@ import java.util.List;
  * @author huangjianqin
  * @date 2020/8/27
  */
-public abstract class AbstractChannelHandlerInitializer<IN, MSG, OUT, TO extends AbstractTransportOption<IN, MSG, OUT>>
+public abstract class AbstractChannelHandlerInitializer<IN, MSG, OUT, O extends AbstractTransportOption<IN, MSG, OUT, O>>
         implements ChannelHandlerInitializer<IN, MSG, OUT> {
-    protected final TO transportOption;
+    protected final O transportOption;
 
-    protected AbstractChannelHandlerInitializer(TO transportOption) {
+    protected AbstractChannelHandlerInitializer(O transportOption) {
         this.transportOption = transportOption;
     }
 
@@ -28,7 +28,7 @@ public abstract class AbstractChannelHandlerInitializer<IN, MSG, OUT, TO extends
      * 前面的handlers
      */
     protected Collection<ChannelHandler> firstHandlers() {
-        return Collections.emptyList();
+        return setUpChannelHandlers(transportOption);
     }
 
     /**

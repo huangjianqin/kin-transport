@@ -33,4 +33,14 @@ public class WsTransportProtocolTransfer
     public Collection<BinaryWebSocketFrame> encode(ChannelHandlerContext ctx, AbstractSocketProtocol protocol) throws Exception {
         return transfer.encode(ctx, protocol).stream().map(BinaryWebSocketFrame::new).collect(Collectors.toList());
     }
+
+    @Override
+    public Class<BinaryWebSocketFrame> getInClass() {
+        return BinaryWebSocketFrame.class;
+    }
+
+    @Override
+    public Class<AbstractSocketProtocol> getMsgClass() {
+        return AbstractSocketProtocol.class;
+    }
 }

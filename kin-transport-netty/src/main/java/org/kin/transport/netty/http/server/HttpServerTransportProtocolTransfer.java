@@ -86,4 +86,14 @@ public class HttpServerTransportProtocolTransfer
         }
         return null;
     }
+
+    @Override
+    public Class<FullHttpRequest> getInClass() {
+        return FullHttpRequest.class;
+    }
+
+    @Override
+    public Class<AbstractSocketProtocol> getMsgClass() {
+        return AbstractSocketProtocol.class;
+    }
 }

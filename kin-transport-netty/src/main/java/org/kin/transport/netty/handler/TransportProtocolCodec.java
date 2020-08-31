@@ -18,6 +18,7 @@ public class TransportProtocolCodec<IN, MSG, OUT> extends MessageToMessageCodec<
     private final TransportProtocolTransfer<IN, MSG, OUT> transfer;
 
     public TransportProtocolCodec(TransportProtocolTransfer<IN, MSG, OUT> transfer) {
+        super(transfer.getInClass(), transfer.getMsgClass());
         this.transfer = transfer;
     }
 

@@ -65,7 +65,7 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
                                 uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders()));
 
         WsClientHandlerInitializer<MSG, INOUT> handlerInitializer = new WsClientHandlerInitializer<>(this, wsClientHandler);
-        Client<MSG> client = new Client<>(InetSocketAddress.createUnresolved(host, port));
+        Client<MSG> client = new Client<>(new InetSocketAddress(host, port));
         client.connect(this, handlerInitializer);
 
         try {

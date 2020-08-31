@@ -45,25 +45,21 @@ public class SocketTransportProtocolTransfer extends AbstractTransportProtocolTr
 
     @Override
     public Collection<AbstractSocketProtocol> decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
-        try {
-            boolean compression = in.readBoolean();
-            in = getRealInByteBuff(in, compression);
-            SocketByteBufRequest byteBufRequest = new ProtocolByteBuf(in);
-            AbstractSocketProtocol protocol = parseProtocolByteBuf(byteBufRequest);
-            if (serverElseClient) {
-                //server receive request
-                ProtocolStatisicService.instance()
-                        .statisticReq(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
-            } else {
-                //client receive response
-                ProtocolStatisicService.instance()
-                        .statisticResp(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
-            }
-
-            return Collections.singleton(protocol);
-        } finally {
-            ReferenceCountUtil.release(in);
+        boolean compression = in.readBoolean();
+        in = getRealInByteBuff(in, compression);
+        SocketByteBufRequest byteBufRequest = new ProtocolByteBuf(in);
+        AbstractSocketProtocol protocol = parseProtocolByteBuf(byteBufRequest);
+        if (serverElseClient) {
+            //server receive request
+            ProtocolStatisicService.instance()
+                    .statisticReq(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
+        } else {
+            //client receive response
+            ProtocolStatisicService.instance()
+                    .statisticResp(byteBufRequest.getProtocolId() + "", byteBufRequest.getContentSize());
         }
+
+        return Collections.singleton(protocol);
     }
 
     @Override
@@ -88,6 +84,16 @@ public class SocketTransportProtocolTransfer extends AbstractTransportProtocolTr
         }
 
         return out;
+    }
+
+    @Override
+    public Class<ByteBuf> getInClass() {
+        return ByteBuf.class;
+    }
+
+    @Override
+    public Class<AbstractSocketProtocol> getMsgClass() {
+        return AbstractSocketProtocol.class;
     }
 
     //----------------------------------------------------------------------------------------------------------------

@@ -119,7 +119,7 @@ public class Client<MSG> extends ClientConnection {
      * 请求消息
      */
     public void request(MSG msg) {
-        request(msg);
+        request(msg, new ChannelFutureListener[0]);
     }
 
     /**

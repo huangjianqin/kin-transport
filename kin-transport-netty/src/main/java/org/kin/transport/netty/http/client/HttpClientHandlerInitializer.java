@@ -3,7 +3,6 @@ package org.kin.transport.netty.http.client;
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http.*;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
-import org.kin.transport.netty.http.AbstractHttpTransportOption;
 
 import java.util.Collection;
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.List;
  */
 public class HttpClientHandlerInitializer<MSG>
         extends AbstractChannelHandlerInitializer<FullHttpResponse, MSG, FullHttpRequest,
-        AbstractHttpTransportOption<FullHttpResponse, MSG, FullHttpRequest>> {
+        HttpClientTransportOption<MSG>> {
     public HttpClientHandlerInitializer(HttpClientTransportOption<MSG> transportOption) {
         super(transportOption);
     }

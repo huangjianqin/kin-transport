@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 public class SocketServerTransportOption extends AbstractSocketTransportOption<SocketServerTransportOption> {
     public Server tcp(InetSocketAddress address) {
-        ChannelHandlerInitializer<ByteBuf, AbstractSocketProtocol, ByteBuf> channelHandlerInitializer = new SocketHandlerInitializer(this, true);
+        ChannelHandlerInitializer<ByteBuf, AbstractSocketProtocol, ByteBuf> channelHandlerInitializer = new SocketHandlerInitializer<>(this, true);
         Server server = new Server(address);
         server.bind(this, channelHandlerInitializer);
         return server;

@@ -6,7 +6,6 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
-import org.kin.transport.netty.websocket.AbstractWsTransportOption;
 import org.kin.transport.netty.websocket.client.handler.WsClientHandler;
 
 import java.util.ArrayList;
@@ -18,18 +17,18 @@ import java.util.List;
  * @date 2020/8/21
  */
 public class WsClientHandlerInitializer<MSG, INOUT extends WebSocketFrame>
-        extends AbstractChannelHandlerInitializer<INOUT, MSG, INOUT, AbstractWsTransportOption<MSG, INOUT>> {
+        extends AbstractChannelHandlerInitializer<INOUT, MSG, INOUT, WsClientTransportOption<MSG, INOUT>> {
     /** transport 配置 */
     private final WsClientHandler wsClientHandler;
 
-    public WsClientHandlerInitializer(AbstractWsTransportOption<MSG, INOUT> transportOption, WsClientHandler wsClientHandler) {
+    public WsClientHandlerInitializer(WsClientTransportOption<MSG, INOUT> transportOption, WsClientHandler wsClientHandler) {
         super(transportOption);
         this.wsClientHandler = wsClientHandler;
     }
 
     @Override
     protected Collection<ChannelHandler> firstHandlers() {
-        List<ChannelHandler> channelHandlers = new ArrayList<>();
+        List<ChannelHandler> channelHandlers = new ArrayList<>(super.firstHandlers());
 
         channelHandlers.add(new HttpServerCodec());
         channelHandlers.add(new HttpObjectAggregator(65536));

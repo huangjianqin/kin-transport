@@ -57,4 +57,14 @@ public class HttpClientTransportProtocolTransfer extends AbstractTransportProtoc
         return Collections.singletonList(request);
     }
 
+    @Override
+    public Class<FullHttpResponse> getInClass() {
+        return FullHttpResponse.class;
+    }
+
+    @Override
+    public Class<AbstractSocketProtocol> getMsgClass() {
+        return AbstractSocketProtocol.class;
+    }
+
 }
