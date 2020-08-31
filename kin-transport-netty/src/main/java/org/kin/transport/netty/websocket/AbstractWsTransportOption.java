@@ -16,7 +16,8 @@ import java.util.List;
  * @author huangjianqin
  * @date 2020/8/27
  */
-public abstract class AbstractWsTransportOption<MSG, INOUT extends WebSocketFrame> extends AbstractTransportOption<INOUT, MSG, INOUT> {
+public abstract class AbstractWsTransportOption<MSG, INOUT extends WebSocketFrame, O extends AbstractWsTransportOption<MSG, INOUT, O>>
+        extends AbstractTransportOption<INOUT, MSG, INOUT, O> {
     public static final AbstractWsTransportOption INSTANCE = new AbstractWsTransportOption() {
     };
 
@@ -24,22 +25,22 @@ public abstract class AbstractWsTransportOption<MSG, INOUT extends WebSocketFram
     private String handshakeUrl = WsConstants.WS_PATH;
 
     /** binary server配置 */
-    public static <MSG> WsServerTransportOption<MSG, BinaryWebSocketFrame> binaryServer() {
+    public <MSG> WsServerTransportOption<MSG, BinaryWebSocketFrame> binaryServer() {
         return new WsServerTransportOption<>();
     }
 
     /** binary client配置 */
-    public static <MSG> WsClientTransportOption<MSG, BinaryWebSocketFrame> binaryClient() {
+    public <MSG> WsClientTransportOption<MSG, BinaryWebSocketFrame> binaryClient() {
         return new WsClientTransportOption<>();
     }
 
     /** text server配置 */
-    public static <MSG> WsServerTransportOption<MSG, TextWebSocketFrame> textServer() {
+    public <MSG> WsServerTransportOption<MSG, TextWebSocketFrame> textServer() {
         return new WsServerTransportOption<>();
     }
 
     /** text client配置 */
-    public static <MSG> WsClientTransportOption<MSG, TextWebSocketFrame> textClient() {
+    public <MSG> WsClientTransportOption<MSG, TextWebSocketFrame> textClient() {
         return new WsClientTransportOption<>();
     }
 
@@ -59,9 +60,9 @@ public abstract class AbstractWsTransportOption<MSG, INOUT extends WebSocketFram
     }
 
     //----------------------------------------------------------------------------------------------------------------
-    public <T extends AbstractWsTransportOption<MSG, INOUT>> T handshakeUrl(String handshakeUrl) {
+    public O handshakeUrl(String handshakeUrl) {
         this.handshakeUrl = handshakeUrl;
-        return (T) this;
+        return (O) this;
     }
 
     //getter

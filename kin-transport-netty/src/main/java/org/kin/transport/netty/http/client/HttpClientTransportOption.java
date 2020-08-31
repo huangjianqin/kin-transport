@@ -16,7 +16,8 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020/8/25
  */
-public class HttpClientTransportOption<MSG> extends AbstractHttpTransportOption<FullHttpResponse, MSG, FullHttpRequest> {
+public class HttpClientTransportOption<MSG>
+        extends AbstractHttpTransportOption<FullHttpResponse, MSG, FullHttpRequest, HttpClientTransportOption<MSG>> {
     public final Client<MSG> http(InetSocketAddress address) {
         HttpClientHandlerInitializer<MSG> httpClientHandlerInitializer = new HttpClientHandlerInitializer<>(this);
         Client<MSG> client = new Client<>(address);

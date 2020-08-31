@@ -10,17 +10,18 @@ import org.kin.transport.netty.socket.server.SocketServerTransportOption;
  * @author huangjianqin
  * @date 2020/8/21
  */
-public abstract class AbstractSocketTransportOption extends AbstractTransportOption<ByteBuf, AbstractSocketProtocol, ByteBuf> {
+public abstract class AbstractSocketTransportOption<O extends AbstractSocketTransportOption<O>>
+        extends AbstractTransportOption<ByteBuf, AbstractSocketProtocol, ByteBuf, O> {
     public static final AbstractSocketTransportOption INSTANCE = new AbstractSocketTransportOption() {
     };
 
     /** server配置 */
-    public static SocketServerTransportOption server() {
+    public SocketServerTransportOption server() {
         return new SocketServerTransportOption();
     }
 
     /** client配置 */
-    public static SocketClientTransportOption client() {
+    public SocketClientTransportOption client() {
         return new SocketClientTransportOption();
     }
 

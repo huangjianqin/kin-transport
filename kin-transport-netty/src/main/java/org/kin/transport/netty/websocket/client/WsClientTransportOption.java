@@ -19,7 +19,8 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020/8/27
  */
-public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame> extends AbstractWsTransportOption<MSG, INOUT> {
+public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
+        extends AbstractWsTransportOption<MSG, INOUT, WsClientTransportOption<MSG, INOUT>> {
     public final Client<MSG> ws(InetSocketAddress address) {
         String prefix = isSsl() ? "wss" : "ws";
         return ws(prefix.concat(address.toString()).concat(getHandshakeUrl()));

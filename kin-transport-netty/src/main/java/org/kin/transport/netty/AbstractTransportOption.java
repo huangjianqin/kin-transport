@@ -12,7 +12,7 @@ import java.util.Map;
  * @author huangjianqin
  * @date 2019/7/29
  */
-public abstract class AbstractTransportOption<IN, MSG, OUT> {
+public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTransportOption<IN, MSG, OUT, O>> {
     /** server/selector channel 配置 */
     private Map<ChannelOption, Object> serverOptions = new HashMap<>();
     /** channel 配置 */
@@ -39,79 +39,79 @@ public abstract class AbstractTransportOption<IN, MSG, OUT> {
     private String certKeyFilePath;
 
     //------------------------------------------------------------------------------------------------------------------
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T serverOptions(Map<ChannelOption, Object> channelOptions) {
+    public O serverOptions(Map<ChannelOption, Object> channelOptions) {
         this.serverOptions.putAll(channelOptions);
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>, E> T serverOption(ChannelOption<E> channelOption, E value) {
+    public <E> O serverOption(ChannelOption<E> channelOption, E value) {
         this.serverOptions.put(channelOption, value);
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T channelOptions(Map<ChannelOption, Object> channelOptions) {
+    public O channelOptions(Map<ChannelOption, Object> channelOptions) {
         this.channelOptions.putAll(channelOptions);
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>, E> T channelOption(ChannelOption<E> channelOption, E value) {
+    public <E> O channelOption(ChannelOption<E> channelOption, E value) {
         this.channelOptions.put(channelOption, value);
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T protocolHandler(ProtocolHandler<MSG> protocolHandler) {
+    public O protocolHandler(ProtocolHandler<MSG> protocolHandler) {
         this.protocolHandler = protocolHandler;
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T transportProtocolTransfer(TransportProtocolTransfer<IN, MSG, OUT> transfer) {
+    public O transportProtocolTransfer(TransportProtocolTransfer<IN, MSG, OUT> transfer) {
         this.transportProtocolTransfer = transfer;
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T compress() {
+    public O compress() {
         this.compression = true;
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T uncompress() {
+    public O uncompress() {
         this.compression = false;
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T globalRateLimit(int globalRateLimit) {
+    public O globalRateLimit(int globalRateLimit) {
         this.globalRateLimit = globalRateLimit;
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T readIdleTime(int readIdleTime) {
+    public O readIdleTime(int readIdleTime) {
         this.readIdleTime = readIdleTime;
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T writeIdleTime(int writeIdleTime) {
+    public O writeIdleTime(int writeIdleTime) {
         this.writeIdleTime = writeIdleTime;
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T readWriteIdleTime(int readWriteIdleTime) {
+    public O readWriteIdleTime(int readWriteIdleTime) {
         this.readWriteIdleTime = readWriteIdleTime;
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T ssl() {
+    public O ssl() {
         this.ssl = true;
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T certFile(String certFilePath) {
+    public O certFile(String certFilePath) {
         this.certFilePath = certFilePath;
-        return (T) this;
+        return (O) this;
     }
 
-    public <T extends AbstractTransportOption<IN, MSG, OUT>> T certKeyFile(String certKeyFilePath) {
+    public O certKeyFile(String certKeyFilePath) {
         this.certKeyFilePath = certKeyFilePath;
-        return (T) this;
+        return (O) this;
     }
 
     //getter

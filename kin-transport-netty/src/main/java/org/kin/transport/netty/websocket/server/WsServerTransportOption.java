@@ -12,7 +12,8 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020/8/27
  */
-public class WsServerTransportOption<MSG, INOUT extends WebSocketFrame> extends AbstractWsTransportOption<MSG, INOUT> {
+public class WsServerTransportOption<MSG, INOUT extends WebSocketFrame>
+        extends AbstractWsTransportOption<MSG, INOUT, WsServerTransportOption<MSG, INOUT>> {
     public final Server ws(InetSocketAddress address) {
         WsServerHandlerInitializer<MSG, INOUT> handlerInitializer = new WsServerHandlerInitializer<>(this);
         Server server = new Server(address);
