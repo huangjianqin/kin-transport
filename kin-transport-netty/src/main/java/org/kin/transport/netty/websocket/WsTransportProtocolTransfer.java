@@ -5,7 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
 import org.kin.transport.netty.socket.SocketTransportProtocolTransfer;
-import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.kin.transport.netty.utils.ChannelUtils;
 
 import java.util.Collection;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * @date 2020/8/31
  */
 public class WsTransportProtocolTransfer
-        extends AbstractTransportProtocolTransfer<BinaryWebSocketFrame, AbstractSocketProtocol, BinaryWebSocketFrame> {
+        extends AbstractTransportProtocolTransfer<BinaryWebSocketFrame, SocketProtocol, BinaryWebSocketFrame> {
     private final SocketTransportProtocolTransfer transfer;
     /** 限流 */
     private final RateLimiter globalRateLimiter;
@@ -35,7 +35,7 @@ public class WsTransportProtocolTransfer
     }
 
     @Override
-    public Collection<AbstractSocketProtocol> decode(ChannelHandlerContext ctx, BinaryWebSocketFrame frame) throws Exception {
+    public Collection<SocketProtocol> decode(ChannelHandlerContext ctx, BinaryWebSocketFrame frame) throws Exception {
         if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
             return Collections.emptyList();
         }
@@ -43,7 +43,7 @@ public class WsTransportProtocolTransfer
     }
 
     @Override
-    public Collection<BinaryWebSocketFrame> encode(ChannelHandlerContext ctx, AbstractSocketProtocol protocol) throws Exception {
+    public Collection<BinaryWebSocketFrame> encode(ChannelHandlerContext ctx, SocketProtocol protocol) throws Exception {
         return transfer.encode(ctx, protocol).stream().map(BinaryWebSocketFrame::new).collect(Collectors.toList());
     }
 
@@ -53,7 +53,7 @@ public class WsTransportProtocolTransfer
     }
 
     @Override
-    public Class<AbstractSocketProtocol> getMsgClass() {
-        return AbstractSocketProtocol.class;
+    public Class<SocketProtocol> getMsgClass() {
+        return SocketProtocol.class;
     }
 }

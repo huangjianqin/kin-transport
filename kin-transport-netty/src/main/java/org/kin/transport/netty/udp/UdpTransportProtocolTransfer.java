@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
 import org.kin.transport.netty.socket.SocketTransportProtocolTransfer;
-import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.kin.transport.netty.utils.ChannelUtils;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public class UdpTransportProtocolTransfer
         if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
             return Collections.emptyList();
         }
-        Collection<AbstractSocketProtocol> protocols = transfer.decode(ctx, datagramPacket.content());
+        Collection<SocketProtocol> protocols = transfer.decode(ctx, datagramPacket.content());
         return protocols.stream().map(UdpProtocolWrapper::new).collect(Collectors.toList());
     }
 

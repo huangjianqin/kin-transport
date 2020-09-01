@@ -5,9 +5,9 @@ import org.kin.transport.netty.Client;
 import org.kin.transport.netty.ProtocolHandler;
 import org.kin.transport.netty.Server;
 import org.kin.transport.netty.Transports;
-import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
 import org.kin.transport.netty.socket.protocol.Protocol1;
 import org.kin.transport.netty.socket.protocol.ProtocolFactory;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -21,18 +21,18 @@ public class SocketTest {
         ProtocolFactory.init("org.kin.transport");
 
         Server server = null;
-        Client<AbstractSocketProtocol> client = null;
+        Client<SocketProtocol> client = null;
         try {
-            server = Transports.socket().server().protocolHandler(new ProtocolHandler<AbstractSocketProtocol>() {
+            server = Transports.socket().server().protocolHandler(new ProtocolHandler<SocketProtocol>() {
                 @Override
-                public void handle(ChannelHandlerContext ctx, AbstractSocketProtocol protocol) {
+                public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                     System.out.println(protocol);
                 }
             }).build(new InetSocketAddress("0.0.0.0", 9000));
 
-            client = Transports.socket().client().protocolHandler(new ProtocolHandler<AbstractSocketProtocol>() {
+            client = Transports.socket().client().protocolHandler(new ProtocolHandler<SocketProtocol>() {
                 @Override
-                public void handle(ChannelHandlerContext ctx, AbstractSocketProtocol protocol) {
+                public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                     System.out.println(protocol);
                 }
             }).build(new InetSocketAddress("0.0.0.0", 9000));

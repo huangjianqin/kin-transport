@@ -26,7 +26,7 @@ import java.util.List;
  * @date 2019/7/4
  */
 public class SocketTransportProtocolTransfer
-        extends AbstractTransportProtocolTransfer<ByteBuf, AbstractSocketProtocol, ByteBuf>
+        extends AbstractTransportProtocolTransfer<ByteBuf, SocketProtocol, ByteBuf>
         implements LoggerOprs {
     /** true = server, false = client */
     private final boolean serverElseClient;
@@ -39,18 +39,18 @@ public class SocketTransportProtocolTransfer
     /**
      * 将ProtocolByteBuf解析为AbstractProtocol
      */
-    private AbstractSocketProtocol parseProtocolByteBuf(SocketByteBufRequest byteBufRequest) {
-        AbstractSocketProtocol protocol = ProtocolFactory.createProtocol(byteBufRequest.getProtocolId());
+    private SocketProtocol parseProtocolByteBuf(SocketRequestOprs byteBufRequest) {
+        SocketProtocol protocol = ProtocolFactory.createProtocol(byteBufRequest.getProtocolId());
         protocol.read(byteBufRequest);
         return protocol;
     }
 
     @Override
-    public Collection<AbstractSocketProtocol> decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
+    public Collection<SocketProtocol> decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
         boolean compression = in.readBoolean();
         in = getRealInByteBuff(in, compression);
-        SocketByteBufRequest byteBufRequest = new ProtocolByteBuf(in);
-        AbstractSocketProtocol protocol = parseProtocolByteBuf(byteBufRequest);
+        SocketRequestOprs byteBufRequest = new SocketProtocolByteBuf(in);
+        SocketProtocol protocol = parseProtocolByteBuf(byteBufRequest);
         if (serverElseClient) {
             //server receive request
             ProtocolStatisicService.instance()
@@ -65,10 +65,10 @@ public class SocketTransportProtocolTransfer
     }
 
     @Override
-    public Collection<ByteBuf> encode(ChannelHandlerContext ctx, AbstractSocketProtocol msg) throws Exception {
+    public Collection<ByteBuf> encode(ChannelHandlerContext ctx, SocketProtocol msg) throws Exception {
         List<ByteBuf> out = new ArrayList<>();
 
-        ProtocolByteBuf protocolByteBuf = (ProtocolByteBuf) msg.write();
+        SocketProtocolByteBuf protocolByteBuf = (SocketProtocolByteBuf) msg.write();
         Tuple<Boolean, byte[]> tuple = getRealOutBytes(protocolByteBuf);
         ByteBuf outByteBuf = ctx.alloc().buffer();
 
@@ -94,8 +94,8 @@ public class SocketTransportProtocolTransfer
     }
 
     @Override
-    public Class<AbstractSocketProtocol> getMsgClass() {
-        return AbstractSocketProtocol.class;
+    public Class<SocketProtocol> getMsgClass() {
+        return SocketProtocol.class;
     }
 
     //----------------------------------------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ public class SocketTransportProtocolTransfer
      * 获取真正发送的bytes
      * 如果需要压缩, 则压缩, 压缩失败则回退到不压缩
      */
-    private Tuple<Boolean, byte[]> getRealOutBytes(ProtocolByteBuf in) {
+    private Tuple<Boolean, byte[]> getRealOutBytes(SocketProtocolByteBuf in) {
         ByteBuf byteBuf = in.getByteBuf();
         byte[] bytes = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(bytes);

@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
  * @author huangjianqin
  * @date 2019/6/4
  */
-public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufResponse, ReferenceCounted {
+public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseOprs, ReferenceCounted {
     /** 读模式 */
     private static final int READ_MODE = 0;
     /** 写模式 */
@@ -30,14 +30,14 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     /** 模式 */
     private final int mode;
 
-    public ProtocolByteBuf(ByteBuf byteBuf) {
+    public SocketProtocolByteBuf(ByteBuf byteBuf) {
         this.byteBuf = byteBuf;
         this.protocolId = byteBuf.readUnsignedShort();
         this.contentSize = byteBuf.readableBytes();
         this.mode = READ_MODE;
     }
 
-    public ProtocolByteBuf(int protocolId) {
+    public SocketProtocolByteBuf(int protocolId) {
         byteBuf = Unpooled.buffer();
         byteBuf.writeShort(protocolId);
         this.protocolId = protocolId;
@@ -198,7 +198,7 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse setProtocolId(int protocolId) {
+    public SocketResponseOprs setProtocolId(int protocolId) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         byteBuf.setShort(0, protocolId);
         return this;
@@ -216,7 +216,7 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse writeByte(int value) {
+    public SocketResponseOprs writeByte(int value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE, "value: %s", value);
         byteBuf.writeByte(value);
@@ -224,7 +224,7 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse writeUnsignedByte(short value) {
+    public SocketResponseOprs writeUnsignedByte(short value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= 0 && value <= Byte.MAX_VALUE - Byte.MIN_VALUE, "value: %s", value);
         byteBuf.writeByte(value);
@@ -232,14 +232,14 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse writeBoolean(boolean value) {
+    public SocketResponseOprs writeBoolean(boolean value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         byteBuf.writeByte(value ? 1 : 0);
         return this;
     }
 
     @Override
-    public SocketByteBufResponse writeBytes(byte[] value) {
+    public SocketResponseOprs writeBytes(byte[] value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value != null);
         byteBuf.writeBytes(value);
@@ -247,7 +247,7 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse writeShort(int value) {
+    public SocketResponseOprs writeShort(int value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= Short.MIN_VALUE && value <= Short.MAX_VALUE, "value: %s", value);
         byteBuf.writeShort(value);
@@ -255,7 +255,7 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse writeUnsignedShort(int value) {
+    public SocketResponseOprs writeUnsignedShort(int value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= 0 && value <= Short.MAX_VALUE - Short.MIN_VALUE, "value: %s", value);
         byteBuf.writeShort(value);
@@ -263,21 +263,21 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse writeInt(int value) {
+    public SocketResponseOprs writeInt(int value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         byteBuf.writeInt(value);
         return this;
     }
 
     @Override
-    public SocketByteBufResponse writeUnsignedInt(long value) {
+    public SocketResponseOprs writeUnsignedInt(long value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         byteBuf.writeInt((int) value);
         return this;
     }
 
     @Override
-    public SocketByteBufResponse writeFloat(float value) {
+    public SocketResponseOprs writeFloat(float value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= Float.MIN_VALUE && value <= Float.MAX_VALUE, "value: %s", value);
         byteBuf.writeFloat(value);
@@ -285,14 +285,14 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse writeLong(long value) {
+    public SocketResponseOprs writeLong(long value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         byteBuf.writeLong(value);
         return this;
     }
 
     @Override
-    public SocketByteBufResponse writeDouble(double value) {
+    public SocketResponseOprs writeDouble(double value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= Double.MIN_VALUE && value <= Double.MAX_VALUE, "value: %s", value);
         byteBuf.writeDouble(value);
@@ -308,28 +308,28 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse writeString(String value) {
+    public SocketResponseOprs writeString(String value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         writeString0(value);
         return this;
     }
 
     @Override
-    public SocketByteBufResponse writeBigString(String value) {
+    public SocketResponseOprs writeBigString(String value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         writeString0(value);
         return this;
     }
 
     @Override
-    public SocketByteBufResponse setBoolean(int index, boolean value) {
+    public SocketResponseOprs setBoolean(int index, boolean value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         byteBuf.setBoolean(index, value);
         return this;
     }
 
     @Override
-    public SocketByteBufResponse setByte(int index, int value) {
+    public SocketResponseOprs setByte(int index, int value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE, "value: %s", value);
         byteBuf.setByte(index, value);
@@ -337,7 +337,7 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse setUnsignedByte(int index, int value) {
+    public SocketResponseOprs setUnsignedByte(int index, int value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= 0 && value <= Byte.MAX_VALUE - Byte.MIN_VALUE, "value: %s", value);
         byteBuf.setByte(index, value);
@@ -345,7 +345,7 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse setShort(int index, int value) {
+    public SocketResponseOprs setShort(int index, int value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= Short.MIN_VALUE && value <= Short.MAX_VALUE, "value: %s", value);
         byteBuf.setShort(index, value);
@@ -353,7 +353,7 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse setUnsignedShort(int index, int value) {
+    public SocketResponseOprs setUnsignedShort(int index, int value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= 0 && value <= Short.MAX_VALUE - Short.MIN_VALUE, "value: %s", value);
         byteBuf.setShort(index, value);
@@ -361,28 +361,28 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse setInt(int index, int value) {
+    public SocketResponseOprs setInt(int index, int value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         byteBuf.setInt(index, value);
         return this;
     }
 
     @Override
-    public SocketByteBufResponse setUnsignedInt(int index, long value) {
+    public SocketResponseOprs setUnsignedInt(int index, long value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         byteBuf.setInt(index, (int) value);
         return this;
     }
 
     @Override
-    public SocketByteBufResponse setLong(int index, long value) {
+    public SocketResponseOprs setLong(int index, long value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         byteBuf.setLong(index, value);
         return this;
     }
 
     @Override
-    public SocketByteBufResponse setFloat(int index, float value) {
+    public SocketResponseOprs setFloat(int index, float value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= Float.MIN_VALUE && value <= Float.MAX_VALUE, "value: %s", value);
         byteBuf.setFloat(index, value);
@@ -390,7 +390,7 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse setDouble(int index, double value) {
+    public SocketResponseOprs setDouble(int index, double value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= Double.MIN_VALUE && value <= Double.MAX_VALUE, "value: %s", value);
         byteBuf.setDouble(index, value);
@@ -398,7 +398,7 @@ public class ProtocolByteBuf implements SocketByteBufRequest, SocketByteBufRespo
     }
 
     @Override
-    public SocketByteBufResponse setBytes(int index, byte[] value) {
+    public SocketResponseOprs setBytes(int index, byte[] value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value != null);
         byteBuf.setBytes(index, value);

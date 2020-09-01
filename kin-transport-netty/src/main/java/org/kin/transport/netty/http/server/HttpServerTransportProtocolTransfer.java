@@ -14,8 +14,8 @@ import org.kin.framework.log.LoggerOprs;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
 import org.kin.transport.netty.http.server.session.HttpSession;
 import org.kin.transport.netty.socket.SocketTransportProtocolTransfer;
-import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
-import org.kin.transport.netty.socket.protocol.SocketByteBufResponse;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
+import org.kin.transport.netty.socket.protocol.SocketResponseOprs;
 import org.kin.transport.netty.utils.ChannelUtils;
 
 import java.util.Collection;
@@ -34,7 +34,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
  * @date 2020/8/31
  */
 public class HttpServerTransportProtocolTransfer
-        extends AbstractTransportProtocolTransfer<FullHttpRequest, AbstractSocketProtocol, FullHttpResponse>
+        extends AbstractTransportProtocolTransfer<FullHttpRequest, SocketProtocol, FullHttpResponse>
         implements LoggerOprs {
     private final SocketTransportProtocolTransfer transfer;
     /** 限流 */
@@ -51,7 +51,7 @@ public class HttpServerTransportProtocolTransfer
     }
 
     @Override
-    public Collection<AbstractSocketProtocol> decode(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
+    public Collection<SocketProtocol> decode(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
         if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
             return Collections.emptyList();
         }
@@ -63,8 +63,8 @@ public class HttpServerTransportProtocolTransfer
     }
 
     @Override
-    public Collection<FullHttpResponse> encode(ChannelHandlerContext ctx, AbstractSocketProtocol protocol) throws Exception {
-        SocketByteBufResponse byteBufResponse = protocol.write();
+    public Collection<FullHttpResponse> encode(ChannelHandlerContext ctx, SocketProtocol protocol) throws Exception {
+        SocketResponseOprs byteBufResponse = protocol.write();
         ByteBuf byteBuf = byteBufResponse.getByteBuf();
 
         Channel channel = ctx.channel();
@@ -106,7 +106,7 @@ public class HttpServerTransportProtocolTransfer
     }
 
     @Override
-    public Class<AbstractSocketProtocol> getMsgClass() {
-        return AbstractSocketProtocol.class;
+    public Class<SocketProtocol> getMsgClass() {
+        return SocketProtocol.class;
     }
 }

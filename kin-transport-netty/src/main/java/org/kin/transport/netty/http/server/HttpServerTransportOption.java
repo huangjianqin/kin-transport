@@ -6,7 +6,7 @@ import org.kin.framework.utils.ClassUtils;
 import org.kin.transport.netty.Server;
 import org.kin.transport.netty.TransportProtocolTransfer;
 import org.kin.transport.netty.http.AbstractHttpTransportOption;
-import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -30,7 +30,7 @@ public class HttpServerTransportOption<MSG>
     public TransportProtocolTransfer<FullHttpRequest, MSG, FullHttpResponse> getTransportProtocolTransfer() {
         if (Objects.isNull(super.getTransportProtocolTransfer())) {
             List<Class<?>> genericTypes = ClassUtils.getSuperClassGenericActualTypes(getClass());
-            if (AbstractSocketProtocol.class.isAssignableFrom(genericTypes.get(1))) {
+            if (SocketProtocol.class.isAssignableFrom(genericTypes.get(1))) {
                 return (TransportProtocolTransfer<FullHttpRequest, MSG, FullHttpResponse>)
                         new HttpServerTransportProtocolTransfer(isCompression(), getGlobalRateLimit());
             }

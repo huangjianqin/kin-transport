@@ -28,8 +28,8 @@ public class ProtocolFactory {
      */
     public static void init(String scanPath) {
         synchronized (ProtocolFactory.class) {
-            Set<Class<? extends AbstractSocketProtocol>> protocolClasses = ClassUtils.getSubClass(scanPath, AbstractSocketProtocol.class, true);
-            for (Class<? extends AbstractSocketProtocol> protocolClass : protocolClasses) {
+            Set<Class<? extends SocketProtocol>> protocolClasses = ClassUtils.getSubClass(scanPath, SocketProtocol.class, true);
+            for (Class<? extends SocketProtocol> protocolClass : protocolClasses) {
                 Protocol protocolAnnotation = protocolClass.getAnnotation(Protocol.class);
                 if (protocolAnnotation != null) {
                     int rate = protocolAnnotation.rate();
@@ -43,11 +43,11 @@ public class ProtocolFactory {
     /**
      * 根据id创建protocol, 并依照field定义顺序设置field value, 从子类开始算
      */
-    public static <T extends AbstractSocketProtocol> T createProtocol(int id, Object... fieldValues) {
+    public static <T extends SocketProtocol> T createProtocol(int id, Object... fieldValues) {
         ProtocolInfo protocolInfo = PROTOCOL_CACHE.getIfPresent(id);
         if (protocolInfo != null) {
-            Class<? extends AbstractSocketProtocol> claxx = protocolInfo.getProtocolClass();
-            AbstractSocketProtocol protocol = ClassUtils.instance(claxx);
+            Class<? extends SocketProtocol> claxx = protocolInfo.getProtocolClass();
+            SocketProtocol protocol = ClassUtils.instance(claxx);
             if (protocol != null) {
                 //设置协议id
                 Field[] fields = ClassUtils.getAllFields(claxx).toArray(new Field[0]);
@@ -88,17 +88,17 @@ public class ProtocolFactory {
     //------------------------------------------------------------------------------------------------------
     private static class ProtocolInfo {
         /** 协议类 */
-        private final Class<? extends AbstractSocketProtocol> protocolClass;
+        private final Class<? extends SocketProtocol> protocolClass;
         /** 协议限流流量 */
         private final int rate;
 
-        public ProtocolInfo(Class<? extends AbstractSocketProtocol> protocolClass, int rate) {
+        public ProtocolInfo(Class<? extends SocketProtocol> protocolClass, int rate) {
             this.protocolClass = protocolClass;
             this.rate = rate;
         }
 
         //getter
-        public Class<? extends AbstractSocketProtocol> getProtocolClass() {
+        public Class<? extends SocketProtocol> getProtocolClass() {
             return protocolClass;
         }
 

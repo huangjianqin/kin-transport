@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
 import org.kin.transport.netty.socket.handler.SocketFrameCodec;
-import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +17,7 @@ import java.util.List;
  * @date 2019-09-12
  */
 public class SocketHandlerInitializer<O extends AbstractSocketTransportOption<O>>
-        extends AbstractChannelHandlerInitializer<ByteBuf, AbstractSocketProtocol, ByteBuf, O> {
+        extends AbstractChannelHandlerInitializer<ByteBuf, SocketProtocol, ByteBuf, O> {
     private final boolean serverElseClient;
 
     public SocketHandlerInitializer(O transportOption, boolean serverElseClient) {

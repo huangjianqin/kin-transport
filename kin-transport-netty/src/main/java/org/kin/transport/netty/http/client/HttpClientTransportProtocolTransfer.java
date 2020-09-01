@@ -7,7 +7,7 @@ import io.netty.handler.codec.http.*;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
 import org.kin.transport.netty.socket.SocketTransportProtocolTransfer;
-import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.kin.transport.netty.utils.ChannelUtils;
 
 import java.net.URI;
@@ -19,7 +19,7 @@ import java.util.Collections;
  * @author huangjianqin
  * @date 2020/8/31
  */
-public class HttpClientTransportProtocolTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, AbstractSocketProtocol, FullHttpRequest>
+public class HttpClientTransportProtocolTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, SocketProtocol, FullHttpRequest>
         implements LoggerOprs {
     private final SocketTransportProtocolTransfer transfer;
     /** 限流 */
@@ -36,7 +36,7 @@ public class HttpClientTransportProtocolTransfer extends AbstractTransportProtoc
     }
 
     @Override
-    public Collection<AbstractSocketProtocol> decode(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
+    public Collection<SocketProtocol> decode(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
         if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
             return Collections.emptyList();
         }
@@ -44,7 +44,7 @@ public class HttpClientTransportProtocolTransfer extends AbstractTransportProtoc
     }
 
     @Override
-    public Collection<FullHttpRequest> encode(ChannelHandlerContext ctx, AbstractSocketProtocol protocol) throws Exception {
+    public Collection<FullHttpRequest> encode(ChannelHandlerContext ctx, SocketProtocol protocol) throws Exception {
         //TODO
         URI url;
         try {
@@ -75,8 +75,8 @@ public class HttpClientTransportProtocolTransfer extends AbstractTransportProtoc
     }
 
     @Override
-    public Class<AbstractSocketProtocol> getMsgClass() {
-        return AbstractSocketProtocol.class;
+    public Class<SocketProtocol> getMsgClass() {
+        return SocketProtocol.class;
     }
 
 }

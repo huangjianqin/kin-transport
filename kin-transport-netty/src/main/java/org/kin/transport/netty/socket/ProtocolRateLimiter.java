@@ -1,8 +1,8 @@
 package org.kin.transport.netty.socket;
 
 import com.google.common.util.concurrent.RateLimiter;
-import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
 import org.kin.transport.netty.socket.protocol.ProtocolFactory;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,8 +23,8 @@ public class ProtocolRateLimiter {
      * 校验是否需要流控
      */
     public static boolean valid(Object protocol) {
-        if (protocol instanceof AbstractSocketProtocol) {
-            int protocolId = ((AbstractSocketProtocol) protocol).getProtocolId();
+        if (protocol instanceof SocketProtocol) {
+            int protocolId = ((SocketProtocol) protocol).getProtocolId();
             long rate = ProtocolFactory.getProtocolRate(protocolId);
             if (rate > 0) {
                 RateLimiter rateLimiter = RATE_LIMITERS.computeIfAbsent(protocolId, k -> RateLimiter.create(rate));

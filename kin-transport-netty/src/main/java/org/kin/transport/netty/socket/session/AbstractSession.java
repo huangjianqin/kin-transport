@@ -3,7 +3,7 @@ package org.kin.transport.netty.socket.session;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import org.kin.framework.utils.NetUtils;
-import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.kin.transport.netty.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +61,7 @@ public abstract class AbstractSession {
     /**
      * write out
      */
-    public void sendProtocol(AbstractSocketProtocol protocol) {
+    public void sendProtocol(SocketProtocol protocol) {
         if (Objects.nonNull(protocol)) {
             write(protocol);
         }
@@ -70,7 +70,7 @@ public abstract class AbstractSession {
     /**
      * write out
      */
-    protected final void write(AbstractSocketProtocol protocol) {
+    protected final void write(SocketProtocol protocol) {
         if (isActive()) {
             if (protocol != null) {
                 if (isFlush) {
@@ -99,7 +99,7 @@ public abstract class AbstractSession {
     /**
      * write out and close session
      */
-    public final void writeAndClose(AbstractSocketProtocol protocol, SessionCloseCause cause, String ip) {
+    public final void writeAndClose(SocketProtocol protocol, SessionCloseCause cause, String ip) {
         if (protocol != null) {
             ChannelFuture writeFuture = channel.writeAndFlush(protocol);
             writeFuture.addListener((ChannelFuture channelFuture) -> close(cause, ip));

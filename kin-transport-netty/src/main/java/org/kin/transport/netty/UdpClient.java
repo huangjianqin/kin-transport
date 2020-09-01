@@ -9,7 +9,7 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.kin.transport.netty.udp.UdpProtocolWrapper;
 
 import javax.net.ssl.SSLException;
@@ -22,7 +22,7 @@ import java.util.concurrent.CountDownLatch;
  * @author huangjianqin
  * @date 2020/8/27
  */
-public class UdpClient extends Client<AbstractSocketProtocol> {
+public class UdpClient extends Client<SocketProtocol> {
     public UdpClient(InetSocketAddress address) {
         super(address);
     }
@@ -92,7 +92,7 @@ public class UdpClient extends Client<AbstractSocketProtocol> {
      * 请求消息
      */
     @Override
-    public void request(AbstractSocketProtocol protocol, ChannelFutureListener... listeners) {
+    public void request(SocketProtocol protocol, ChannelFutureListener... listeners) {
         if (isActive() && Objects.nonNull(protocol)) {
             ChannelFuture channelFuture =
                     channel.writeAndFlush(new UdpProtocolWrapper(protocol, address));

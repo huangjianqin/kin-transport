@@ -7,7 +7,7 @@ import org.kin.transport.netty.TransportProtocolTransfer;
 import org.kin.transport.netty.socket.AbstractSocketTransportOption;
 import org.kin.transport.netty.socket.SocketHandlerInitializer;
 import org.kin.transport.netty.socket.SocketTransportProtocolTransfer;
-import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -19,9 +19,9 @@ import java.util.Objects;
  * @date 2019-09-13
  */
 public class SocketClientTransportOption extends AbstractSocketTransportOption<SocketClientTransportOption> {
-    public Client<AbstractSocketProtocol> build(InetSocketAddress address) {
-        ChannelHandlerInitializer<ByteBuf, AbstractSocketProtocol, ByteBuf> channelHandlerInitializer = new SocketHandlerInitializer<>(this, false);
-        Client<AbstractSocketProtocol> client = new Client<>(address);
+    public Client<SocketProtocol> build(InetSocketAddress address) {
+        ChannelHandlerInitializer<ByteBuf, SocketProtocol, ByteBuf> channelHandlerInitializer = new SocketHandlerInitializer<>(this, false);
+        Client<SocketProtocol> client = new Client<>(address);
         client.connect(this, channelHandlerInitializer);
         return client;
     }
@@ -29,7 +29,7 @@ public class SocketClientTransportOption extends AbstractSocketTransportOption<S
     //------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public TransportProtocolTransfer<ByteBuf, AbstractSocketProtocol, ByteBuf> getTransportProtocolTransfer() {
+    public TransportProtocolTransfer<ByteBuf, SocketProtocol, ByteBuf> getTransportProtocolTransfer() {
         return Objects.nonNull(super.getTransportProtocolTransfer()) ?
                 super.getTransportProtocolTransfer() : new SocketTransportProtocolTransfer(isCompression(), false);
     }
