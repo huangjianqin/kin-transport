@@ -2,6 +2,7 @@ package org.kin.transport.netty;
 
 import org.kin.transport.netty.http.AbstractHttpTransportOption;
 import org.kin.transport.netty.socket.AbstractSocketTransportOption;
+import org.kin.transport.netty.udp.AbstractUdpTransportOption;
 import org.kin.transport.netty.websocket.AbstractWsTransportOption;
 
 /**
@@ -16,6 +17,13 @@ public class Transports {
      */
     public static AbstractSocketTransportOption socket() {
         return AbstractSocketTransportOption.INSTANCE;
+    }
+
+    /**
+     * udp transport 配置
+     */
+    public static AbstractUdpTransportOption datagram() {
+        return AbstractUdpTransportOption.INSTANCE;
     }
 
     /**

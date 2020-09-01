@@ -9,11 +9,12 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
+import org.kin.transport.netty.udp.UdpProtocolWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
-import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
@@ -116,16 +117,17 @@ public class UdpClient extends ClientConnection {
     /**
      * 请求消息
      */
-    public void request(byte[] bytes) {
-        request(bytes);
+    public void request(AbstractSocketProtocol protocol) {
+        request(protocol, new ChannelFutureListener[0]);
     }
 
     /**
      * 请求消息
      */
-    public void request(byte[] bytes, ChannelFutureListener... listeners) {
-        if (isActive() && Objects.nonNull(bytes) && bytes.length > 0) {
-            ChannelFuture channelFuture = channel.writeAndFlush(new DatagramPacket(bytes, bytes.length, address));
+    public void request(AbstractSocketProtocol protocol, ChannelFutureListener... listeners) {
+        if (isActive() && Objects.nonNull(protocol)) {
+            ChannelFuture channelFuture =
+                    channel.writeAndFlush(new UdpProtocolWrapper(protocol, address));
             if (CollectionUtils.isNonEmpty(listeners)) {
                 channelFuture.addListeners(listeners);
             }
