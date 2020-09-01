@@ -2,7 +2,6 @@ package org.kin.transport.netty.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
-import io.netty.util.ReferenceCountUtil;
 import org.kin.transport.netty.TransportProtocolTransfer;
 
 import java.util.List;
@@ -29,10 +28,6 @@ public class TransportProtocolCodec<IN, MSG, OUT> extends MessageToMessageCodec<
 
     @Override
     protected void decode(ChannelHandlerContext ctx, IN in, List<Object> out) throws Exception {
-        try {
-            out.addAll(transfer.decode(ctx, in));
-        } finally {
-            ReferenceCountUtil.release(in);
-        }
+        out.addAll(transfer.decode(ctx, in));
     }
 }

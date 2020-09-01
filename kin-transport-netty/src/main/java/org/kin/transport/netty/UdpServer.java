@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -66,12 +65,12 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
             sslCtx = null;
         }
 
-        bootstrap.handler(new ChannelInitializer<SocketChannel>() {
+        bootstrap.handler(new ChannelInitializer<NioDatagramChannel>() {
             @Override
-            protected void initChannel(SocketChannel socketChannel) {
-                ChannelPipeline pipeline = socketChannel.pipeline();
+            protected void initChannel(NioDatagramChannel datagramChannel) {
+                ChannelPipeline pipeline = datagramChannel.pipeline();
                 if (Objects.nonNull(sslCtx)) {
-                    pipeline.addLast(sslCtx.newHandler(socketChannel.alloc()));
+                    pipeline.addLast(sslCtx.newHandler(datagramChannel.alloc()));
                 }
 
                 for (ChannelHandler channelHandler : channelHandlerInitializer.getChannelHandlers()) {
@@ -81,7 +80,7 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
         });
 
         //绑定
-        ChannelFuture cf = bootstrap.bind(super.address);
+        ChannelFuture cf = bootstrap.bind(address);
         cf.addListener((ChannelFuture channelFuture) -> {
             if (channelFuture.isSuccess()) {
                 log().info("server connection binded: {}", address);

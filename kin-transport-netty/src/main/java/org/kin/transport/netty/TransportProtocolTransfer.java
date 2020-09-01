@@ -13,6 +13,7 @@ import java.util.Collection;
 public interface TransportProtocolTransfer<IN, MSG, OUT> {
     /**
      * 解析传输层数据
+     * 保证IN已被release
      */
     Collection<MSG> decode(ChannelHandlerContext ctx, IN in) throws Exception;
 

@@ -2,10 +2,7 @@ package org.kin.transport.netty.websocket.client.handler;
 
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
-import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
+import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
 import org.kin.framework.log.LoggerOprs;
 
@@ -13,7 +10,7 @@ import org.kin.framework.log.LoggerOprs;
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class WsClientHandler extends SimpleChannelInboundHandler<Object> implements LoggerOprs {
+public class WsClientHandler extends ChannelInboundHandlerAdapter implements LoggerOprs {
     /** ws握手 */
     private final WebSocketClientHandshaker handshaker;
     /** ws握手future */
@@ -34,12 +31,16 @@ public class WsClientHandler extends SimpleChannelInboundHandler<Object> impleme
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        handshaker.handshake(ctx.channel());
+        ChannelFuture channelFuture = handshaker.handshake(ctx.channel());
+        if (!channelFuture.isDone()) {
+            //握手成功前异常
+            handshakeFuture.setFailure(channelFuture.cause());
+        }
         ctx.fireChannelActive();
     }
 
     @Override
-    public void channelRead0(ChannelHandlerContext ctx, Object msg) {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
         Channel ch = ctx.channel();
         if (!handshaker.isHandshakeComplete()) {
             try {
@@ -65,15 +66,27 @@ public class WsClientHandler extends SimpleChannelInboundHandler<Object> impleme
             return;
         }
 
-        if (msg instanceof PongWebSocketFrame) {
-            //TODO
-            log().debug("websocket server received pong");
-        } else if (msg instanceof CloseWebSocketFrame) {
-            log().info("websocket server received closing");
-            ctx.channel().close();
+        if (msg instanceof WebSocketFrame) {
+            if (msg instanceof PongWebSocketFrame) {
+                //TODO
+                log().debug("websocket server received pong");
+            } else if (msg instanceof CloseWebSocketFrame) {
+                log().info("websocket server received closing");
+                ctx.channel().close();
+            } else {
+                //其他类型的的websocket frame
+                ctx.fireChannelRead(msg);
+            }
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        if (!handshakeFuture.isDone()) {
+            //握手成功前异常
+            handshakeFuture.setFailure(cause);
         } else {
-            //其他类型的的websocket frame
-            ctx.fireChannelRead(msg);
+            ctx.fireExceptionCaught(cause);
         }
     }
 }

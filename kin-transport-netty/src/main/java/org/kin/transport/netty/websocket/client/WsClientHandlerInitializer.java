@@ -1,8 +1,8 @@
 package org.kin.transport.netty.websocket.client;
 
 import io.netty.channel.ChannelHandler;
+import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
@@ -30,7 +30,7 @@ public class WsClientHandlerInitializer<MSG, INOUT extends WebSocketFrame>
     protected Collection<ChannelHandler> firstHandlers() {
         List<ChannelHandler> channelHandlers = new ArrayList<>(super.firstHandlers());
 
-        channelHandlers.add(new HttpServerCodec());
+        channelHandlers.add(new HttpClientCodec());
         channelHandlers.add(new HttpObjectAggregator(65536));
         if (transportOption.isCompression()) {
             channelHandlers.add(WebSocketClientCompressionHandler.INSTANCE);

@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -57,12 +56,12 @@ public class UdpClient extends Client<SocketProtocol> {
             sslCtx = null;
         }
 
-        bootstrap.handler(new ChannelInitializer<SocketChannel>() {
+        bootstrap.handler(new ChannelInitializer<NioDatagramChannel>() {
             @Override
-            protected void initChannel(SocketChannel socketChannel) {
-                ChannelPipeline pipeline = socketChannel.pipeline();
+            protected void initChannel(NioDatagramChannel datagramChannel) {
+                ChannelPipeline pipeline = datagramChannel.pipeline();
                 if (Objects.nonNull(sslCtx)) {
-                    pipeline.addLast(sslCtx.newHandler(socketChannel.alloc(), address.getHostString(), address.getPort()));
+                    pipeline.addLast(sslCtx.newHandler(datagramChannel.alloc(), address.getHostString(), address.getPort()));
                 }
 
                 for (ChannelHandler channelHandler : channelHandlerInitializer.getChannelHandlers()) {
@@ -95,7 +94,7 @@ public class UdpClient extends Client<SocketProtocol> {
     public void request(SocketProtocol protocol, ChannelFutureListener... listeners) {
         if (isActive() && Objects.nonNull(protocol)) {
             ChannelFuture channelFuture =
-                    channel.writeAndFlush(new UdpProtocolWrapper(protocol, address));
+                    channel.writeAndFlush(UdpProtocolWrapper.senderWrapper(protocol, address));
             if (CollectionUtils.isNonEmpty(listeners)) {
                 channelFuture.addListeners(listeners);
             }

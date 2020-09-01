@@ -37,7 +37,7 @@ public class ChannelProtocolHandler<MSG> extends ChannelInboundHandlerAdapter {
         protocols.add((MSG) msg);
 
         for (MSG protocol : protocols) {
-            log.debug("Recv {} {}", protocol, ChannelUtils.getRemoteIp(ctx.channel()));
+            log.debug("Recv {} {}", protocol, ctx.channel().remoteAddress());
 
             //流控
             if (ProtocolRateLimiter.valid(protocol)) {
@@ -51,7 +51,7 @@ public class ChannelProtocolHandler<MSG> extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
-        log.info("channel active: {}", ChannelUtils.getRemoteIp(channel));
+        log.info("channel active: {}", channel.remoteAddress());
         protocolHandler.channelActive(ctx);
 
         ctx.fireChannelActive();
@@ -60,7 +60,7 @@ public class ChannelProtocolHandler<MSG> extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
-        log.info("channel inactive: {}", ChannelUtils.getRemoteIp(channel));
+        log.info("channel inactive: {}", channel.remoteAddress());
         protocolHandler.channelInactive(ctx);
 
         ctx.fireChannelInactive();
@@ -68,8 +68,7 @@ public class ChannelProtocolHandler<MSG> extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        Channel channel = ctx.channel();
-        log.error("server('{}') throw exception:{}", ChannelUtils.getRemoteIp(channel), cause);
+        log.error("encounter exception:", cause);
         protocolHandler.handleException(ctx, cause);
 
         ctx.fireExceptionCaught(cause);

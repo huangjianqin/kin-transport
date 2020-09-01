@@ -132,7 +132,6 @@ public class SocketFrameCodec extends ByteToMessageCodec<ByteBuf> {
 
             ByteBuf frameBuf = ctx.alloc().buffer(bodySize);
             frameBuf.writeBytes(in, bodySize);
-            ReferenceCountUtil.retain(frameBuf);
             out.add(frameBuf);
         } catch (Exception e) {
             log.warn("", e);

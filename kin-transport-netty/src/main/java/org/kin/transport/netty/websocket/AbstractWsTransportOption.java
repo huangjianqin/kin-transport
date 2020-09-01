@@ -1,13 +1,8 @@
 package org.kin.transport.netty.websocket;
 
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
-import org.kin.framework.utils.ClassUtils;
 import org.kin.transport.netty.AbstractTransportOption;
 import org.kin.transport.netty.TransportProtocolTransfer;
-import org.kin.transport.netty.socket.protocol.SocketProtocol;
-
-import java.util.List;
 
 /**
  * @author huangjianqin
@@ -23,18 +18,12 @@ public abstract class AbstractWsTransportOption<MSG, INOUT extends WebSocketFram
 
     //----------------------------------------------------------------------------------------------------------------
     protected TransportProtocolTransfer<INOUT, MSG, INOUT> getDefaultTransportProtocolTransfer(boolean serverOrClient) {
-        //默认 TransportProtocolTransfer
-        List<Class<?>> genericTypes = ClassUtils.getSuperClassGenericActualTypes(getClass());
-        if (SocketProtocol.class.isAssignableFrom(genericTypes.get(1)) && BinaryWebSocketFrame.class.equals(genericTypes.get(0))) {
-            /*
-             * MSG 实现了 {@link AbstractSocketProtocol}
-             * INOUT 是 {@link BinaryWebSocketFrame}
-             */
-            return (TransportProtocolTransfer<INOUT, MSG, INOUT>)
-                    new WsTransportProtocolTransfer(isCompression(), serverOrClient, getGlobalRateLimit());
-        }
-
-        return null;
+        /*
+         * MSG 实现了 {@link AbstractSocketProtocol}
+         * INOUT 是 {@link BinaryWebSocketFrame}
+         */
+        return (TransportProtocolTransfer<INOUT, MSG, INOUT>)
+                new WsTransportProtocolTransfer(isCompression(), serverOrClient, getGlobalRateLimit());
     }
 
     //----------------------------------------------------------------------------------------------------------------

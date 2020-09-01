@@ -12,23 +12,37 @@ import java.net.InetSocketAddress;
  * @date 2020/9/1
  */
 public class UdpProtocolWrapper {
+    /** 封装的协议 */
     private SocketProtocol protocol;
+    /** 目标地址 */
     private InetSocketAddress targetAddress;
+    /** 发送地址 */
+    private InetSocketAddress senderAddress;
 
-    public UdpProtocolWrapper(SocketProtocol protocol) {
-        this.protocol = protocol;
+    public static UdpProtocolWrapper receiverWrapper(SocketProtocol protocol, InetSocketAddress senderAddress) {
+        UdpProtocolWrapper wrapper = new UdpProtocolWrapper();
+        wrapper.protocol = protocol;
+        wrapper.senderAddress = senderAddress;
+        return wrapper;
     }
 
-    public UdpProtocolWrapper(SocketProtocol protocol, InetSocketAddress targetAddress) {
-        this.protocol = protocol;
-        this.targetAddress = targetAddress;
+    public static UdpProtocolWrapper senderWrapper(SocketProtocol protocol, InetSocketAddress targetAddress) {
+        UdpProtocolWrapper wrapper = new UdpProtocolWrapper();
+        wrapper.protocol = protocol;
+        wrapper.targetAddress = targetAddress;
+        return wrapper;
     }
 
+    //---------------------------------------------------------------------------------------------------------
     public SocketProtocol getProtocol() {
         return protocol;
     }
 
     public InetSocketAddress getTargetAddress() {
         return targetAddress;
+    }
+
+    public InetSocketAddress getSenderAddress() {
+        return senderAddress;
     }
 }

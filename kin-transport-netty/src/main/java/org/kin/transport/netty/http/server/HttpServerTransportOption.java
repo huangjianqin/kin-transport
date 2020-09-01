@@ -2,14 +2,11 @@ package org.kin.transport.netty.http.server;
 
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import org.kin.framework.utils.ClassUtils;
 import org.kin.transport.netty.Server;
 import org.kin.transport.netty.TransportProtocolTransfer;
 import org.kin.transport.netty.http.AbstractHttpTransportOption;
-import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 import java.net.InetSocketAddress;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -29,11 +26,8 @@ public class HttpServerTransportOption<MSG>
     @Override
     public TransportProtocolTransfer<FullHttpRequest, MSG, FullHttpResponse> getTransportProtocolTransfer() {
         if (Objects.isNull(super.getTransportProtocolTransfer())) {
-            List<Class<?>> genericTypes = ClassUtils.getSuperClassGenericActualTypes(getClass());
-            if (SocketProtocol.class.isAssignableFrom(genericTypes.get(1))) {
-                return (TransportProtocolTransfer<FullHttpRequest, MSG, FullHttpResponse>)
-                        new HttpServerTransportProtocolTransfer(isCompression(), getGlobalRateLimit());
-            }
+            return (TransportProtocolTransfer<FullHttpRequest, MSG, FullHttpResponse>)
+                    new HttpServerTransportProtocolTransfer(isCompression(), getGlobalRateLimit());
         }
 
         return super.getTransportProtocolTransfer();

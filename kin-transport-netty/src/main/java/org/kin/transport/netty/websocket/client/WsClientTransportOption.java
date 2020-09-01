@@ -1,6 +1,7 @@
 package org.kin.transport.netty.websocket.client;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
@@ -8,6 +9,7 @@ import org.kin.framework.utils.NetUtils;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.TransportProtocolTransfer;
 import org.kin.transport.netty.websocket.AbstractWsTransportOption;
+import org.kin.transport.netty.websocket.WsConstants;
 import org.kin.transport.netty.websocket.client.handler.WsClientHandler;
 
 import java.net.InetSocketAddress;
@@ -22,8 +24,8 @@ import java.util.Objects;
 public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
         extends AbstractWsTransportOption<MSG, INOUT, WsClientTransportOption<MSG, INOUT>> {
     public final Client<MSG> build(InetSocketAddress address) {
-        String prefix = isSsl() ? "wss" : "ws";
-        return build(prefix.concat(address.toString()).concat(getHandshakeUrl()));
+        String prefix = isSsl() ? WsConstants.SSL_WS_PREFIX : WsConstants.WS_PREFIX;
+        return build(prefix.concat(":/").concat(address.toString()).concat(getHandshakeUrl()));
     }
 
     public final Client<MSG> build(String url) {
@@ -33,13 +35,13 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(String.format("invalid url '%s'", url), e);
         }
-        String scheme = uri.getScheme() == null ? "ws" : uri.getScheme();
+        String scheme = uri.getScheme() == null ? WsConstants.WS_PREFIX : uri.getScheme();
         String host = uri.getHost() == null ? NetUtils.getLocalAddress().toString() : uri.getHost();
         int port;
         if (uri.getPort() == -1) {
-            if ("ws".equalsIgnoreCase(scheme)) {
+            if (WsConstants.WS_PREFIX.equalsIgnoreCase(scheme)) {
                 port = 80;
-            } else if ("wss".equalsIgnoreCase(scheme)) {
+            } else if (WsConstants.SSL_WS_PREFIX.equalsIgnoreCase(scheme)) {
                 port = 443;
             } else {
                 port = -1;
@@ -49,29 +51,35 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
             port = uri.getPort();
         }
 
-        if (!"ws".equalsIgnoreCase(scheme) && !"wss".equalsIgnoreCase(scheme)) {
+        if (!WsConstants.WS_PREFIX.equalsIgnoreCase(scheme) && !WsConstants.SSL_WS_PREFIX.equalsIgnoreCase(scheme)) {
             throw new IllegalArgumentException(String.format("Only ws(s) is supported. now is '%s'", scheme));
         }
 
-        boolean ssl = "wss".equalsIgnoreCase(scheme);
+        boolean ssl = WsConstants.SSL_WS_PREFIX.equalsIgnoreCase(scheme);
         if (ssl && !isSsl()) {
             throw new IllegalArgumentException("transport config not open ssl");
         }
 
+        //进行握手
+        WebSocketClientHandshaker handshaker = WebSocketClientHandshakerFactory.newHandshaker(
+                uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders());
+
         //websocker frame处理
-        WsClientHandler wsClientHandler =
-                new WsClientHandler(
-                        WebSocketClientHandshakerFactory.newHandshaker(
-                                uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders()));
+        WsClientHandler wsClientHandler = new WsClientHandler(handshaker);
 
         WsClientHandlerInitializer<MSG, INOUT> handlerInitializer = new WsClientHandlerInitializer<>(this, wsClientHandler);
         Client<MSG> client = new Client<>(new InetSocketAddress(host, port));
         client.connect(this, handlerInitializer);
 
         try {
+            //阻塞等待是否握手成功
             wsClientHandler.handshakeFuture().sync();
         } catch (InterruptedException e) {
 
+        }
+
+        if (!wsClientHandler.handshakeFuture().isDone()) {
+            throw new RuntimeException(wsClientHandler.handshakeFuture().cause());
         }
 
         return client;

@@ -1,7 +1,11 @@
 package org.kin.transport.netty.udp;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.socket.DatagramPacket;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author huangjianqin
@@ -11,5 +15,10 @@ public class UdpChannelHandlerInitializer<O extends AbstractUdpTransportOption<O
         extends AbstractChannelHandlerInitializer<DatagramPacket, UdpProtocolWrapper, DatagramPacket, O> {
     public UdpChannelHandlerInitializer(O transportOption) {
         super(transportOption);
+    }
+
+    @Override
+    protected Collection<ChannelHandler> firstHandlers() {
+        return Collections.emptyList();
     }
 }

@@ -2,8 +2,8 @@ package org.kin.transport.netty.udp.server;
 
 import io.netty.channel.socket.DatagramPacket;
 import org.kin.transport.netty.ChannelHandlerInitializer;
-import org.kin.transport.netty.Server;
 import org.kin.transport.netty.TransportProtocolTransfer;
+import org.kin.transport.netty.UdpServer;
 import org.kin.transport.netty.udp.AbstractUdpTransportOption;
 import org.kin.transport.netty.udp.UdpChannelHandlerInitializer;
 import org.kin.transport.netty.udp.UdpProtocolWrapper;
@@ -17,10 +17,10 @@ import java.util.Objects;
  * @date 2020/9/1
  */
 public class UdpServerTransportOption extends AbstractUdpTransportOption<UdpServerTransportOption> {
-    public Server build(InetSocketAddress address) {
+    public UdpServer build(InetSocketAddress address) {
         ChannelHandlerInitializer<DatagramPacket, UdpProtocolWrapper, DatagramPacket>
                 channelHandlerInitializer = new UdpChannelHandlerInitializer<>(this);
-        Server server = new Server(address);
+        UdpServer server = new UdpServer(address);
         server.bind(this, channelHandlerInitializer);
         return server;
     }

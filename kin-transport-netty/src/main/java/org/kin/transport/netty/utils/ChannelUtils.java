@@ -53,9 +53,9 @@ public class ChannelUtils {
         if (Objects.nonNull(globalRateLimiter) && !globalRateLimiter.tryAcquire()) {
             //全局流控
             ctx.fireUserEventTriggered(new GlobalRatelimitEvent());
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 }

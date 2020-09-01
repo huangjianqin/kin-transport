@@ -41,7 +41,9 @@ public class UdpTransportProtocolTransfer
             return Collections.emptyList();
         }
         Collection<SocketProtocol> protocols = transfer.decode(ctx, datagramPacket.content());
-        return protocols.stream().map(UdpProtocolWrapper::new).collect(Collectors.toList());
+        return protocols.stream()
+                .map(sp -> UdpProtocolWrapper.receiverWrapper(sp, datagramPacket.sender()))
+                .collect(Collectors.toList());
     }
 
     @Override
