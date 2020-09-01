@@ -2,9 +2,9 @@ package org.kin.transport.netty.websocket;
 
 import io.netty.channel.ChannelHandlerContext;
 import org.kin.transport.netty.Client;
-import org.kin.transport.netty.ProtocolHandler;
 import org.kin.transport.netty.Server;
 import org.kin.transport.netty.Transports;
+import org.kin.transport.netty.socket.SocketProtocolHandler;
 import org.kin.transport.netty.socket.protocol.Protocol1;
 import org.kin.transport.netty.socket.protocol.ProtocolFactory;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
@@ -27,7 +27,7 @@ public class WebsocketTest {
             server = Transports
                     .websocket()
                     .binaryServer(SocketProtocol.class)
-                    .protocolHandler(new ProtocolHandler<SocketProtocol>() {
+                    .protocolHandler(new SocketProtocolHandler() {
                         @Override
                         public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                             System.out.println(protocol);
@@ -38,7 +38,7 @@ public class WebsocketTest {
             client = Transports
                     .websocket()
                     .binaryClient(SocketProtocol.class)
-                    .protocolHandler(new ProtocolHandler<SocketProtocol>() {
+                    .protocolHandler(new SocketProtocolHandler() {
                         @Override
                         public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                             System.out.println(protocol);

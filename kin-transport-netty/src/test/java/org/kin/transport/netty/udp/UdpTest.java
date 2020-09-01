@@ -1,7 +1,6 @@
 package org.kin.transport.netty.udp;
 
 import io.netty.channel.ChannelHandlerContext;
-import org.kin.transport.netty.ProtocolHandler;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.UdpClient;
 import org.kin.transport.netty.UdpServer;
@@ -23,7 +22,7 @@ public class UdpTest {
         UdpClient client = null;
         try {
             InetSocketAddress address = new InetSocketAddress("127.0.0.1", 9000);
-            server = Transports.datagram().server().protocolHandler(new ProtocolHandler<UdpProtocolWrapper>() {
+            server = Transports.datagram().server().protocolHandler(new UdpProtocolHandler() {
                 @Override
                 public void handle(ChannelHandlerContext ctx, UdpProtocolWrapper protocol) {
                     System.out.println(protocol.getProtocol());
@@ -31,7 +30,7 @@ public class UdpTest {
                 }
             }).build(address);
 
-            client = Transports.datagram().client().protocolHandler(new ProtocolHandler<UdpProtocolWrapper>() {
+            client = Transports.datagram().client().protocolHandler(new UdpProtocolHandler() {
                 @Override
                 public void handle(ChannelHandlerContext ctx, UdpProtocolWrapper protocol) {
                     System.out.println(protocol.getProtocol());

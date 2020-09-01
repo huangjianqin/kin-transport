@@ -2,7 +2,6 @@ package org.kin.transport.netty.socket;
 
 import io.netty.channel.ChannelHandlerContext;
 import org.kin.transport.netty.Client;
-import org.kin.transport.netty.ProtocolHandler;
 import org.kin.transport.netty.Server;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.socket.protocol.Protocol1;
@@ -24,7 +23,7 @@ public class SocketTest {
         Client<SocketProtocol> client = null;
         try {
             InetSocketAddress address = new InetSocketAddress("0.0.0.0", 9000);
-            server = Transports.socket().server().protocolHandler(new ProtocolHandler<SocketProtocol>() {
+            server = Transports.socket().server().protocolHandler(new SocketProtocolHandler() {
                 @Override
                 public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                     System.out.println(protocol);
@@ -32,7 +31,7 @@ public class SocketTest {
                 }
             }).build(address);
 
-            client = Transports.socket().client().protocolHandler(new ProtocolHandler<SocketProtocol>() {
+            client = Transports.socket().client().protocolHandler(new SocketProtocolHandler() {
                 @Override
                 public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                     System.out.println(protocol);

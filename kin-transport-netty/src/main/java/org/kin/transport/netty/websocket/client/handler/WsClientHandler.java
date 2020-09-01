@@ -3,6 +3,8 @@ package org.kin.transport.netty.websocket.client.handler;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.*;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.CharsetUtil;
 import org.kin.framework.log.LoggerOprs;
 
@@ -68,10 +70,9 @@ public class WsClientHandler extends ChannelInboundHandlerAdapter implements Log
 
         if (msg instanceof WebSocketFrame) {
             if (msg instanceof PongWebSocketFrame) {
-                //TODO
-                log().debug("websocket server received pong");
+                log().debug("websocket client received pong");
             } else if (msg instanceof CloseWebSocketFrame) {
-                log().info("websocket server received closing");
+                log().info("websocket client received closing");
                 ctx.channel().close();
             } else {
                 //其他类型的的websocket frame
@@ -88,5 +89,17 @@ public class WsClientHandler extends ChannelInboundHandlerAdapter implements Log
         } else {
             ctx.fireExceptionCaught(cause);
         }
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof IdleStateEvent) {
+            IdleStateEvent event = (IdleStateEvent) evt;
+            if (event.state() == IdleState.READER_IDLE) {
+                //读空闲, 太久没有收到server的消息, ping一下
+                ctx.writeAndFlush(new PingWebSocketFrame());
+            }
+        }
+        ctx.fireUserEventTriggered(evt);
     }
 }
