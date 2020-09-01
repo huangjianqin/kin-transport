@@ -1,12 +1,15 @@
 package org.kin.transport.netty.websocket;
 
+import com.google.common.util.concurrent.RateLimiter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
 import org.kin.transport.netty.socket.SocketTransportProtocolTransfer;
 import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
+import org.kin.transport.netty.utils.ChannelUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
@@ -18,14 +21,24 @@ import java.util.stream.Collectors;
 public class WsTransportProtocolTransfer
         extends AbstractTransportProtocolTransfer<BinaryWebSocketFrame, AbstractSocketProtocol, BinaryWebSocketFrame> {
     private final SocketTransportProtocolTransfer transfer;
+    /** 限流 */
+    private final RateLimiter globalRateLimiter;
 
-    public WsTransportProtocolTransfer(boolean compression, boolean serverElseClient) {
+    public WsTransportProtocolTransfer(boolean compression, boolean serverElseClient, int globalRateLimit) {
         super(compression);
         this.transfer = new SocketTransportProtocolTransfer(compression, serverElseClient);
+        if (globalRateLimit > 0) {
+            globalRateLimiter = RateLimiter.create(globalRateLimit);
+        } else {
+            globalRateLimiter = null;
+        }
     }
 
     @Override
     public Collection<AbstractSocketProtocol> decode(ChannelHandlerContext ctx, BinaryWebSocketFrame frame) throws Exception {
+        if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
+            return Collections.emptyList();
+        }
         return transfer.decode(ctx, frame.content());
     }
 

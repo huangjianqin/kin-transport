@@ -7,13 +7,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 import io.netty.handler.codec.CorruptedFrameException;
 import io.netty.util.ReferenceCountUtil;
-import org.kin.transport.netty.userevent.GlobalRatelimitEvent;
+import org.kin.transport.netty.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 主要是校验协议头
@@ -86,9 +85,7 @@ public class SocketFrameCodec extends ByteToMessageCodec<ByteBuf> {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
         try {
-            if (Objects.nonNull(globalRateLimiter) && !globalRateLimiter.tryAcquire()) {
-                //全局流控
-                ctx.fireUserEventTriggered(GlobalRatelimitEvent.INSTANCE);
+            if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
                 return;
             }
             //解决拆包问题

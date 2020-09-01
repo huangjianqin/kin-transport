@@ -29,6 +29,7 @@ public class UdpServerTransportOption extends AbstractUdpTransportOption<UdpServ
     @Override
     public TransportProtocolTransfer<DatagramPacket, UdpProtocolWrapper, DatagramPacket> getTransportProtocolTransfer() {
         return Objects.nonNull(super.getTransportProtocolTransfer()) ?
-                super.getTransportProtocolTransfer() : new UdpTransportProtocolTransfer(isCompression(), true);
+                super.getTransportProtocolTransfer() :
+                new UdpTransportProtocolTransfer(isCompression(), true, getGlobalRateLimit());
     }
 }

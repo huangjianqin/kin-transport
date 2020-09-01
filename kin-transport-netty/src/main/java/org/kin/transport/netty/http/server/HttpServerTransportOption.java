@@ -31,7 +31,8 @@ public class HttpServerTransportOption<MSG>
         if (Objects.isNull(super.getTransportProtocolTransfer())) {
             List<Class<?>> genericTypes = ClassUtils.getSuperClassGenericActualTypes(getClass());
             if (AbstractSocketProtocol.class.isAssignableFrom(genericTypes.get(1))) {
-                return (TransportProtocolTransfer<FullHttpRequest, MSG, FullHttpResponse>) new HttpServerTransportProtocolTransfer(isCompression());
+                return (TransportProtocolTransfer<FullHttpRequest, MSG, FullHttpResponse>)
+                        new HttpServerTransportProtocolTransfer(isCompression(), getGlobalRateLimit());
             }
         }
 

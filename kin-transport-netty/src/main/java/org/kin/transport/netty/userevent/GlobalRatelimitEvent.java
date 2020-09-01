@@ -7,8 +7,13 @@ package org.kin.transport.netty.userevent;
  * @date 2020-03-19
  */
 public class GlobalRatelimitEvent {
-    public static final GlobalRatelimitEvent INSTANCE = new GlobalRatelimitEvent();
+    private final long time;
 
-    private GlobalRatelimitEvent() {
+    public GlobalRatelimitEvent() {
+        time = System.currentTimeMillis();
+    }
+
+    public long getTime() {
+        return time;
     }
 }

@@ -53,7 +53,8 @@ public abstract class AbstractWsTransportOption<MSG, INOUT extends WebSocketFram
              * MSG 实现了 {@link AbstractSocketProtocol}
              * INOUT 是 {@link BinaryWebSocketFrame}
              */
-            return (TransportProtocolTransfer<INOUT, MSG, INOUT>) new WsTransportProtocolTransfer(isCompression(), serverOrClient);
+            return (TransportProtocolTransfer<INOUT, MSG, INOUT>)
+                    new WsTransportProtocolTransfer(isCompression(), serverOrClient, getGlobalRateLimit());
         }
 
         return null;

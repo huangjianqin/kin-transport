@@ -1,5 +1,6 @@
 package org.kin.transport.netty.http.client;
 
+import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
@@ -7,6 +8,7 @@ import org.kin.framework.log.LoggerOprs;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
 import org.kin.transport.netty.socket.SocketTransportProtocolTransfer;
 import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
+import org.kin.transport.netty.utils.ChannelUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -20,14 +22,24 @@ import java.util.Collections;
 public class HttpClientTransportProtocolTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, AbstractSocketProtocol, FullHttpRequest>
         implements LoggerOprs {
     private final SocketTransportProtocolTransfer transfer;
+    /** 限流 */
+    private final RateLimiter globalRateLimiter;
 
-    public HttpClientTransportProtocolTransfer(boolean compression) {
+    public HttpClientTransportProtocolTransfer(boolean compression, int globalRateLimit) {
         super(compression);
         this.transfer = new SocketTransportProtocolTransfer(compression, false);
+        if (globalRateLimit > 0) {
+            globalRateLimiter = RateLimiter.create(globalRateLimit);
+        } else {
+            globalRateLimiter = null;
+        }
     }
 
     @Override
     public Collection<AbstractSocketProtocol> decode(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
+        if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
+            return Collections.emptyList();
+        }
         return transfer.decode(ctx, response.content());
     }
 

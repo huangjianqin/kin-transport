@@ -25,7 +25,9 @@ import java.util.List;
  * @author huangjianqin
  * @date 2019/7/4
  */
-public class SocketTransportProtocolTransfer extends AbstractTransportProtocolTransfer<ByteBuf, AbstractSocketProtocol, ByteBuf> implements LoggerOprs {
+public class SocketTransportProtocolTransfer
+        extends AbstractTransportProtocolTransfer<ByteBuf, AbstractSocketProtocol, ByteBuf>
+        implements LoggerOprs {
     /** true = server, false = client */
     private final boolean serverElseClient;
 
