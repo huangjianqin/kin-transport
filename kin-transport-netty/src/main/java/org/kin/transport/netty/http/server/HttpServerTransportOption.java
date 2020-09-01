@@ -18,7 +18,7 @@ import java.util.Objects;
  */
 public class HttpServerTransportOption<MSG>
         extends AbstractHttpTransportOption<FullHttpRequest, MSG, FullHttpResponse, HttpServerTransportOption<MSG>> {
-    public final Server http(InetSocketAddress address) {
+    public final Server build(InetSocketAddress address) {
         HttpServerHandlerInitializer<MSG> httpServerHandlerInitializer = new HttpServerHandlerInitializer<>(this);
         Server server = new Server(address);
         server.bind(this, httpServerHandlerInitializer);

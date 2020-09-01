@@ -1,9 +1,9 @@
 package org.kin.transport.netty;
 
-import org.kin.transport.netty.http.AbstractHttpTransportOption;
-import org.kin.transport.netty.socket.AbstractSocketTransportOption;
-import org.kin.transport.netty.udp.AbstractUdpTransportOption;
-import org.kin.transport.netty.websocket.AbstractWsTransportOption;
+import org.kin.transport.netty.http.HttpTransports;
+import org.kin.transport.netty.socket.SocketTransports;
+import org.kin.transport.netty.udp.UdpTransports;
+import org.kin.transport.netty.websocket.WebsocketTransports;
 
 /**
  * net transport
@@ -15,28 +15,29 @@ public class Transports {
     /**
      * socket transport 配置
      */
-    public static AbstractSocketTransportOption socket() {
-        return AbstractSocketTransportOption.INSTANCE;
+    public static SocketTransports socket() {
+        return SocketTransports.INSTANCE;
     }
 
     /**
      * udp transport 配置
      */
-    public static AbstractUdpTransportOption datagram() {
-        return AbstractUdpTransportOption.INSTANCE;
+    public static UdpTransports datagram() {
+        return UdpTransports.INSTANCE;
     }
 
     /**
      * websocket transport 配置
      */
-    public static AbstractWsTransportOption websocket() {
-        return AbstractWsTransportOption.INSTANCE;
+    public static WebsocketTransports websocket() {
+        return WebsocketTransports.INSTANCE;
     }
 
     /**
      * http transport 配置
      */
-    public static AbstractHttpTransportOption http() {
-        return AbstractHttpTransportOption.INSTANCE;
+    public static HttpTransports http() {
+        return HttpTransports.INSTANCE;
     }
+
 }

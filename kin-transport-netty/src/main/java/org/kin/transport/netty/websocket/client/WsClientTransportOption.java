@@ -21,12 +21,12 @@ import java.util.Objects;
  */
 public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
         extends AbstractWsTransportOption<MSG, INOUT, WsClientTransportOption<MSG, INOUT>> {
-    public final Client<MSG> ws(InetSocketAddress address) {
+    public final Client<MSG> build(InetSocketAddress address) {
         String prefix = isSsl() ? "wss" : "ws";
-        return ws(prefix.concat(address.toString()).concat(getHandshakeUrl()));
+        return build(prefix.concat(address.toString()).concat(getHandshakeUrl()));
     }
 
-    public final Client<MSG> ws(String url) {
+    public final Client<MSG> build(String url) {
         URI uri;
         try {
             uri = new URI(url);

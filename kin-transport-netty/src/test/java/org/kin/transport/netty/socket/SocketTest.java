@@ -28,14 +28,14 @@ public class SocketTest {
                 public void handle(ChannelHandlerContext ctx, AbstractSocketProtocol protocol) {
                     System.out.println(protocol);
                 }
-            }).tcp(new InetSocketAddress("0.0.0.0", 9000));
+            }).build(new InetSocketAddress("0.0.0.0", 9000));
 
             client = Transports.socket().client().protocolHandler(new ProtocolHandler<AbstractSocketProtocol>() {
                 @Override
                 public void handle(ChannelHandlerContext ctx, AbstractSocketProtocol protocol) {
                     System.out.println(protocol);
                 }
-            }).tcp(new InetSocketAddress("0.0.0.0", 9000));
+            }).build(new InetSocketAddress("0.0.0.0", 9000));
             client.request(Protocol1.of(1));
 
             Thread.sleep(5000);

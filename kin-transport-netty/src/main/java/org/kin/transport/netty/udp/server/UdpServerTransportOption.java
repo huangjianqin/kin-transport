@@ -17,7 +17,7 @@ import java.util.Objects;
  * @date 2020/9/1
  */
 public class UdpServerTransportOption extends AbstractUdpTransportOption<UdpServerTransportOption> {
-    public Server udp(InetSocketAddress address) {
+    public Server build(InetSocketAddress address) {
         ChannelHandlerInitializer<DatagramPacket, UdpProtocolWrapper, DatagramPacket>
                 channelHandlerInitializer = new UdpChannelHandlerInitializer<>(this);
         Server server = new Server(address);
