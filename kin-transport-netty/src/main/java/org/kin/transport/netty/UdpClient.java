@@ -11,8 +11,6 @@ import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.transport.netty.socket.protocol.AbstractSocketProtocol;
 import org.kin.transport.netty.udp.UdpProtocolWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;
@@ -24,13 +22,7 @@ import java.util.concurrent.CountDownLatch;
  * @author huangjianqin
  * @date 2020/8/27
  */
-public class UdpClient extends ClientConnection {
-    protected static final Logger log = LoggerFactory.getLogger(Client.class);
-
-    protected EventLoopGroup group;
-    protected volatile Channel channel;
-    protected volatile boolean isStopped;
-
+public class UdpClient extends Client<AbstractSocketProtocol> {
     public UdpClient(InetSocketAddress address) {
         super(address);
     }
@@ -96,34 +88,10 @@ public class UdpClient extends ClientConnection {
         }
     }
 
-    @Override
-    public void close() {
-        if (isStopped) {
-            return;
-        }
-        isStopped = true;
-        if (channel != null) {
-            channel.close();
-        }
-        group.shutdownGracefully();
-        log.info("client({}) closed", address);
-    }
-
-    @Override
-    public boolean isActive() {
-        return !isStopped && channel != null && channel.isActive();
-    }
-
     /**
      * 请求消息
      */
-    public void request(AbstractSocketProtocol protocol) {
-        request(protocol, new ChannelFutureListener[0]);
-    }
-
-    /**
-     * 请求消息
-     */
+    @Override
     public void request(AbstractSocketProtocol protocol, ChannelFutureListener... listeners) {
         if (isActive() && Objects.nonNull(protocol)) {
             ChannelFuture channelFuture =
@@ -132,17 +100,6 @@ public class UdpClient extends ClientConnection {
                 channelFuture.addListeners(listeners);
             }
         }
-    }
-
-    public String getLocalAddress() {
-        if (channel != null) {
-            return channel.localAddress().toString();
-        }
-        return "";
-    }
-
-    public boolean isStopped() {
-        return isStopped;
     }
 
     @Override
