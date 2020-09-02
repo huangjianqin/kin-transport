@@ -22,8 +22,8 @@ public class HttpClientHandlerInitializer<MSG>
     protected Collection<ChannelHandler> firstHandlers() {
         List<ChannelHandler> channelHandlers = setUpChannelHandlers(transportOption);
 
-        channelHandlers.add(new HttpResponseEncoder());
-        channelHandlers.add(new HttpRequestDecoder());
+        channelHandlers.add(new HttpResponseDecoder());
+        channelHandlers.add(new HttpRequestEncoder());
         channelHandlers.add(new HttpObjectAggregator(65536));
         return channelHandlers;
     }

@@ -15,7 +15,6 @@ import org.kin.transport.netty.AbstractTransportProtocolTransfer;
 import org.kin.transport.netty.http.server.session.HttpSession;
 import org.kin.transport.netty.socket.SocketTransportProtocolTransfer;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
-import org.kin.transport.netty.socket.protocol.SocketResponseOprs;
 import org.kin.transport.netty.utils.ChannelUtils;
 
 import java.util.Collection;
@@ -64,8 +63,10 @@ public class HttpServerTransportProtocolTransfer
 
     @Override
     public Collection<FullHttpResponse> encode(ChannelHandlerContext ctx, SocketProtocol protocol) throws Exception {
-        SocketResponseOprs byteBufResponse = protocol.write();
-        ByteBuf byteBuf = byteBufResponse.getByteBuf();
+        ByteBuf protocolByteBuf = protocol.write().getByteBuf();
+        ByteBuf byteBuf = ctx.alloc().buffer(protocolByteBuf.readableBytes() + 1);
+        byteBuf.writeBoolean(compression);
+        byteBuf.writeBytes(protocolByteBuf);
 
         Channel channel = ctx.channel();
         HttpSession httpSession = HttpSession.remove(channel);

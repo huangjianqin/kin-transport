@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
+ * 基于{@link SocketTransportProtocolTransfer}
+ *
  * @author huangjianqin
  * @date 2020/8/31
  */
@@ -54,7 +56,10 @@ public class HttpClientTransportProtocolTransfer extends AbstractTransportProtoc
             return Collections.emptyList();
         }
 
-        ByteBuf byteBuf = protocol.write().getByteBuf();
+        ByteBuf protocolByteBuf = protocol.write().getByteBuf();
+        ByteBuf byteBuf = ctx.alloc().buffer(protocolByteBuf.readableBytes() + 1);
+        byteBuf.writeBoolean(compression);
+        byteBuf.writeBytes(protocolByteBuf);
 
         //配置HttpRequest的请求数据和一些配置信息
         FullHttpRequest request = new DefaultFullHttpRequest(
