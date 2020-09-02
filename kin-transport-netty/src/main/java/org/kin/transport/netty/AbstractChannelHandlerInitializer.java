@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 增加前后handlers定义
+ * 定义 netty channel handler 初始化逻辑抽象
  *
  * @author huangjianqin
  * @date 2020/8/27

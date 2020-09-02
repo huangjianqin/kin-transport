@@ -5,6 +5,8 @@ import org.kin.transport.netty.AbstractTransportOption;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 /**
+ * socket 传输配置抽象
+ *
  * @author huangjianqin
  * @date 2020/8/21
  */

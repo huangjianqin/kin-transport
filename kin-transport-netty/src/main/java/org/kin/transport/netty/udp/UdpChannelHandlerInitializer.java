@@ -8,6 +8,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
+ * udp channel handler初始化
+ *
  * @author huangjianqin
  * @date 2020/9/1
  */

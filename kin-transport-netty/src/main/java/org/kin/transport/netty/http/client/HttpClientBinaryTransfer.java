@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
-import org.kin.transport.netty.socket.SocketTransportProtocolTransfer;
+import org.kin.transport.netty.socket.SocketTransfer;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.kin.transport.netty.utils.ChannelUtils;
 
@@ -16,20 +16,20 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * 基于{@link SocketTransportProtocolTransfer}
+ * 基于{@link SocketTransfer}
  *
  * @author huangjianqin
  * @date 2020/8/31
  */
-public class HttpClientTransportProtocolTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, SocketProtocol, FullHttpRequest>
+public class HttpClientBinaryTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, SocketProtocol, FullHttpRequest>
         implements LoggerOprs {
-    private final SocketTransportProtocolTransfer transfer;
+    private final SocketTransfer transfer;
     /** 限流 */
     private final RateLimiter globalRateLimiter;
 
-    public HttpClientTransportProtocolTransfer(boolean compression, int globalRateLimit) {
+    public HttpClientBinaryTransfer(boolean compression, int globalRateLimit) {
         super(compression);
-        this.transfer = new SocketTransportProtocolTransfer(compression, false);
+        this.transfer = new SocketTransfer(compression, false);
         if (globalRateLimit > 0) {
             globalRateLimiter = RateLimiter.create(globalRateLimit);
         } else {

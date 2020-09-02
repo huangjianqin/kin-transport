@@ -8,7 +8,7 @@ import io.netty.util.ReferenceCounted;
 import java.nio.charset.StandardCharsets;
 
 /**
- * 字节类协议封装
+ * 协议封装
  *
  * @author huangjianqin
  * @date 2019/6/4

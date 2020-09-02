@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
-import org.kin.transport.netty.socket.SocketTransportProtocolTransfer;
+import org.kin.transport.netty.socket.SocketTransfer;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.kin.transport.netty.utils.ChannelUtils;
 
@@ -16,18 +16,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * udp协议转换
+ * 基于{@link SocketTransfer}
+ *
  * @author huangjianqin
  * @date 2020/9/1
  */
-public class UdpTransportProtocolTransfer
+public class UdpTransfer
         extends AbstractTransportProtocolTransfer<DatagramPacket, UdpProtocolWrapper, DatagramPacket> {
-    private final SocketTransportProtocolTransfer transfer;
+    private final SocketTransfer transfer;
     /** 限流 */
     private final RateLimiter globalRateLimiter;
 
-    public UdpTransportProtocolTransfer(boolean compression, boolean serverElseClient, int globalRateLimit) {
+    public UdpTransfer(boolean compression, boolean serverElseClient, int globalRateLimit) {
         super(compression);
-        this.transfer = new SocketTransportProtocolTransfer(compression, serverElseClient);
+        this.transfer = new SocketTransfer(compression, serverElseClient);
         if (globalRateLimit > 0) {
             globalRateLimiter = RateLimiter.create(globalRateLimit);
         } else {

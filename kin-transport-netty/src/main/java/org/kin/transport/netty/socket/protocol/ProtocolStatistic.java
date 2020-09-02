@@ -3,12 +3,11 @@ package org.kin.transport.netty.socket.protocol;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * 协议数据统计
  * Created by huangjianqin on 2019/6/4.
  */
 class ProtocolStatistic {
-    /**
-     * serviceName+method || protocolId
-     */
+    /** protocolId */
     private String uuid;
     private AtomicLong totalSize;
     private AtomicLong count;
@@ -19,6 +18,9 @@ class ProtocolStatistic {
         count = new AtomicLong(0);
     }
 
+    /**
+     * 统计协议数据量以及数量
+     */
     void incr(long size) {
         totalSize.addAndGet(size);
         count.incrementAndGet();

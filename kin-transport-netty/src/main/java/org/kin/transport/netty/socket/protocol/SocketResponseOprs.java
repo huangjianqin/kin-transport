@@ -3,6 +3,8 @@ package org.kin.transport.netty.socket.protocol;
 import io.netty.buffer.ByteBuf;
 
 /**
+ * socket响应操作
+ *
  * @author huangjianqin
  * @date 2019/5/30
  */

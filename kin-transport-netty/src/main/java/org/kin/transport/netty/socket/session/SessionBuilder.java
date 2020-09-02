@@ -3,6 +3,9 @@ package org.kin.transport.netty.socket.session;
 import io.netty.channel.Channel;
 
 /**
+ * session builder
+ * 定义构建session实例逻辑
+ *
  * @author huangjianqin
  * @date 2019/5/30
  */

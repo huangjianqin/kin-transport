@@ -19,6 +19,9 @@ public class UdpProtocolWrapper {
     /** 发送地址 */
     private InetSocketAddress senderAddress;
 
+    /**
+     * 封装 接收到的 协议
+     */
     public static UdpProtocolWrapper receiverWrapper(SocketProtocol protocol, InetSocketAddress senderAddress) {
         UdpProtocolWrapper wrapper = new UdpProtocolWrapper();
         wrapper.protocol = protocol;
@@ -26,6 +29,9 @@ public class UdpProtocolWrapper {
         return wrapper;
     }
 
+    /**
+     * 封装 待发送的 协议
+     */
     public static UdpProtocolWrapper senderWrapper(SocketProtocol protocol, InetSocketAddress targetAddress) {
         UdpProtocolWrapper wrapper = new UdpProtocolWrapper();
         wrapper.protocol = protocol;

@@ -18,20 +18,20 @@ import java.util.List;
 
 /**
  * socket协议转换
- * bytebuf转成对应的协议类
+ * bytebuf <-> 协议类
  * <p>
  * 基于{@link ProtocolFactory}
  *
  * @author huangjianqin
  * @date 2019/7/4
  */
-public class SocketTransportProtocolTransfer
+public class SocketTransfer
         extends AbstractTransportProtocolTransfer<ByteBuf, SocketProtocol, ByteBuf>
         implements LoggerOprs {
     /** true = server, false = client */
     private final boolean serverElseClient;
 
-    public SocketTransportProtocolTransfer(boolean compression, boolean serverElseClient) {
+    public SocketTransfer(boolean compression, boolean serverElseClient) {
         super(compression);
         this.serverElseClient = serverElseClient;
     }

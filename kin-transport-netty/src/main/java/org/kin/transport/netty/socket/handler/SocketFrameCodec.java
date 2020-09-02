@@ -15,7 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 主要是校验协议头
+ * socket数据流解析
+ * 主要是校验协议头, 并取出对应协议数据, 交给协议层去解析
  *
  * @author huangjianqin
  * @date 2019/5/29
@@ -28,7 +29,7 @@ public class SocketFrameCodec extends ByteToMessageCodec<ByteBuf> {
     private static final int FRAME_BODY_SIZE = 4;
     /** 协议体最大大小 */
     private final int maxBodySize;
-    /** true = in, false = out */
+    /** true = server, false = client */
     private final boolean serverElseClient;
     /** 协议头+协议体大小字段的字节长度 */
     private final int frameBaseLength;
@@ -36,20 +37,38 @@ public class SocketFrameCodec extends ByteToMessageCodec<ByteBuf> {
     private final RateLimiter globalRateLimiter;
 
     //---------------------------------------------------------------------------------------------------------------
+
+    /**
+     * client端的数据流解析
+     */
     public static SocketFrameCodec clientFrameCodec() {
         //默认包体最大18M
         return new SocketFrameCodec(18 * 1024 * 1024, false, 0);
     }
 
+    /**
+     * server端的数据流解析
+     */
     public static SocketFrameCodec serverFrameCodec() {
         return serverFrameCodec(0);
     }
 
+    /**
+     * server端的数据流解析
+     *
+     * @param globalRateLimit 全局限流
+     */
     public static SocketFrameCodec serverFrameCodec(int globalRateLimit) {
         return new SocketFrameCodec(18 * 1024 * 1024, true, globalRateLimit);
     }
 
     //---------------------------------------------------------------------------------------------------------------
+
+    /**
+     * @param maxBodySize      传输层帧大小
+     * @param serverElseClient true = server, false = client
+     * @param globalRateLimit  全局限流
+     */
     public SocketFrameCodec(int maxBodySize, boolean serverElseClient, int globalRateLimit) {
         this.maxBodySize = maxBodySize;
         this.serverElseClient = serverElseClient;

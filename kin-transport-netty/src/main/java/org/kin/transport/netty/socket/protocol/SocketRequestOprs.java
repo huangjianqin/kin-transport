@@ -1,6 +1,8 @@
 package org.kin.transport.netty.socket.protocol;
 
 /**
+ * socket请求操作
+ *
  * @author huangjianqin
  * @date 2019/5/30
  */

@@ -4,21 +4,27 @@ package org.kin.transport.netty.socket.protocol;
 import org.kin.framework.concurrent.partition.EfficientHashPartitioner;
 import org.kin.framework.concurrent.partition.Partitioner;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * 协议数据统计持有者
+ *
  * @author huangjianqin
  * @date 2019/6/4
  */
 public class ProtocolStatisticHolder {
+    /** 分段锁数量 */
     private static final byte LOCK_NUM = 5;
 
+    /** 持有的channel数 */
     private final AtomicLong ref = new AtomicLong(0);
-    private final Map<String, ProtocolStatistic> statisticMap = new HashMap<>();
-
+    /** 协议数据统计 */
+    private final Map<String, ProtocolStatistic> statisticMap = new ConcurrentHashMap<>();
+    /** 分段锁 */
     private final Object[] locks = new Object[LOCK_NUM];
+    /** 分段算法 */
     private final Partitioner<String> partitioner = EfficientHashPartitioner.INSTANCE;
 
     ProtocolStatisticHolder() {
@@ -27,6 +33,9 @@ public class ProtocolStatisticHolder {
         }
     }
 
+    /**
+     * 根据uuid 获取的协议数据统计
+     */
     ProtocolStatistic getstatistic(String uuid) {
         if (!statisticMap.containsKey(uuid)) {
             Object lock = locks[partitioner.toPartition(uuid, LOCK_NUM)];
@@ -40,6 +49,9 @@ public class ProtocolStatisticHolder {
         return statisticMap.get(uuid);
     }
 
+    /**
+     * 打印统计数据
+     */
     String logContent() {
         StringBuilder sb = new StringBuilder();
         sb.append(System.lineSeparator());
@@ -49,14 +61,23 @@ public class ProtocolStatisticHolder {
         return sb.toString();
     }
 
+    /**
+     * 被channel持有
+     */
     void reference() {
         ref.incrementAndGet();
     }
 
+    /**
+     * channel释放持有
+     */
     void release() {
         ref.decrementAndGet();
     }
 
+    /**
+     * @return channel持有数
+     */
     long getRef() {
         return ref.get();
     }

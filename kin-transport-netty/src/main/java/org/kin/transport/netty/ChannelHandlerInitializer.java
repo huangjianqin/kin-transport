@@ -8,19 +8,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * channel handler 初始化
+ * 定义 netty channel handler 初始化逻辑
  *
  * @author huangjianqin
  * @date 2019-09-12
  */
 public interface ChannelHandlerInitializer<IN, MSG, OUT> {
     /**
-     * 返回channel需要的ChannelHandler
+     * 返回channel初始化需要的ChannelHandler
      *
-     * @return 返回channel需要的ChannelHandler
+     * @return 返回channel初始化需要的ChannelHandler
      */
     ChannelHandler[] getChannelHandlers();
 
+    /**
+     * 默认最前面的channel handler, 也就是{@link WriteTimeoutHandler} + {@link IdleStateHandler}
+     */
     default <O extends AbstractTransportOption<IN, MSG, OUT, O>> List<ChannelHandler> setUpChannelHandlers(AbstractTransportOption<IN, MSG, OUT, O> transportOption) {
         List<ChannelHandler> channelHandlers = new ArrayList<>();
         channelHandlers.add(new WriteTimeoutHandler(3));

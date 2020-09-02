@@ -6,6 +6,8 @@ import org.kin.transport.netty.websocket.client.WsClientTransportOption;
 import org.kin.transport.netty.websocket.server.WsServerTransportOption;
 
 /**
+ * websocket transports
+ *
  * @author huangjianqin
  * @date 2020/9/1
  */

@@ -6,7 +6,7 @@ import org.kin.transport.netty.udp.UdpTransports;
 import org.kin.transport.netty.websocket.WebsocketTransports;
 
 /**
- * net transport
+ * net transports
  *
  * @author huangjianqin
  * @date 2020/8/27

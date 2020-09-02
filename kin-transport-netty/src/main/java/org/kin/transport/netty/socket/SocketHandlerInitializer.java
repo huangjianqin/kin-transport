@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * socket的channel handler初始化
+ * socket channel handler初始化
  *
  * @author huangjianqin
  * @date 2019-09-12

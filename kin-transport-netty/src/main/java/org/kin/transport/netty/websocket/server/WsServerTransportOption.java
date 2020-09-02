@@ -9,11 +9,16 @@ import java.net.InetSocketAddress;
 import java.util.Objects;
 
 /**
+ * websocket server 传输配置
+ *
  * @author huangjianqin
  * @date 2020/8/27
  */
 public class WsServerTransportOption<MSG, INOUT extends WebSocketFrame>
         extends AbstractWsTransportOption<MSG, INOUT, WsServerTransportOption<MSG, INOUT>> {
+    /**
+     * 构建websocket server
+     */
     public final Server build(InetSocketAddress address) {
         WsServerHandlerInitializer<MSG, INOUT> handlerInitializer = new WsServerHandlerInitializer<>(this);
         Server server = new Server(address);
@@ -25,6 +30,7 @@ public class WsServerTransportOption<MSG, INOUT extends WebSocketFrame>
     @Override
     public TransportProtocolTransfer<INOUT, MSG, INOUT> getTransportProtocolTransfer() {
         if (Objects.isNull(super.getTransportProtocolTransfer())) {
+            //默认
             return getDefaultTransportProtocolTransfer(true);
         }
 

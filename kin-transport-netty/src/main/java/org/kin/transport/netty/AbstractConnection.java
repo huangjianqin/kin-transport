@@ -3,7 +3,7 @@ package org.kin.transport.netty;
 import java.net.InetSocketAddress;
 
 /**
- * 连接抽象
+ * connection 抽象
  *
  * @author 健勤
  * @date 2017/2/10

@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * websocket server的channel handler初始化
+ * websocket server channel handler初始化
  *
  * @author huangjianqin
  * @date 2020/8/20

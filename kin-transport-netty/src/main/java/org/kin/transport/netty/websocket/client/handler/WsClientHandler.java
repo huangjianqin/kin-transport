@@ -9,6 +9,9 @@ import io.netty.util.CharsetUtil;
 import org.kin.framework.log.LoggerOprs;
 
 /**
+ * websocket client channel handler
+ * 主要处理握手以及数据库传递
+ *
  * @author huangjianqin
  * @date 2020/8/21
  */

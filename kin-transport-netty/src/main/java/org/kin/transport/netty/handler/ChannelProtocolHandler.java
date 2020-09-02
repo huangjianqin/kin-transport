@@ -53,8 +53,6 @@ public class ChannelProtocolHandler<MSG> extends ChannelInboundHandlerAdapter {
         Channel channel = ctx.channel();
         log.info("channel active: {}", channel.remoteAddress());
         protocolHandler.channelActive(ctx);
-
-        ctx.fireChannelActive();
     }
 
     @Override
@@ -62,22 +60,16 @@ public class ChannelProtocolHandler<MSG> extends ChannelInboundHandlerAdapter {
         Channel channel = ctx.channel();
         log.info("channel inactive: {}", channel.remoteAddress());
         protocolHandler.channelInactive(ctx);
-
-        ctx.fireChannelInactive();
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         log.error("encounter exception:", cause);
         protocolHandler.handleException(ctx, cause);
-
-        ctx.fireExceptionCaught(cause);
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
         ChannelUtils.handleUserEvent(evt, ctx, protocolHandler);
-
-        ctx.fireUserEventTriggered(evt);
     }
 }

@@ -27,7 +27,7 @@ public class HttpClientTransportOption<MSG>
     public TransportProtocolTransfer<FullHttpResponse, MSG, FullHttpRequest> getTransportProtocolTransfer() {
         if (Objects.isNull(super.getTransportProtocolTransfer())) {
             return (TransportProtocolTransfer<FullHttpResponse, MSG, FullHttpRequest>)
-                    new HttpClientTransportProtocolTransfer(isCompression(), getGlobalRateLimit());
+                    new HttpClientBinaryTransfer(isCompression(), getGlobalRateLimit());
         }
 
         return super.getTransportProtocolTransfer();

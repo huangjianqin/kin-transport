@@ -25,6 +25,8 @@ public class ProtocolFactory {
 
     /**
      * 仅仅append
+     *
+     * @param scanPath 扫描package
      */
     public static void init(String scanPath) {
         synchronized (ProtocolFactory.class) {

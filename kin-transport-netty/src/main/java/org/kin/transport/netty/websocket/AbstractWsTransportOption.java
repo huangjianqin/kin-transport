@@ -17,13 +17,17 @@ public abstract class AbstractWsTransportOption<MSG, INOUT extends WebSocketFram
     private String handshakeUrl = WsConstants.WS_PATH;
 
     //----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * 获取默认的传输层与协议层数据转换实现
+     */
     protected TransportProtocolTransfer<INOUT, MSG, INOUT> getDefaultTransportProtocolTransfer(boolean serverOrClient) {
         /*
          * MSG 实现了 {@link AbstractSocketProtocol}
          * INOUT 是 {@link BinaryWebSocketFrame}
          */
         return (TransportProtocolTransfer<INOUT, MSG, INOUT>)
-                new WsTransportProtocolTransfer(isCompression(), serverOrClient, getGlobalRateLimit());
+                new WsBinaryTransfer(isCompression(), serverOrClient, getGlobalRateLimit());
     }
 
     //----------------------------------------------------------------------------------------------------------------

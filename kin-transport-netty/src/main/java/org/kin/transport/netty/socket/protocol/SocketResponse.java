@@ -1,7 +1,7 @@
 package org.kin.transport.netty.socket.protocol;
 
 /**
- * out抽象
+ * socket out抽象
  *
  * @author huangjianqin
  * @date 2019/5/30

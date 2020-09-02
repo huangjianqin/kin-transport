@@ -1,6 +1,8 @@
 package org.kin.transport.netty;
 
 /**
+ * 传输层 <-> 协议层 数据转换逻辑实现抽象
+ *
  * @author huangjianqin
  * @date 2020/8/28
  */

@@ -21,14 +21,18 @@ import java.util.Objects;
  */
 public abstract class SessionBaseSocketProtocolHandler<S extends AbstractSession> extends SocketProtocolHandler {
     private static final Logger log = LoggerFactory.getLogger(SessionBaseSocketProtocolHandler.class);
+    /** channel key */
     private final AttributeKey<S> SESSION_KEY = AttributeKey.valueOf("session");
-    /** seesion构建逻辑 */
+    /** seesion builder */
     private final SessionBuilder<S> sessionBuilder;
 
     public SessionBaseSocketProtocolHandler(SessionBuilder<S> sessionBuilder) {
         this.sessionBuilder = sessionBuilder;
     }
 
+    /**
+     * 根据channel获取session
+     */
     protected S session(Channel channel) {
         Attribute<S> attr = channel.attr(SESSION_KEY);
         return attr.get();

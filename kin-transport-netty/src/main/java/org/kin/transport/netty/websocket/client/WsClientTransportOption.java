@@ -18,16 +18,24 @@ import java.net.URISyntaxException;
 import java.util.Objects;
 
 /**
+ * websocket client 传输配置
+ *
  * @author huangjianqin
  * @date 2020/8/27
  */
 public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
         extends AbstractWsTransportOption<MSG, INOUT, WsClientTransportOption<MSG, INOUT>> {
+    /**
+     * 构建websocket client实例
+     */
     public final Client<MSG> build(InetSocketAddress address) {
         String prefix = isSsl() ? WsConstants.SSL_WS_PREFIX : WsConstants.WS_PREFIX;
         return build(prefix.concat(":/").concat(address.toString()).concat(getHandshakeUrl()));
     }
 
+    /**
+     * 构建websocket client实例
+     */
     public final Client<MSG> build(String url) {
         URI uri;
         try {
@@ -89,6 +97,7 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
     @Override
     public TransportProtocolTransfer<INOUT, MSG, INOUT> getTransportProtocolTransfer() {
         if (Objects.isNull(super.getTransportProtocolTransfer())) {
+            //默认
             return getDefaultTransportProtocolTransfer(false);
         }
 

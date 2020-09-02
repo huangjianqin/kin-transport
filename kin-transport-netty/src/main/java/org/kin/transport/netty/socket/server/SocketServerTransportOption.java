@@ -6,19 +6,22 @@ import org.kin.transport.netty.Server;
 import org.kin.transport.netty.TransportProtocolTransfer;
 import org.kin.transport.netty.socket.AbstractSocketTransportOption;
 import org.kin.transport.netty.socket.SocketHandlerInitializer;
-import org.kin.transport.netty.socket.SocketTransportProtocolTransfer;
+import org.kin.transport.netty.socket.SocketTransfer;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
 
 /**
- * server transport配置
+ * tcp server transport配置
  *
  * @author huangjianqin
  * @date 2019-09-13
  */
 public class SocketServerTransportOption extends AbstractSocketTransportOption<SocketServerTransportOption> {
+    /**
+     * 构建tcp server实例
+     */
     public Server build(InetSocketAddress address) {
         ChannelHandlerInitializer<ByteBuf, SocketProtocol, ByteBuf> channelHandlerInitializer = new SocketHandlerInitializer<>(this, true);
         Server server = new Server(address);
@@ -31,6 +34,8 @@ public class SocketServerTransportOption extends AbstractSocketTransportOption<S
     @Override
     public TransportProtocolTransfer<ByteBuf, SocketProtocol, ByteBuf> getTransportProtocolTransfer() {
         return Objects.nonNull(super.getTransportProtocolTransfer()) ?
-                super.getTransportProtocolTransfer() : new SocketTransportProtocolTransfer(isCompression(), true);
+                super.getTransportProtocolTransfer() :
+                //默认
+                new SocketTransfer(isCompression(), true);
     }
 }

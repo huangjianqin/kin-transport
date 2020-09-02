@@ -4,7 +4,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
-import org.kin.transport.netty.socket.SocketTransportProtocolTransfer;
+import org.kin.transport.netty.socket.SocketTransfer;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.kin.transport.netty.utils.ChannelUtils;
 
@@ -13,20 +13,21 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
- * 基于{@link SocketTransportProtocolTransfer}
+ * websocket协议转换
+ * 基于{@link SocketTransfer}
  *
  * @author huangjianqin
  * @date 2020/8/31
  */
-public class WsTransportProtocolTransfer
+public class WsBinaryTransfer
         extends AbstractTransportProtocolTransfer<BinaryWebSocketFrame, SocketProtocol, BinaryWebSocketFrame> {
-    private final SocketTransportProtocolTransfer transfer;
+    private final SocketTransfer transfer;
     /** 限流 */
     private final RateLimiter globalRateLimiter;
 
-    public WsTransportProtocolTransfer(boolean compression, boolean serverElseClient, int globalRateLimit) {
+    public WsBinaryTransfer(boolean compression, boolean serverElseClient, int globalRateLimit) {
         super(compression);
-        this.transfer = new SocketTransportProtocolTransfer(compression, serverElseClient);
+        this.transfer = new SocketTransfer(compression, serverElseClient);
         if (globalRateLimit > 0) {
             globalRateLimiter = RateLimiter.create(globalRateLimit);
         } else {

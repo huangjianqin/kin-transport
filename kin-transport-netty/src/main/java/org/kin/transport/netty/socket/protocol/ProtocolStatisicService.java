@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 协议数据统计
+ * 单例
  * important 要手动close
  *
  * @author huangjianqin
@@ -23,8 +25,13 @@ public class ProtocolStatisicService implements Closeable {
         JvmCloseCleaner.DEFAULT().add(INSTANCE);
     }
 
+    /**
+     *
+     */
     private ProtocolStatisticHolder reqHolder = new ProtocolStatisticHolder();
+    /** */
     private ProtocolStatisticHolder respHolder = new ProtocolStatisticHolder();
+    /** 统计线程 */
     private ExecutionContext executionContext = ExecutionContext.fix(2, "inoutbound-statisic",
             1, "inoutbound-statisic-schedule");
 

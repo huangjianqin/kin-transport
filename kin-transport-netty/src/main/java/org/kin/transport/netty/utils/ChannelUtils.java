@@ -49,6 +49,9 @@ public class ChannelUtils {
         }
     }
 
+    /**
+     * 判断是否全局流控限制
+     */
     public static boolean globalRateLimit(ChannelHandlerContext ctx, RateLimiter globalRateLimiter) {
         if (Objects.nonNull(globalRateLimiter) && !globalRateLimiter.tryAcquire()) {
             //全局流控

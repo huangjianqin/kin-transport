@@ -3,7 +3,7 @@ package org.kin.transport.netty;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
- * 处理协议层消息
+ * 协议层逻辑实现抽象
  *
  * @author huangjianqin
  * @date 2019/5/30
