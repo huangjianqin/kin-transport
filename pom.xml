@@ -25,6 +25,7 @@
         <fastjson.version>1.2.58</fastjson.version>
         <okhttp.version>4.2.0</okhttp.version>
         <snappy.version>1.1.7.3</snappy.version>
+        <jackson.version>2.10.1</jackson.version>
     </properties>
 
     <dependencyManagement>
@@ -49,19 +50,6 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
-        <testSourceDirectory>${basedir}/src/test/java</testSourceDirectory>
-        <resources>
-            <resource>
-                <directory>${basedir}/src/main/resources</directory>
-            </resource>
-        </resources>
-        <testResources>
-            <testResource>
-                <directory>${basedir}/src/test/resources</directory>
-            </testResource>
-        </testResources>
-
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

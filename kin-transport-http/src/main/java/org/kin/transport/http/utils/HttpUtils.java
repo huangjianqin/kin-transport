@@ -1,8 +1,8 @@
 package org.kin.transport.http.utils;
 
-import com.alibaba.fastjson.JSONObject;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
+import org.kin.framework.utils.JSON;
 import org.kin.framework.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ public class HttpUtils {
     /**
      * 与原实例共享线程池、连接池和其他设置项，只需进行少量配置就可以实现特殊需求
      * .newBuilder()
-     *
+     * <p>
      * ----
      * 最好只使用一个共享的OkHttpClient实例，将所有的网络请求都通过这个实例处理。
      * 因为每个OkHttpClient 实例都有自己的连接池和线程池，重用这个实例能降低延时，减少内存消耗，而重复创建新实例则会浪费资源。
@@ -58,10 +58,10 @@ public class HttpUtils {
      * Response.body().byteString().close();
      * Response.body().bytes();
      * Response.body().string();
-     *
+     * <p>
      * ResponseBody只能被消费一次，也就是string(),bytes(),byteStream()或 charStream()方法只能调用其中一个。
      * 如果ResponseBody中的数据很大，则不应该使用bytes() 或 string()方法，它们会将结果一次性读入内存，而应该使用byteStream()或 charStream()，以流的方式读取数据。
-     *
+     * <p>
      * ---
      * 每个Call对象只能执行一次请求
      * 如果想重复执行相同的请求，可以：
@@ -121,9 +121,10 @@ public class HttpUtils {
 
         /**
          * http请求成功
-         * @param call http请求信息
+         *
+         * @param call     http请求信息
          * @param response http请求返回
-         * @param data 返回的数据(json反序列化)
+         * @param data     返回的数据(json反序列化)
          * @throws IOException 中途可能抛出的异常
          */
         public abstract void response(@NotNull Call call, @NotNull Response response, T data) throws IOException;
@@ -137,7 +138,7 @@ public class HttpUtils {
 
     private static <T> T converter2Obj(String respData, Class<T> respClass) {
         if (StringUtils.isNotBlank(respData)) {
-            return JSONObject.parseObject(respData, respClass);
+            return JSON.read(respData, respClass);
         }
 
         return null;
@@ -254,12 +255,7 @@ public class HttpUtils {
          */
         JSON {
             private String converterMap2JsonStr(Map<String, Object> params) {
-                JSONObject jsonObject = new JSONObject();
-                for (Map.Entry<String, Object> entry : params.entrySet()) {
-                    jsonObject.put(entry.getKey(), entry.getValue());
-                }
-
-                return jsonObject.toJSONString();
+                return org.kin.framework.utils.JSON.write(params);
             }
 
             @Override
@@ -303,12 +299,14 @@ public class HttpUtils {
 
         /**
          * http请求成功处理
+         *
          * @param responseObj 返回的数据(json反序列化)
          */
         public abstract void doResponse(T responseObj);
 
         /**
          * 获取http返回数据对象
+         *
          * @return http返回数据对象
          */
         abstract Class<T> getResponseObj();
