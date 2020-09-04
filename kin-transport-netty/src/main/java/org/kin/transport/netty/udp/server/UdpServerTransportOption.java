@@ -3,7 +3,6 @@ package org.kin.transport.netty.udp.server;
 import io.netty.channel.socket.DatagramPacket;
 import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.TransportProtocolTransfer;
-import org.kin.transport.netty.UdpServer;
 import org.kin.transport.netty.udp.AbstractUdpTransportOption;
 import org.kin.transport.netty.udp.UdpChannelHandlerInitializer;
 import org.kin.transport.netty.udp.UdpProtocolWrapper;

@@ -1,4 +1,4 @@
-package org.kin.transport.netty;
+package org.kin.transport.netty.udp.client;
 
 import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
@@ -7,7 +7,12 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.CollectionUtils;
+import org.kin.transport.netty.AbstractTransportOption;
+import org.kin.transport.netty.ChannelHandlerInitializer;
+import org.kin.transport.netty.Client;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
+import org.kin.transport.netty.udp.UdpProtocolWrapper;
 
 import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;
@@ -16,50 +21,39 @@ import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * udp server
+ * udp client
  *
  * @author huangjianqin
  * @date 2020/8/27
  */
-public class UdpServer extends ServerConnection implements LoggerOprs {
-    /** worker线程池 */
-    private NioEventLoopGroup workerGroup;
-    /** selector */
-    private volatile Channel selector;
-
-    public UdpServer(InetSocketAddress address) {
+public class UdpClient extends Client<SocketProtocol> {
+    public UdpClient(InetSocketAddress address) {
         super(address);
     }
 
     @Override
-    public void bind(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
-        log().info("server({}) connection binding...", address);
+    public void connect(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+        log.info("client({}) connecting...", address);
 
-        Map<ChannelOption, Object> serverOptions = transportOption.getServerOptions();
         Map<ChannelOption, Object> channelOptions = transportOption.getChannelOptions();
 
-        //校验
-        Preconditions.checkArgument(serverOptions != null);
         Preconditions.checkArgument(channelOptions != null);
         Preconditions.checkArgument(channelHandlerInitializer != null);
 
-        //默认2倍cpu
-        this.workerGroup = new NioEventLoopGroup();
+        group = new NioEventLoopGroup();
 
         CountDownLatch latch = new CountDownLatch(1);
-
-        //配置bootstrap
         Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(this.workerGroup).channel(NioDatagramChannel.class);
+        bootstrap.group(group).channel(NioDatagramChannel.class);
 
-        for (Map.Entry<ChannelOption, Object> entry : serverOptions.entrySet()) {
+        for (Map.Entry<ChannelOption, Object> entry : channelOptions.entrySet()) {
             bootstrap.option(entry.getKey(), entry.getValue());
         }
 
         final SslContext sslCtx;
         if (transportOption.isSsl()) {
             try {
-                sslCtx = SslContextBuilder.forServer(transportOption.getCertFile(), transportOption.getCertKeyFile()).build();
+                sslCtx = SslContextBuilder.forClient().keyManager(transportOption.getCertFile(), transportOption.getCertKeyFile()).build();
             } catch (SSLException e) {
                 throw new IllegalStateException(e);
             }
@@ -72,7 +66,7 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
             protected void initChannel(NioDatagramChannel datagramChannel) {
                 ChannelPipeline pipeline = datagramChannel.pipeline();
                 if (Objects.nonNull(sslCtx)) {
-                    pipeline.addLast(sslCtx.newHandler(datagramChannel.alloc()));
+                    pipeline.addLast(sslCtx.newHandler(datagramChannel.alloc(), address.getHostString(), address.getPort()));
                 }
 
                 for (ChannelHandler channelHandler : channelHandlerInitializer.getChannelHandlers()) {
@@ -80,46 +74,36 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
                 }
             }
         });
-
-        //绑定
-        ChannelFuture cf = bootstrap.bind(address);
+        ChannelFuture cf = bootstrap.bind(0);
         cf.addListener((ChannelFuture channelFuture) -> {
             if (channelFuture.isSuccess()) {
-                log().info("server connection binded: {}", address);
-                selector = channelFuture.channel();
+                log.info("connect to remote server success: {}", address);
+                channel = channelFuture.channel();
+                latch.countDown();
+            } else {
+                log.error("connect to remote server fail: {}", address);
+                latch.countDown();
             }
-            latch.countDown();
         });
-
         try {
             latch.await();
         } catch (InterruptedException e) {
 
         }
-        if (selector == null) {
-            throw new RuntimeException("server connection bind fail: " + address);
-        }
     }
 
+    /**
+     * 请求消息
+     */
     @Override
-    public void close() {
-        if (this.selector == null || this.workerGroup == null) {
-            return;
+    public void request(SocketProtocol protocol, ChannelFutureListener... listeners) {
+        if (isActive() && Objects.nonNull(protocol)) {
+            ChannelFuture channelFuture =
+                    channel.writeAndFlush(UdpProtocolWrapper.senderWrapper(protocol, address));
+            if (CollectionUtils.isNonEmpty(listeners)) {
+                channelFuture.addListeners(listeners);
+            }
         }
-
-        this.selector.close();
-        this.workerGroup.shutdownGracefully();
-
-        //help gc
-        this.selector = null;
-        this.workerGroup = null;
-
-        log().info("server connection closed");
-    }
-
-    @Override
-    public boolean isActive() {
-        return selector.isActive();
     }
 
     @Override
@@ -130,12 +114,12 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        UdpServer udpServer = (UdpServer) o;
-        return Objects.equals(selector, udpServer.selector);
+        UdpClient udpClient = (UdpClient) o;
+        return Objects.equals(channel, udpClient.channel);
     }
 
     @Override
     public int hashCode() {
-        return selector != null ? selector.hashCode() : 0;
+        return channel != null ? channel.hashCode() : 0;
     }
 }
