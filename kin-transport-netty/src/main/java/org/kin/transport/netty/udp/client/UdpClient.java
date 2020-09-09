@@ -11,6 +11,7 @@ import org.kin.framework.utils.CollectionUtils;
 import org.kin.transport.netty.AbstractTransportOption;
 import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.Client;
+import org.kin.transport.netty.ClientConnectTimeoutException;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.kin.transport.netty.udp.UdpProtocolWrapper;
 
@@ -19,6 +20,7 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * udp client
@@ -86,7 +88,10 @@ public class UdpClient extends Client<SocketProtocol> {
             }
         });
         try {
-            latch.await();
+            boolean success = latch.await(transportOption.getConnectTimeout(), TimeUnit.MILLISECONDS);
+            if (!success) {
+                throw new ClientConnectTimeoutException(address.toString());
+            }
         } catch (InterruptedException e) {
 
         }

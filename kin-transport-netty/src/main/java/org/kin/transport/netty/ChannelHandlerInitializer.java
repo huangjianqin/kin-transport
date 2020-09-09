@@ -2,6 +2,7 @@ package org.kin.transport.netty;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 
 import java.util.ArrayList;
@@ -26,7 +27,16 @@ public interface ChannelHandlerInitializer<IN, MSG, OUT> {
      */
     default <O extends AbstractTransportOption<IN, MSG, OUT, O>> List<ChannelHandler> setUpChannelHandlers(AbstractTransportOption<IN, MSG, OUT, O> transportOption) {
         List<ChannelHandler> channelHandlers = new ArrayList<>();
-        channelHandlers.add(new WriteTimeoutHandler(3));
+
+        int writeTimeout = transportOption.getWriteTimeout();
+        if (writeTimeout > 0) {
+            channelHandlers.add(new WriteTimeoutHandler(writeTimeout));
+        }
+
+        int readTimeout = transportOption.getReadTimeout();
+        if (readTimeout > 0) {
+            channelHandlers.add(new ReadTimeoutHandler(readTimeout));
+        }
 
         int readIdleTime = transportOption.getReadIdleTime();
         int writeIdleTime = transportOption.getWriteIdleTime();

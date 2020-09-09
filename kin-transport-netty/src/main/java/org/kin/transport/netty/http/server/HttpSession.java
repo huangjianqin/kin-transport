@@ -1,4 +1,4 @@
-package org.kin.transport.netty.http.server.session;
+package org.kin.transport.netty.http.server;
 
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.FullHttpRequest;

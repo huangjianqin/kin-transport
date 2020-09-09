@@ -12,7 +12,6 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
-import org.kin.transport.netty.http.server.session.HttpSession;
 import org.kin.transport.netty.socket.SocketTransfer;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.kin.transport.netty.utils.ChannelUtils;

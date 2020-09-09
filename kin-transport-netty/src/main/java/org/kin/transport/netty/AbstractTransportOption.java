@@ -5,6 +5,7 @@ import io.netty.channel.ChannelOption;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * transport配置
@@ -37,6 +38,12 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
     private String certFilePath;
     /** 证书密钥路径 */
     private String certKeyFilePath;
+    /** 读超时(秒) */
+    private int readTimeout;
+    /** 写超时(秒) */
+    private int writeTimeout;
+    /** 连接超时(毫秒) */
+    private long connectTimeout;
 
     //------------------------------------------------------------------------------------------------------------------
     public O serverOptions(Map<ChannelOption, Object> channelOptions) {
@@ -84,18 +91,18 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
         return (O) this;
     }
 
-    public O readIdleTime(int readIdleTime) {
-        this.readIdleTime = readIdleTime;
+    public O readIdleTime(long readIdleTime, TimeUnit unit) {
+        this.readIdleTime = (int) unit.toSeconds(readIdleTime);
         return (O) this;
     }
 
-    public O writeIdleTime(int writeIdleTime) {
-        this.writeIdleTime = writeIdleTime;
+    public O writeIdleTime(long writeIdleTime, TimeUnit unit) {
+        this.writeIdleTime = (int) unit.toSeconds(writeIdleTime);
         return (O) this;
     }
 
-    public O readWriteIdleTime(int readWriteIdleTime) {
-        this.readWriteIdleTime = readWriteIdleTime;
+    public O readWriteIdleTime(long readWriteIdleTime, TimeUnit unit) {
+        this.readWriteIdleTime = (int) unit.toSeconds(readWriteIdleTime);
         return (O) this;
     }
 
@@ -111,6 +118,21 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
 
     public O certKeyFile(String certKeyFilePath) {
         this.certKeyFilePath = certKeyFilePath;
+        return (O) this;
+    }
+
+    public O readTimeout(long readTimeout, TimeUnit unit) {
+        this.readTimeout = (int) unit.toSeconds(readTimeout);
+        return (O) this;
+    }
+
+    public O writeTimeout(long writeTimeout, TimeUnit unit) {
+        this.writeTimeout = (int) unit.toSeconds(writeTimeout);
+        return (O) this;
+    }
+
+    public O connectTimeout(long connectTimeout, TimeUnit unit) {
+        this.connectTimeout = unit.toMillis(connectTimeout);
         return (O) this;
     }
 
@@ -177,5 +199,17 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
             throw new IllegalArgumentException("cert certKeyFile not exists");
         }
         return certKeyFile;
+    }
+
+    public int getReadTimeout() {
+        return readTimeout;
+    }
+
+    public int getWriteTimeout() {
+        return writeTimeout;
+    }
+
+    public long getConnectTimeout() {
+        return connectTimeout;
     }
 }

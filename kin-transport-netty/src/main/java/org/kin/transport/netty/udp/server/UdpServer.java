@@ -10,6 +10,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.transport.netty.AbstractTransportOption;
 import org.kin.transport.netty.ChannelHandlerInitializer;
+import org.kin.transport.netty.ServerBindTimeoutException;
 import org.kin.transport.netty.ServerConnection;
 
 import javax.net.ssl.SSLException;
@@ -17,6 +18,7 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * udp server
@@ -95,7 +97,10 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
         });
 
         try {
-            latch.await();
+            boolean success = latch.await(transportOption.getConnectTimeout(), TimeUnit.MILLISECONDS);
+            if (!success) {
+                throw new ServerBindTimeoutException(address.toString());
+            }
         } catch (InterruptedException e) {
 
         }

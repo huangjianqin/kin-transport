@@ -7,13 +7,12 @@ import io.netty.handler.codec.http.*;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
 import org.kin.transport.netty.socket.SocketTransfer;
-import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.kin.transport.netty.utils.ChannelUtils;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * 基于{@link SocketTransfer}
@@ -21,15 +20,13 @@ import java.util.Collections;
  * @author huangjianqin
  * @date 2020/8/31
  */
-public class HttpClientBinaryTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, SocketProtocol, FullHttpRequest>
+public class HttpClientBinaryTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, HttpEntity, FullHttpRequest>
         implements LoggerOprs {
-    private final SocketTransfer transfer;
     /** 限流 */
     private final RateLimiter globalRateLimiter;
 
     public HttpClientBinaryTransfer(boolean compression, int globalRateLimit) {
         super(compression);
-        this.transfer = new SocketTransfer(compression, false);
         if (globalRateLimit > 0) {
             globalRateLimiter = RateLimiter.create(globalRateLimit);
         } else {
@@ -38,39 +35,54 @@ public class HttpClientBinaryTransfer extends AbstractTransportProtocolTransfer<
     }
 
     @Override
-    public Collection<SocketProtocol> decode(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
+    public Collection<HttpEntity> decode(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
         if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
             return Collections.emptyList();
         }
-        return transfer.decode(ctx, response.content());
+
+        /**
+         * 将 {@link FullHttpResponse} 转换成 {@link HttpResponse}
+         */
+        HttpResponseStatus responseStatus = response.status();
+        int code = responseStatus.code();
+        String message = responseStatus.reasonPhrase();
+        String contentType = response.headers().get(HttpHeaderNames.CONTENT_TYPE);
+        HttpResponseBody responseBody = HttpResponseBody.of(response.content(), MediaTypeWrapper.parse(contentType));
+
+        HttpResponse httpResponse = HttpResponse.of(responseBody, message, code);
+        for (Map.Entry<String, String> entry : response.headers().entries()) {
+            httpResponse.headers().put(entry.getKey(), entry.getValue());
+        }
+
+        return Collections.singleton(httpResponse);
     }
 
     @Override
-    public Collection<FullHttpRequest> encode(ChannelHandlerContext ctx, SocketProtocol protocol) throws Exception {
-        //TODO
-        URI url;
-        try {
-            url = new URI("/test");
-        } catch (URISyntaxException e) {
-            ctx.fireExceptionCaught(e);
+    public Collection<FullHttpRequest> encode(ChannelHandlerContext ctx, HttpEntity httpEntity) throws Exception {
+        if (!(httpEntity instanceof HttpRequest)) {
             return Collections.emptyList();
         }
 
-        ByteBuf protocolByteBuf = protocol.write().getByteBuf();
-        ByteBuf byteBuf = ctx.alloc().buffer(protocolByteBuf.readableBytes() + 1);
-        byteBuf.writeBoolean(compression);
-        byteBuf.writeBytes(protocolByteBuf);
+        HttpRequest httpRequest = (HttpRequest) httpEntity;
+        HttpRequestBody requestBody = httpRequest.requestBody();
+        ByteBuffer byteBuffer = requestBody.sink();
+        ByteBuf content = ctx.alloc().buffer(byteBuffer.capacity());
+        content.writeBytes(byteBuffer);
 
         //配置HttpRequest的请求数据和一些配置信息
         FullHttpRequest request = new DefaultFullHttpRequest(
-                HttpVersion.HTTP_1_0, HttpMethod.GET, url.toASCIIString(), byteBuf);
+                HttpVersion.HTTP_1_0,
+                httpRequest.method(),
+                httpRequest.url().uri().toASCIIString(),
+                content);
 
-        request.headers()
-                .set(HttpHeaderNames.CONTENT_TYPE, "text/plain;charset=UTF-8")
-                //开启长连接
-                .set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE)
-                //设置传递请求内容的长度
-                .set(HttpHeaderNames.CONTENT_LENGTH, request.content().readableBytes());
+        for (Map.Entry<String, String> entry : httpRequest.headers().entrySet()) {
+            request.headers().set(entry.getKey(), entry.getValue());
+        }
+
+        //设置content type
+        request.headers().set(HttpHeaderNames.CONTENT_TYPE, requestBody.mediaType().toContentType());
+
         return Collections.singletonList(request);
     }
 
@@ -80,8 +92,8 @@ public class HttpClientBinaryTransfer extends AbstractTransportProtocolTransfer<
     }
 
     @Override
-    public Class<SocketProtocol> getMsgClass() {
-        return SocketProtocol.class;
+    public Class<HttpEntity> getMsgClass() {
+        return HttpEntity.class;
     }
 
 }

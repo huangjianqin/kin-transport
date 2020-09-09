@@ -17,6 +17,7 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * client
@@ -91,7 +92,10 @@ public class Client<MSG> extends ClientConnection {
             }
         });
         try {
-            latch.await();
+            boolean success = latch.await(transportOption.getConnectTimeout(), TimeUnit.MILLISECONDS);
+            if (!success) {
+                throw new ClientConnectTimeoutException(address.toString());
+            }
         } catch (InterruptedException e) {
 
         }

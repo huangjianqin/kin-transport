@@ -17,6 +17,7 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * server
@@ -106,7 +107,10 @@ public class Server extends ServerConnection {
         });
 
         try {
-            latch.await();
+            boolean success = latch.await(transportOption.getConnectTimeout(), TimeUnit.MILLISECONDS);
+            if (!success) {
+                throw new ServerBindTimeoutException(address.toString());
+            }
         } catch (InterruptedException e) {
 
         }
