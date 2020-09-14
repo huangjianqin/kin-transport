@@ -1,58 +1,112 @@
 package org.kin.transport.netty.http.server;
 
-import io.netty.channel.Channel;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.util.Attribute;
-import io.netty.util.AttributeKey;
-import org.kin.transport.netty.socket.session.AbstractSession;
+import org.kin.framework.utils.StringUtils;
 
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
+ * http server session
+ *
  * @author huangjianqin
  * @date 2020/8/25
  */
-public class HttpSession extends AbstractSession {
-    private static final AttributeKey<HttpSession> SESSION_KEY = AttributeKey.valueOf("session");
+public final class HttpSession {
+    public static final String SESSION_ID = "kin-session-id";
 
-    /** http请求 */
-    private final FullHttpRequest request;
+    /** session id */
+    private final String sessionId;
+    /** 从属的session manager */
+    private final HttpSessionManager sessionManager;
 
-    public HttpSession(Channel channel, FullHttpRequest request) {
-        super(channel, true);
-        this.request = request;
+    /** 属性 */
+    private final ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<>();
+    /** 创建时间 */
+    private final long createTime;
+    /** session是否有效 */
+    private volatile boolean valid = true;
+
+    public HttpSession(String sessionId, HttpSessionManager sessionManager) {
+        this.sessionId = sessionId;
+        this.sessionManager = sessionManager;
+        this.createTime = System.currentTimeMillis();
     }
 
-    //---------------------------------------------------------------------------------------------------------------
-    public static void put(Channel channel, FullHttpRequest request) {
-        Attribute<HttpSession> attr = channel.attr(SESSION_KEY);
-        attr.compareAndSet(null, new HttpSession(channel, request));
-    }
-
-    public static HttpSession remove(Channel channel) {
-        Attribute<HttpSession> attr = channel.attr(SESSION_KEY);
-        if (Objects.nonNull(attr)) {
-            HttpSession httpSession = attr.get();
-            attr.remove();
-            return httpSession;
+    /**
+     * 获取属性
+     */
+    public Object getAttribute(String name) {
+        if (!isValid()) {
+            throw new IllegalStateException("session invalid");
         }
 
-        return null;
-    }
-
-    public static HttpSession get(Channel channel) {
-        Attribute<HttpSession> attr = channel.attr(SESSION_KEY);
-        if (Objects.nonNull(attr)) {
-            return attr.get();
+        if (StringUtils.isBlank(name)) {
+            return null;
         }
 
-        return null;
+        return attributes.get(name);
     }
 
-    //---------------------------------------------------------------------------------------------------------------
+    /**
+     * 设置属性
+     */
+    public void putAttribute(String name, Object value) {
+        if (!isValid()) {
+            throw new IllegalStateException("session invalid");
+        }
 
-    //getter
-    public FullHttpRequest getRequest() {
-        return request;
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("name is blank");
+        }
+
+        if (Objects.isNull(value)) {
+            removeAttribute(name);
+            return;
+        }
+
+        attributes.put(name, value);
+    }
+
+    /**
+     * 移除属性
+     */
+    public void removeAttribute(String name) {
+        if (!isValid()) {
+            throw new IllegalStateException("session invalid");
+        }
+
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("name is blank");
+        }
+        attributes.remove(name);
+    }
+
+    /**
+     * 主动触发session过期
+     */
+    public void expire() {
+        if (!isValid()) {
+            throw new IllegalStateException("session has invalid");
+        }
+
+        sessionManager.removeSession(sessionId);
+    }
+
+    //setter && getter
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public long getCreateTime() {
+        return createTime;
+    }
+
+    public boolean isValid() {
+        return valid;
+    }
+
+    public void setValid(boolean valid) {
+        this.valid = valid;
     }
 }

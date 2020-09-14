@@ -1,6 +1,9 @@
 package org.kin.transport.netty.http.client;
 
+import io.netty.buffer.ByteBuf;
+
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 /**
  * http 请求内容
@@ -34,6 +37,21 @@ public final class HttpRequestBody {
         requestBody.sink = byteBuffer;
         requestBody.mediaTypeWrapper = mediaTypeWrapper;
         return requestBody;
+    }
+
+    public static HttpRequestBody of(ByteBuf byteBuf, MediaTypeWrapper mediaTypeWrapper) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(byteBuf.readableBytes());
+        byteBuf.readBytes(byteBuffer);
+        return of(byteBuffer, mediaTypeWrapper);
+    }
+
+    //-------------------------------------------------------------------------------------------------------------
+    public String getContent() {
+        return mediaTypeWrapper.mediaType().parseContent(sink, mediaTypeWrapper.rawCharset());
+    }
+
+    public Map<String, Object> getParams() {
+        return mediaTypeWrapper.mediaType().parseParams(sink, mediaTypeWrapper.rawCharset());
     }
 
     //-------------------------------------------------------------------------------------------------------------

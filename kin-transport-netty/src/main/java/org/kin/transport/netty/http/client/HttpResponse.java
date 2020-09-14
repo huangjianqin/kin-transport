@@ -36,7 +36,7 @@ public final class HttpResponse implements HttpEntity {
 
     //-------------------------------------------------------------------------------------------------------------
     public HttpResponse header(String name, String value) {
-        headers.set(name, value);
+        headers.add(name, value);
         return this;
     }
 

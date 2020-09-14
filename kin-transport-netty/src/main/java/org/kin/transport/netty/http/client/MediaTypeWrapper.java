@@ -58,12 +58,16 @@ public final class MediaTypeWrapper {
         return mediaType.concat(";charset=").concat(charset);
     }
 
+    public MediaType mediaType() {
+        return MediaType.getByDesc(mediaType);
+    }
+
     //-------------------------------------------------------------------------------------------------------------
-    public String mediaType() {
+    public String rawMediaType() {
         return mediaType;
     }
 
-    public static enum MediaTypeEnum {
-
+    public String rawCharset() {
+        return charset;
     }
 }

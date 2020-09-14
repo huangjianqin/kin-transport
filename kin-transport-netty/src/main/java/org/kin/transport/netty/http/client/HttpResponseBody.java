@@ -18,9 +18,14 @@ public final class HttpResponseBody {
 
     //-------------------------------------------------------------------------------------------------------------
     public static HttpResponseBody of(ByteBuf byteBuf, MediaTypeWrapper mediaTypeWrapper) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(byteBuf.readableBytes());
+        byteBuf.readBytes(byteBuffer);
+        return of(byteBuffer, mediaTypeWrapper);
+    }
+
+    public static HttpResponseBody of(ByteBuffer source, MediaTypeWrapper mediaTypeWrapper) {
         HttpResponseBody responseBody = new HttpResponseBody();
-        responseBody.source = ByteBuffer.allocate(byteBuf.readableBytes());
-        byteBuf.readBytes(responseBody.source);
+        responseBody.source = source;
         responseBody.mediaTypeWrapper = mediaTypeWrapper;
         return responseBody;
     }

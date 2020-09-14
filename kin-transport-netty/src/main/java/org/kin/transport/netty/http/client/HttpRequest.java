@@ -68,7 +68,7 @@ public final class HttpRequest implements HttpEntity {
     }
 
     public HttpRequest header(String name, String value) {
-        headers.set(name, value);
+        headers.add(name, value);
         return this;
     }
 

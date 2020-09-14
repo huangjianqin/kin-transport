@@ -1,6 +1,11 @@
 package org.kin.transport.netty.http.client;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.kin.transport.netty.http.UnknownMediaTypeException;
+
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -15,12 +20,28 @@ public enum MediaType {
     JSON("application/json") {
         @Override
         public HttpRequestBody toRequestBody(Map<String, Object> params, String charset) {
-            return HttpRequestBody.of(org.kin.framework.utils.JSON.write(params), transfer(charset));
+            return toRequestBody(params, Charset.forName(charset));
         }
 
         @Override
         public HttpRequestBody toRequestBody(Map<String, Object> params, Charset charset) {
-            return toRequestBody(params, charset.name());
+            return toRequestBody(org.kin.framework.utils.JSON.write(params), charset);
+        }
+
+        @Override
+        public HttpResponseBody toResponseBody(Map<String, Object> params, String charset) {
+            return toResponseBody(params, Charset.forName(charset));
+        }
+
+        @Override
+        public HttpResponseBody toResponseBody(Map<String, Object> params, Charset charset) {
+            return toResponseBody(org.kin.framework.utils.JSON.write(params), charset);
+        }
+
+        @Override
+        public Map<String, Object> parseParams(ByteBuffer sink, String charset) {
+            String content = parseContent(sink, charset);
+            return org.kin.framework.utils.JSON.read(content, StrObjMapTypeReference.INSTANCE);
         }
     },
     /** 表单 */
@@ -36,7 +57,32 @@ public enum MediaType {
             for (Map.Entry<String, Object> entry : params.entrySet()) {
                 sj.add(entry.getKey().concat("=").concat(entry.getValue().toString()));
             }
-            return HttpRequestBody.of(charset.encode(sj.toString()), transfer(charset.name()));
+            return toRequestBody(sj.toString(), charset);
+        }
+
+        @Override
+        public HttpResponseBody toResponseBody(Map<String, Object> params, String charset) {
+            return toResponseBody(params, Charset.forName(charset));
+        }
+
+        @Override
+        public HttpResponseBody toResponseBody(Map<String, Object> params, Charset charset) {
+            StringJoiner sj = new StringJoiner("&");
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                sj.add(entry.getKey().concat("=").concat(entry.getValue().toString()));
+            }
+            return toResponseBody(sj.toString(), charset);
+        }
+
+        @Override
+        public Map<String, Object> parseParams(ByteBuffer sink, String charset) {
+            Map<String, Object> params = new HashMap<>();
+            String content = parseContent(sink, charset);
+            for (String s1 : content.split("&")) {
+                String[] splits = s1.split("=");
+                params.put(splits[0], splits[1]);
+            }
+            return params;
         }
     },
     /** 纯文本 */
@@ -51,7 +97,7 @@ public enum MediaType {
         this.desc = desc;
     }
 
-    protected MediaTypeWrapper transfer(String charset) {
+    public MediaTypeWrapper transfer(String charset) {
         return new MediaTypeWrapper(getDesc(), charset);
     }
 
@@ -73,17 +119,76 @@ public enum MediaType {
      * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpRequestBody}
      */
     public HttpRequestBody toRequestBody(String content, String charset) {
-        return HttpRequestBody.of(content, transfer(charset));
+        return toRequestBody(content, Charset.forName(charset));
     }
 
     /**
      * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpRequestBody}
      */
     public HttpRequestBody toRequestBody(String content, Charset charset) {
-        return toRequestBody(content, charset.name());
+        return HttpRequestBody.of(charset.encode(content), transfer(charset.name()));
+    }
+
+    /**
+     * 解析出请求request参数
+     */
+    public Map<String, Object> parseParams(ByteBuffer sink, String charset) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 解析出请求request参数
+     */
+    public String parseContent(ByteBuffer sink, String charsetStr) {
+        Charset charset = Charset.forName(charsetStr);
+        return charset.decode(sink).toString();
+    }
+
+    /**
+     * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpResponseBody}
+     */
+    public HttpResponseBody toResponseBody(Map<String, Object> params, String charset) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpResponseBody}
+     */
+    public HttpResponseBody toResponseBody(Map<String, Object> params, Charset charset) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpResponseBody}
+     */
+    public HttpResponseBody toResponseBody(String content, String charset) {
+        return toResponseBody(content, Charset.forName(charset));
+    }
+
+    /**
+     * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpResponseBody}
+     */
+    public HttpResponseBody toResponseBody(String content, Charset charset) {
+        return HttpResponseBody.of(charset.encode(content), transfer(charset.name()));
     }
 
     public String getDesc() {
         return desc;
+    }
+
+    //----------------------------------------------------------------------------------------------------------------
+    public static MediaType getByDesc(String type) {
+        for (MediaType mediaType : values()) {
+            if (mediaType.getDesc().trim().equals(type)) {
+                return mediaType;
+            }
+        }
+
+        throw new UnknownMediaTypeException(type);
+    }
+
+    //----------------------------------------------------------------------------------------------------------------
+    private static class StrObjMapTypeReference extends TypeReference<Map<String, Object>> {
+        static final StrObjMapTypeReference INSTANCE = new StrObjMapTypeReference();
     }
 }

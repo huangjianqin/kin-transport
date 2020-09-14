@@ -17,7 +17,8 @@ public final class HttpHeaders extends HashMap<String, String> {
     /**
      * 设置头部信息
      */
-    public String set(String name, String value) {
-        return getOrDefault(name, "");
+    public HttpHeaders add(String name, String value) {
+        put(name, value);
+        return this;
     }
 }
