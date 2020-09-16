@@ -88,10 +88,37 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
 
     /**
      * url 匹配
-     * TODO 目前仅仅做equals
+     * 支持*通配符, 即/a/b/* 匹配 /a/b/c/d/e
      */
     private boolean urlMatched(String source, String target) {
-        return StringUtils.isNotBlank(source) && source.equals(target);
+        String[] sourceSplits = source.split("/");
+        String[] targetSplits = target.split("/");
+
+        if (sourceSplits.length == 0) {
+            // url = '/', 适合所有url
+            return true;
+        }
+
+        if (sourceSplits.length > targetSplits.length) {
+            //source items比target items多, 肯定不匹配
+            return false;
+        }
+
+        for (int i = 0; i < sourceSplits.length; i++) {
+            String sourceItem = sourceSplits[i];
+            String targetItem = targetSplits[i];
+            if (HttpServerConstants.URL_ALL_MATCH.equals(sourceItem)) {
+                //遇到*通配符, 直接返回匹配
+                return true;
+            }
+            if (!sourceItem.equals(targetItem)) {
+                //url某个path不匹配, 就不匹配
+                return false;
+            }
+        }
+
+        //source 所有item 与target 部分item匹配, 但target items可能存在比source items要多, 则不匹配
+        return sourceSplits.length == targetSplits.length;
     }
 
     /**

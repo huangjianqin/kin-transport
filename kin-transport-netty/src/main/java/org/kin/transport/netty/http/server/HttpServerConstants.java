@@ -13,4 +13,6 @@ public class HttpServerConstants {
     public static final int SESSION_ID_LEN = 20;
     /** jvm route标识 */
     public static final String JVM_ROUTE = System.getProperty("jvmRoute");
+    /** url 通配符 */
+    public static final String URL_ALL_MATCH = "*";
 }
