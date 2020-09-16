@@ -17,10 +17,10 @@ class ConnectInterceptor implements Interceptor {
 
     @Override
     public HttpResponse intercept(HttpInterceptorChain chain) throws IOException {
-        HttpCall httpCall = chain.httpCall();
-        KinHttpClient kinHttpClient = httpCall.kinHttpClient();
-        InetSocketAddress address = httpCall.httpRequest().url().address();
+        HttpCall httpCall = chain.getCall();
+        KinHttpClient kinHttpClient = httpCall.getHttpClient();
+        InetSocketAddress address = httpCall.getRequest().getUrl().address();
 
-        return chain.proceed(httpCall.httpRequest(), kinHttpClient.client(address));
+        return chain.proceed(httpCall.getRequest(), kinHttpClient.client(address));
     }
 }

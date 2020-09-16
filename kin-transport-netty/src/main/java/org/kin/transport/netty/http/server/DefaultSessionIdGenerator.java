@@ -61,7 +61,9 @@ public class DefaultSessionIdGenerator implements SessionIdGenerator {
         return buffer.toString();
     }
 
-
+    /**
+     * 获取随机字节数组
+     */
     private void getRandomBytes(byte[] bytes) {
         try {
             SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");

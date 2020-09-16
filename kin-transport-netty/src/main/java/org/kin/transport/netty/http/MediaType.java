@@ -1,7 +1,6 @@
-package org.kin.transport.netty.http.client;
+package org.kin.transport.netty.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.kin.transport.netty.http.UnknownMediaTypeException;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -102,28 +101,28 @@ public enum MediaType {
     }
 
     /**
-     * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpRequestBody}
+     * 根据类型转换成对应的{@link HttpRequestBody}
      */
     public HttpRequestBody toRequestBody(Map<String, Object> params, String charset) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpRequestBody}
+     * 根据类型转换成对应的{@link HttpRequestBody}
      */
     public HttpRequestBody toRequestBody(Map<String, Object> params, Charset charset) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpRequestBody}
+     * 根据类型转换成对应的{@link HttpRequestBody}
      */
     public HttpRequestBody toRequestBody(String content, String charset) {
         return toRequestBody(content, Charset.forName(charset));
     }
 
     /**
-     * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpRequestBody}
+     * 根据类型转换成对应的{@link HttpRequestBody}
      */
     public HttpRequestBody toRequestBody(String content, Charset charset) {
         return HttpRequestBody.of(charset.encode(content), transfer(charset.name()));
@@ -145,28 +144,28 @@ public enum MediaType {
     }
 
     /**
-     * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpResponseBody}
+     * 根据类型转换成对应的{@link HttpResponseBody}
      */
     public HttpResponseBody toResponseBody(Map<String, Object> params, String charset) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpResponseBody}
+     * 根据类型转换成对应的{@link HttpResponseBody}
      */
     public HttpResponseBody toResponseBody(Map<String, Object> params, Charset charset) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpResponseBody}
+     * 根据类型转换成对应的{@link HttpResponseBody}
      */
     public HttpResponseBody toResponseBody(String content, String charset) {
         return toResponseBody(content, Charset.forName(charset));
     }
 
     /**
-     * 根据类型转换成对应的{@link org.kin.transport.netty.http.client.HttpResponseBody}
+     * 根据类型转换成对应的{@link HttpResponseBody}
      */
     public HttpResponseBody toResponseBody(String content, Charset charset) {
         return HttpResponseBody.of(charset.encode(content), transfer(charset.name()));

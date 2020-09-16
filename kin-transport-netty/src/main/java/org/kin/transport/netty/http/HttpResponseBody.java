@@ -1,4 +1,4 @@
-package org.kin.transport.netty.http.client;
+package org.kin.transport.netty.http;
 
 import io.netty.buffer.ByteBuf;
 
@@ -48,7 +48,7 @@ public final class HttpResponseBody {
     }
 
     //-------------------------------------------------------------------------------------------------------------
-    public MediaTypeWrapper mediaType() {
+    public MediaTypeWrapper getMediaType() {
         return mediaTypeWrapper;
     }
 }

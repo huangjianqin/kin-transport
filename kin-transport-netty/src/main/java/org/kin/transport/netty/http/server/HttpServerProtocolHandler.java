@@ -12,9 +12,9 @@ import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.transport.netty.ProtocolHandler;
-import org.kin.transport.netty.http.client.HttpResponseBody;
-import org.kin.transport.netty.http.client.HttpUrl;
-import org.kin.transport.netty.http.client.MediaType;
+import org.kin.transport.netty.http.HttpResponseBody;
+import org.kin.transport.netty.http.HttpUrl;
+import org.kin.transport.netty.http.MediaType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;

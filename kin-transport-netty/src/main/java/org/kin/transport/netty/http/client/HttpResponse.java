@@ -1,5 +1,7 @@
 package org.kin.transport.netty.http.client;
 
+import org.kin.transport.netty.http.HttpResponseBody;
+
 import java.util.Map;
 
 /**

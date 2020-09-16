@@ -29,6 +29,9 @@ public final class Cookie implements Serializable, Cloneable {
         this.value = value;
     }
 
+    /**
+     * 转换成netty使用的cookie对象
+     */
     io.netty.handler.codec.http.cookie.Cookie toNettyCookie() {
         DefaultCookie nettyCookie = new DefaultCookie(name, value);
         nettyCookie.setDomain(domain);
@@ -40,7 +43,6 @@ public final class Cookie implements Serializable, Cloneable {
     }
 
     //------------------------------------------------------------------------------------------------------------
-
     public static Cookie of(String name, String value) {
         return new Cookie(name, value);
     }

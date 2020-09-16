@@ -1,4 +1,4 @@
-package org.kin.transport.netty.http.client;
+package org.kin.transport.netty.http;
 
 import io.netty.handler.codec.http.HttpVersion;
 
@@ -69,7 +69,7 @@ public final class HttpUrl {
         return new InetSocketAddress(uri.getHost(), uri.getPort());
     }
 
-    public HttpVersion version() {
+    public HttpVersion getVersion() {
         return version;
     }
 }

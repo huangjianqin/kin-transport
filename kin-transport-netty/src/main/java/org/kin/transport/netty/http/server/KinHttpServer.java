@@ -78,6 +78,10 @@ public final class KinHttpServer {
     }
 
     //----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * servlet 配置
+     */
     static class ServletConfig {
         /** mapping url */
         private final String url;
@@ -99,6 +103,9 @@ public final class KinHttpServer {
         }
     }
 
+    /**
+     * filter 配置
+     */
     static class FilterConfig {
         /** mapping url */
         private final String url;

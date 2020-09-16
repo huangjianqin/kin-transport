@@ -10,8 +10,11 @@ import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
+import org.kin.transport.netty.http.HttpRequestBody;
+import org.kin.transport.netty.http.HttpResponseBody;
+import org.kin.transport.netty.http.HttpUrl;
+import org.kin.transport.netty.http.MediaTypeWrapper;
 import org.kin.transport.netty.http.client.HttpHeaders;
-import org.kin.transport.netty.http.client.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -83,7 +86,7 @@ public class HttpServerbinaryTransfer
         HttpResponseBody responseBody = servletResponse.getResponseBody();
         byteBuf.writeBytes(responseBody.bytes());
 
-        HttpVersion httpVersion = httpUrl.version();
+        HttpVersion httpVersion = httpUrl.getVersion();
         FullHttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.valueOf(servletResponse.getStatusCode()),
                 byteBuf);
 
@@ -92,7 +95,7 @@ public class HttpServerbinaryTransfer
         }
 
         response.headers()
-                .set(CONTENT_TYPE, responseBody.mediaType().toContentType())
+                .set(CONTENT_TYPE, responseBody.getMediaType().toContentType())
                 .setInt(CONTENT_LENGTH, byteBuf.readableBytes())
                 .set(COOKIE, cookieEncoder.encode(servletResponse.getCookies().stream().map(Cookie::toNettyCookie).collect(Collectors.toList())));
 

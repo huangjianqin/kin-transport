@@ -1,4 +1,4 @@
-package org.kin.transport.netty.http.client;
+package org.kin.transport.netty.http;
 
 import io.netty.buffer.ByteBuf;
 
@@ -55,11 +55,11 @@ public final class HttpRequestBody {
     }
 
     //-------------------------------------------------------------------------------------------------------------
-    public ByteBuffer sink() {
+    public ByteBuffer getSink() {
         return sink;
     }
 
-    public MediaTypeWrapper mediaType() {
+    public MediaTypeWrapper getMediaType() {
         return mediaTypeWrapper;
     }
 }

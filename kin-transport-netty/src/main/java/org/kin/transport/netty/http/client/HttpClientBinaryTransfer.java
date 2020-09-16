@@ -6,6 +6,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
+import org.kin.transport.netty.http.HttpRequestBody;
+import org.kin.transport.netty.http.HttpResponseBody;
+import org.kin.transport.netty.http.MediaTypeWrapper;
 import org.kin.transport.netty.socket.SocketTransfer;
 import org.kin.transport.netty.utils.ChannelUtils;
 
@@ -64,24 +67,24 @@ public class HttpClientBinaryTransfer extends AbstractTransportProtocolTransfer<
         }
 
         HttpRequest httpRequest = (HttpRequest) httpEntity;
-        HttpRequestBody requestBody = httpRequest.requestBody();
-        ByteBuffer byteBuffer = requestBody.sink();
+        HttpRequestBody requestBody = httpRequest.getRequestBody();
+        ByteBuffer byteBuffer = requestBody.getSink();
         ByteBuf content = ctx.alloc().buffer(byteBuffer.capacity());
         content.writeBytes(byteBuffer);
 
         //配置HttpRequest的请求数据和一些配置信息
         FullHttpRequest request = new DefaultFullHttpRequest(
                 HttpVersion.HTTP_1_0,
-                httpRequest.method(),
-                httpRequest.url().uri().toASCIIString(),
+                httpRequest.getMethod(),
+                httpRequest.getUrl().uri().toASCIIString(),
                 content);
 
-        for (Map.Entry<String, String> entry : httpRequest.headers().entrySet()) {
+        for (Map.Entry<String, String> entry : httpRequest.getHeaders().entrySet()) {
             request.headers().set(entry.getKey(), entry.getValue());
         }
 
         //设置content type
-        request.headers().set(HttpHeaderNames.CONTENT_TYPE, requestBody.mediaType().toContentType());
+        request.headers().set(HttpHeaderNames.CONTENT_TYPE, requestBody.getMediaType().toContentType());
 
         return Collections.singletonList(request);
     }

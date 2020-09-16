@@ -70,6 +70,7 @@ final class HttpClientPool {
         return new GenericObjectPool<>(httpClientFactory, poolConfig);
     }
 
+    //------------------------------------------------------------------------------------------------------------
     /**
      * http client工厂
      */

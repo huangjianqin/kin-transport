@@ -1,4 +1,4 @@
-package org.kin.transport.netty.http.client;
+package org.kin.transport.netty.http;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;

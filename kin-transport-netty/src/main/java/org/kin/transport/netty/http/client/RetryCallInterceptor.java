@@ -23,7 +23,7 @@ class RetryCallInterceptor implements Interceptor {
         while ((nowTry < maxRetry) || maxRetry == -1) {
             //仍然有尝试次数
             try {
-                return chain.proceed(chain.httpCall().httpRequest());
+                return chain.proceed(chain.getCall().getRequest());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

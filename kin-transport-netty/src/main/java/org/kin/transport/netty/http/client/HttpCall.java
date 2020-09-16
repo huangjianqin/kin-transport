@@ -105,15 +105,15 @@ public final class HttpCall {
 
     //-------------------------------------------------------------------------------------------------------------
 
-    public KinHttpClient kinHttpClient() {
+    public KinHttpClient getHttpClient() {
         return kinHttpClient;
     }
 
-    public HttpRequest httpRequest() {
+    public HttpRequest getRequest() {
         return httpRequest;
     }
 
-    public HttpResponse httpResponse() {
+    public HttpResponse getResponse() {
         return httpResponse;
     }
 

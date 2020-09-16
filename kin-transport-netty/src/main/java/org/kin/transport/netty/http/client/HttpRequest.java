@@ -1,6 +1,8 @@
 package org.kin.transport.netty.http.client;
 
 import io.netty.handler.codec.http.HttpMethod;
+import org.kin.transport.netty.http.HttpRequestBody;
+import org.kin.transport.netty.http.HttpUrl;
 
 import java.util.Map;
 
@@ -78,19 +80,19 @@ public final class HttpRequest implements HttpEntity {
     }
 
     //-------------------------------------------------getter----------------------------------------------------------------
-    public HttpUrl url() {
+    public HttpUrl getUrl() {
         return url;
     }
 
-    public HttpMethod method() {
+    public HttpMethod getMethod() {
         return method;
     }
 
-    public HttpHeaders headers() {
+    public HttpHeaders getHeaders() {
         return headers;
     }
 
-    public HttpRequestBody requestBody() {
+    public HttpRequestBody getRequestBody() {
         return requestBody;
     }
 }

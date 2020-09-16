@@ -19,8 +19,8 @@ class CallServerInterceptor implements Interceptor {
 
     @Override
     public HttpResponse intercept(HttpInterceptorChain chain) throws IOException {
-        HttpCall httpCall = chain.httpCall();
-        HttpClient httpClient = chain.httpClient();
+        HttpCall httpCall = chain.getCall();
+        HttpClient httpClient = chain.getClient();
         if (Objects.isNull(httpClient)) {
             throw new RuntimeException("http client not init");
         }

@@ -69,11 +69,11 @@ public final class HttpInterceptorChain {
     }
 
     //-------------------------------------------------------------------------------------------------------------
-    public HttpCall httpCall() {
+    HttpCall getCall() {
         return httpCall;
     }
 
-    public HttpClient httpClient() {
+    HttpClient getClient() {
         return httpClient;
     }
 }

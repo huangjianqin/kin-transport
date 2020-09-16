@@ -1,8 +1,8 @@
 package org.kin.transport.netty.http.server;
 
+import org.kin.transport.netty.http.HttpResponseBody;
+import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.client.HttpHeaders;
-import org.kin.transport.netty.http.client.HttpResponseBody;
-import org.kin.transport.netty.http.client.HttpUrl;
 
 import java.util.List;
 
@@ -30,11 +30,18 @@ public final class ServletResponse implements ServletTransportEntity {
         this.isKeepAlive = isKeepAlive;
     }
 
+    /**
+     * 添加cookie
+     */
     public void addCookie(Cookie cookie) {
         cookies.add(cookie);
     }
 
+    /**
+     * 重定向
+     */
     public void sendRedirect(String location) {
+        //TODO
     }
 
 

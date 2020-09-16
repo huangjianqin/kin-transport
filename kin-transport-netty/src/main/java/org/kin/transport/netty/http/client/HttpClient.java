@@ -47,7 +47,7 @@ final class HttpClient extends Client<HttpEntity> {
     public Future<HttpResponse> request(HttpCall httpCall) {
         CountDownLatch latch = new CountDownLatch(1);
         HttpCallFuture httpCallFuture = new HttpCallFuture(httpCall);
-        super.request(httpCall.httpRequest(), future -> {
+        super.request(httpCall.getRequest(), future -> {
             if (future.isSuccess()) {
                 //成功write
                 String channelId = future.channel().id().asLongText();
@@ -178,7 +178,7 @@ final class HttpClient extends Client<HttpEntity> {
             }
             //空即retry
             this.httpResponse = httpResponse;
-            this.httpResponse.setHttpRequest(httpCall.httpRequest());
+            this.httpResponse.setHttpRequest(httpCall.getRequest());
             //释放锁
             sync.release(1);
         }

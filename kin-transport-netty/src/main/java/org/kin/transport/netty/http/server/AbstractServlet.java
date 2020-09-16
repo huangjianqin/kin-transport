@@ -1,7 +1,7 @@
 package org.kin.transport.netty.http.server;
 
 import io.netty.handler.codec.http.HttpMethod;
-import org.kin.transport.netty.http.client.MediaType;
+import org.kin.transport.netty.http.MediaType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;

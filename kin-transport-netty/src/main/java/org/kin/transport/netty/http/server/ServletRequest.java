@@ -1,9 +1,9 @@
 package org.kin.transport.netty.http.server;
 
 import io.netty.handler.codec.http.HttpMethod;
+import org.kin.transport.netty.http.HttpRequestBody;
+import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.client.HttpHeaders;
-import org.kin.transport.netty.http.client.HttpRequestBody;
-import org.kin.transport.netty.http.client.HttpUrl;
 
 import java.util.List;
 import java.util.Map;
@@ -42,14 +42,23 @@ public final class ServletRequest implements ServletTransportEntity {
         this.isKeepAlive = isKeepAlive;
     }
 
+    /**
+     * 获取内容
+     */
     public String getContent() {
         return requestBody.getContent();
     }
 
+    /**
+     * 获取参数map
+     */
     public Map<String, Object> getParams() {
         return requestBody.getParams();
     }
 
+    /**
+     * 获取cookie内容
+     */
     public String cookie(String name) {
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals(name)) {

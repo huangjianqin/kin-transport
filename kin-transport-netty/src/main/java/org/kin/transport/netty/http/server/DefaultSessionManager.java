@@ -27,10 +27,12 @@ public class DefaultSessionManager implements HttpSessionManager {
                 notification.getValue().setValid(false);
             })
             .build();
+    /** session id 生成器 */
     private final SessionIdGenerator sessionIdGenerator;
 
     public DefaultSessionManager() {
         //session id长度为20
+        //默认使用tomcat的session id生成方法
         this(new DefaultSessionIdGenerator(HttpServerConstants.SESSION_ID_LEN));
     }
 
