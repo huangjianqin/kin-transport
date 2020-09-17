@@ -11,10 +11,10 @@ import java.util.List;
  * @author huangjianqin
  * @date 2020/8/25
  */
-public class HttpClientHandlerInitializer<MSG>
-        extends AbstractChannelHandlerInitializer<FullHttpResponse, MSG, FullHttpRequest,
-        HttpClientTransportOption<MSG>> {
-    public HttpClientHandlerInitializer(HttpClientTransportOption<MSG> transportOption) {
+public class HttpClientHandlerInitializer
+        extends AbstractChannelHandlerInitializer<FullHttpResponse, HttpEntity, FullHttpRequest,
+        HttpClientTransportOption> {
+    public HttpClientHandlerInitializer(HttpClientTransportOption transportOption) {
         super(transportOption);
     }
 

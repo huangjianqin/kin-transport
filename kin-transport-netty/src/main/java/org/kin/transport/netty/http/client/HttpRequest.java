@@ -45,6 +45,10 @@ public final class HttpRequest implements HttpEntity {
         return request(HttpMethod.GET, null);
     }
 
+    public HttpRequest get(HttpRequestBody requestBody) {
+        return request(HttpMethod.GET, requestBody);
+    }
+
     public HttpRequest post() {
         return post(null);
     }

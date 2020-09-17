@@ -3,6 +3,7 @@ package org.kin.transport.netty.http;
 import io.netty.buffer.ByteBuf;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 /**
  * http response 内容
@@ -27,6 +28,8 @@ public final class HttpResponseBody {
         HttpResponseBody responseBody = new HttpResponseBody();
         responseBody.source = source;
         responseBody.mediaTypeWrapper = mediaTypeWrapper;
+        //change read
+        responseBody.source.rewind();
         return responseBody;
     }
     //-------------------------------------------------------------------------------------------------------------
@@ -40,11 +43,22 @@ public final class HttpResponseBody {
         return bytes;
     }
 
-    /**
-     * 将response内容转换成字符串, 并返回
-     */
     public String str() {
         return mediaTypeWrapper.transfer(source);
+    }
+
+    /**
+     * 获取content string
+     */
+    public String getContent() {
+        return mediaTypeWrapper.mediaType().parseContent(source, mediaTypeWrapper.rawCharset());
+    }
+
+    /**
+     * 将content转换成map参数并返回
+     */
+    public Map<String, Object> getParams() {
+        return mediaTypeWrapper.mediaType().parseParams(source, mediaTypeWrapper.rawCharset());
     }
 
     //-------------------------------------------------------------------------------------------------------------

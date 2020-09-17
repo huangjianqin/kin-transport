@@ -5,6 +5,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.StringUtils;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
 import org.kin.transport.netty.http.HttpRequestBody;
 import org.kin.transport.netty.http.HttpResponseBody;
@@ -16,6 +17,7 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 基于{@link SocketTransfer}
@@ -39,10 +41,6 @@ public class HttpClientBinaryTransfer extends AbstractTransportProtocolTransfer<
 
     @Override
     public Collection<HttpEntity> decode(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
-        if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
-            return Collections.emptyList();
-        }
-
         /**
          * 将 {@link FullHttpResponse} 转换成 {@link HttpResponse}
          */
@@ -50,7 +48,10 @@ public class HttpClientBinaryTransfer extends AbstractTransportProtocolTransfer<
         int code = responseStatus.code();
         String message = responseStatus.reasonPhrase();
         String contentType = response.headers().get(HttpHeaderNames.CONTENT_TYPE);
-        HttpResponseBody responseBody = HttpResponseBody.of(response.content(), MediaTypeWrapper.parse(contentType));
+        HttpResponseBody responseBody = null;
+        if (StringUtils.isNotBlank(contentType)) {
+            responseBody = HttpResponseBody.of(response.content(), MediaTypeWrapper.parse(contentType));
+        }
 
         HttpResponse httpResponse = HttpResponse.of(responseBody, message, code);
         for (Map.Entry<String, String> entry : response.headers().entries()) {
@@ -62,15 +63,25 @@ public class HttpClientBinaryTransfer extends AbstractTransportProtocolTransfer<
 
     @Override
     public Collection<FullHttpRequest> encode(ChannelHandlerContext ctx, HttpEntity httpEntity) throws Exception {
+        if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
+            return Collections.emptyList();
+        }
+
         if (!(httpEntity instanceof HttpRequest)) {
             return Collections.emptyList();
         }
 
         HttpRequest httpRequest = (HttpRequest) httpEntity;
         HttpRequestBody requestBody = httpRequest.getRequestBody();
-        ByteBuffer byteBuffer = requestBody.getSink();
-        ByteBuf content = ctx.alloc().buffer(byteBuffer.capacity());
-        content.writeBytes(byteBuffer);
+        ByteBuf content;
+        if (Objects.nonNull(requestBody)) {
+            //get时, body为空
+            ByteBuffer byteBuffer = requestBody.getSink();
+            content = ctx.alloc().buffer(byteBuffer.capacity());
+            content.writeBytes(byteBuffer);
+        } else {
+            content = ctx.alloc().buffer();
+        }
 
         //配置HttpRequest的请求数据和一些配置信息
         FullHttpRequest request = new DefaultFullHttpRequest(
@@ -84,7 +95,10 @@ public class HttpClientBinaryTransfer extends AbstractTransportProtocolTransfer<
         }
 
         //设置content type
-        request.headers().set(HttpHeaderNames.CONTENT_TYPE, requestBody.getMediaType().toContentType());
+        if (Objects.nonNull(requestBody)) {
+            //get时, body为空
+            request.headers().set(HttpHeaderNames.CONTENT_TYPE, requestBody.getMediaType().toContentType());
+        }
 
         return Collections.singletonList(request);
     }

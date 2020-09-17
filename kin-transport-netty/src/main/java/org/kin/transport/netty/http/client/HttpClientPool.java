@@ -18,10 +18,10 @@ import java.util.concurrent.TimeUnit;
  * @date 2020/9/4
  */
 final class HttpClientPool {
-    private final HttpClientTransportOption<HttpEntity> transportOption;
+    private final HttpClientTransportOption transportOption;
     private final Map<InetSocketAddress, GenericObjectPool<HttpClient>> pools = new ConcurrentHashMap<>();
 
-    public HttpClientPool(HttpClientTransportOption<HttpEntity> transportOption) {
+    public HttpClientPool(HttpClientTransportOption transportOption) {
         this.transportOption = transportOption;
     }
 

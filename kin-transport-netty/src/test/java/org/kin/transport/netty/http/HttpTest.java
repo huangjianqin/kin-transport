@@ -1,16 +1,11 @@
 package org.kin.transport.netty.http;
 
-import io.netty.channel.ChannelHandlerContext;
-import org.kin.transport.netty.Client;
-import org.kin.transport.netty.Server;
-import org.kin.transport.netty.Transports;
-import org.kin.transport.netty.socket.SocketProtocolHandler;
-import org.kin.transport.netty.socket.protocol.Protocol1;
-import org.kin.transport.netty.socket.protocol.ProtocolFactory;
-import org.kin.transport.netty.socket.protocol.SocketProtocol;
+import org.kin.transport.netty.http.client.HttpRequest;
+import org.kin.transport.netty.http.client.HttpResponse;
+import org.kin.transport.netty.http.client.KinHttpClient;
+import org.kin.transport.netty.http.server.KinHttpServer;
 
 import java.net.InetSocketAddress;
-import java.util.Objects;
 
 /**
  * @author huangjianqin
@@ -18,36 +13,18 @@ import java.util.Objects;
  */
 public class HttpTest {
     public static void main(String[] args) throws InterruptedException {
-        ProtocolFactory.init("org.kin.transport");
+        InetSocketAddress address = new InetSocketAddress(8880);
+        KinHttpServer.builder().mappingServlet("/", PrintServlet.class).build(address);
 
-        Server server = null;
-        Client<SocketProtocol> client = null;
-        try {
-            InetSocketAddress address = new InetSocketAddress("0.0.0.0", 9000);
-            server = Transports.http().server(SocketProtocol.class).protocolHandler(new SocketProtocolHandler() {
-                @Override
-                public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
-                    System.out.println(protocol);
-                    ctx.channel().writeAndFlush(Protocol1.of(2));
-                }
-            }).build(address);
+        KinHttpClient kinHttpClient = KinHttpClient.builder();
+        HttpRequest httpRequest = HttpRequest.of("http://127.0.0.1:8880/a").get();
+        HttpResponse response = kinHttpClient.newCall(httpRequest).execute();
+        System.out.println(response.code());
+        System.out.println(response.headers());
+        System.out.println(response.message());
+//        System.out.println(response.responseBody().getParams());
+        System.out.println(response.responseBody().getContent());
 
-            client = Transports.http().client(SocketProtocol.class).protocolHandler(new SocketProtocolHandler() {
-                @Override
-                public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
-                    System.out.println(protocol);
-                }
-            }).build(address);
-            client.request(Protocol1.of(1));
-
-            Thread.sleep(5000);
-        } finally {
-            if (Objects.nonNull(client)) {
-                client.close();
-            }
-            if (Objects.nonNull(server)) {
-                server.close();
-            }
-        }
+        Thread.sleep(5000);
     }
 }

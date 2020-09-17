@@ -1,7 +1,6 @@
 package org.kin.transport.netty.http.server;
 
 import org.kin.framework.utils.ClassUtils;
-import org.kin.transport.netty.Transports;
 
 import java.net.InetSocketAddress;
 import java.util.Queue;
@@ -54,8 +53,7 @@ public final class KinHttpServer {
     }
 
     public void build(InetSocketAddress address) {
-        Transports.http()
-                .server(ServletTransportEntity.class)
+        new HttpServerTransportOption()
                 .protocolHandler(new HttpServerProtocolHandler(this))
                 .build(address);
     }
@@ -84,18 +82,18 @@ public final class KinHttpServer {
      */
     static class ServletConfig {
         /** mapping url */
-        private final String url;
+        private final String path;
         /** servlet class */
         private final Class<? extends Servlet> servletClass;
 
-        ServletConfig(String url, Class<? extends Servlet> servletClass) {
-            this.url = url;
+        ServletConfig(String path, Class<? extends Servlet> servletClass) {
+            this.path = path;
             this.servletClass = servletClass;
         }
 
         //getter
-        public String getUrl() {
-            return url;
+        public String getPath() {
+            return path;
         }
 
         public Class<? extends Servlet> getServletClass() {
@@ -108,19 +106,19 @@ public final class KinHttpServer {
      */
     static class FilterConfig {
         /** mapping url */
-        private final String url;
+        private final String path;
         /** servlet class */
         private final Class<? extends Filter> filterClass;
 
-        FilterConfig(String url, Class<? extends Filter> filterClass) {
-            this.url = url;
+        FilterConfig(String path, Class<? extends Filter> filterClass) {
+            this.path = path;
             this.filterClass = filterClass;
         }
 
         //getter
 
-        public String getUrl() {
-            return url;
+        public String getPath() {
+            return path;
         }
 
         public Class<? extends Filter> getFilterClass() {

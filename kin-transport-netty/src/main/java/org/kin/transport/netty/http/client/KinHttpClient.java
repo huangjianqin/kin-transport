@@ -1,7 +1,6 @@
 package org.kin.transport.netty.http.client;
 
 import io.netty.channel.ChannelOption;
-import org.kin.transport.netty.Transports;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -32,9 +31,7 @@ public final class KinHttpClient {
     private long writeTimeout;
 
     private KinHttpClient() {
-        HttpClientTransportOption<HttpEntity> transportOption = Transports
-                .http()
-                .client(HttpEntity.class)
+        HttpClientTransportOption transportOption = new HttpClientTransportOption()
                 .readTimeout(readTimeout, TimeUnit.MILLISECONDS)
                 .writeTimeout(writeTimeout, TimeUnit.MILLISECONDS)
                 .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
@@ -43,7 +40,7 @@ public final class KinHttpClient {
     }
 
     //builder
-    public static KinHttpClient build() {
+    public static KinHttpClient builder() {
         return new KinHttpClient();
     }
 

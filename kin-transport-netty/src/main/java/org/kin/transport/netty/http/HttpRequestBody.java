@@ -46,10 +46,17 @@ public final class HttpRequestBody {
     }
 
     //-------------------------------------------------------------------------------------------------------------
+
+    /**
+     * 获取content string
+     */
     public String getContent() {
         return mediaTypeWrapper.mediaType().parseContent(sink, mediaTypeWrapper.rawCharset());
     }
 
+    /**
+     * 将content转换成map参数并返回
+     */
     public Map<String, Object> getParams() {
         return mediaTypeWrapper.mediaType().parseParams(sink, mediaTypeWrapper.rawCharset());
     }

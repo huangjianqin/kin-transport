@@ -66,7 +66,7 @@ public final class HttpCall {
                 callback.onFailure(this, e);
             }
             futures.remove(this);
-            return null;
+            return response;
         });
         futures.put(this, future);
         return future;
@@ -75,9 +75,15 @@ public final class HttpCall {
     /**
      * 立即调用
      */
-    private HttpResponse execute() {
+    public HttpResponse execute() {
         try {
-            return realExecute0(EmptyHttpCallback.INSTANCE).get(kinHttpClient.getConnectTimeout(), TimeUnit.MILLISECONDS);
+            Future<HttpResponse> future = realExecute0(EmptyHttpCallback.INSTANCE);
+            long callTimeout = kinHttpClient.getCallTimeout();
+            if (callTimeout > 0) {
+                return future.get(callTimeout, TimeUnit.MILLISECONDS);
+            } else {
+                return future.get();
+            }
         } catch (TimeoutException e) {
             //TODO http request 描述
             throw new HttpCallTimeoutException(httpRequest.toString());

@@ -116,6 +116,11 @@ final class HttpClient extends Client<HttpEntity> {
             }
             callFutures.forEach(callFuture -> callFuture.done(null));
         }
+
+        @Override
+        public void handleException(ChannelHandlerContext ctx, Throwable cause) {
+            log.error("", cause);
+        }
     }
 
     private class HttpCallFuture implements Future<HttpResponse> {
@@ -178,7 +183,9 @@ final class HttpClient extends Client<HttpEntity> {
             }
             //空即retry
             this.httpResponse = httpResponse;
-            this.httpResponse.setHttpRequest(httpCall.getRequest());
+            if (Objects.nonNull(this.httpResponse)) {
+                this.httpResponse.setHttpRequest(httpCall.getRequest());
+            }
             //释放锁
             sync.release(1);
         }

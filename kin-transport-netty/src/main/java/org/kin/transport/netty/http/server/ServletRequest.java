@@ -5,8 +5,10 @@ import org.kin.transport.netty.http.HttpRequestBody;
 import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.client.HttpHeaders;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author huangjianqin
@@ -46,6 +48,9 @@ public final class ServletRequest implements ServletTransportEntity {
      * 获取内容
      */
     public String getContent() {
+        if (Objects.isNull(requestBody)) {
+            return "";
+        }
         return requestBody.getContent();
     }
 
@@ -53,6 +58,9 @@ public final class ServletRequest implements ServletTransportEntity {
      * 获取参数map
      */
     public Map<String, Object> getParams() {
+        if (Objects.isNull(requestBody)) {
+            return Collections.emptyMap();
+        }
         return requestBody.getParams();
     }
 

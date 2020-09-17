@@ -16,6 +16,7 @@ import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.MediaType;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -30,8 +31,7 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
     private static final ExecutionContext EXECUTION_CONTEXT = ExecutionContext.cache("http-servet");
     private static final AttributeKey<ChannelServletRequestHandler> CHANNEL_SERVLET_REQUEST_HANDLER_KEY =
             AttributeKey.newInstance("ChannelServletRequestHandler");
-    private static final KinHttpServer.FilterConfig SERVLET_SERVICE_FILTER_CONFIG =
-            new KinHttpServer.FilterConfig("/", ServletServiceFilter.class);
+
     /** 配置 */
     private final KinHttpServer kinHttpServer;
     private final HttpSessionManager sessionManager;
@@ -90,7 +90,7 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
      * url 匹配
      * 支持*通配符, 即/a/b/* 匹配 /a/b/c/d/e
      */
-    private boolean urlMatched(String source, String target) {
+    private boolean pathMatched(String source, String target) {
         String[] sourceSplits = source.split("/");
         String[] targetSplits = target.split("/");
 
@@ -124,12 +124,11 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
     /**
      * 获取url映射匹配的filter
      */
-    private List<Filter> matchedFilters(String url) {
+    private List<Filter> matchedFilters(String path) {
         Queue<KinHttpServer.FilterConfig> filterConfigs = new LinkedList<>(kinHttpServer.getFilterConfigs());
-        filterConfigs.add(SERVLET_SERVICE_FILTER_CONFIG);
         List<Filter> matchedFilters = new ArrayList<>(filterConfigs.size());
         for (KinHttpServer.FilterConfig filterConfig : filterConfigs) {
-            if (!urlMatched(url, filterConfig.getUrl())) {
+            if (!pathMatched(filterConfig.getPath(), path)) {
                 continue;
             }
 
@@ -152,11 +151,11 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
     /**
      * 获取匹配的Servlet, 按配置顺序, 谁先匹配到, 谁就用于处理逻辑
      */
-    private Servlet matchedServlet(String url) {
+    private Servlet matchedServlet(String path) {
         Queue<KinHttpServer.ServletConfig> servletConfigs = kinHttpServer.getServletConfigs();
         KinHttpServer.ServletConfig matchedServletConfig = null;
         for (KinHttpServer.ServletConfig servletConfig : servletConfigs) {
-            if (urlMatched(url, servletConfig.getUrl())) {
+            if (pathMatched(servletConfig.getPath(), path)) {
                 matchedServletConfig = servletConfig;
                 break;
             }
@@ -175,7 +174,7 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
             }
         }
 
-        throw new ServletException(String.format("can't find matched servlet, url path is '%s'", url));
+        throw new ServletException(String.format("can't find matched servlet, path path is '%s'", path));
     }
 
     /**
@@ -199,8 +198,9 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
 
         ServletResponse response = new ServletResponse(httpUrl, respCookies, request.isKeepAlive());
         try {
-            String rawUrl = httpUrl.rawUrl();
-            List<Filter> filters = matchedFilters(rawUrl);
+            URI uri = httpUrl.uri();
+            String path = uri.getPath();
+            List<Filter> filters = matchedFilters(path);
 
             //顺序filter
             for (int i = 0; i < filters.size(); i++) {
@@ -209,6 +209,13 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
                 if (response.getStatusCode() > 0) {
                     break;
                 }
+            }
+
+            if (response.getStatusCode() <= 0) {
+                //filter中没有设置response
+                Servlet matchedServlet = matchedServlet(path);
+                //servlet 处理
+                matchedServlet.service(request, response);
             }
         } catch (Exception e) {
             handleException(channel, response, e);
@@ -231,7 +238,8 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
     private void handleException(Channel channel, ServletResponse response, Throwable cause) {
         response.setStatusCode(ServletResponse.SC_INTERNAL_SERVER_ERROR);
         ByteBuf buffer = channel.alloc().buffer();
-        buffer.writeBytes(cause.toString().getBytes());
+        buffer.writeBytes(StandardCharsets.UTF_8.encode(cause.toString()));
+        //TDOO
         response.setResponseBody(HttpResponseBody.of(buffer, MediaType.PLAIN_TEXT.transfer(StandardCharsets.UTF_8.name())));
     }
 
@@ -243,18 +251,6 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
     private class ChannelServletRequestHandler extends PinnedThreadSafeHandler<ChannelServletRequestHandler> {
         public ChannelServletRequestHandler() {
             super(EXECUTION_CONTEXT);
-        }
-    }
-
-    /**
-     * 执行servlet匹配并执行servlet逻辑的filter
-     */
-    private class ServletServiceFilter implements Filter {
-        @Override
-        public void doFilter(ServletRequest request, ServletResponse response) {
-            Servlet matchedServlet = matchedServlet(request.getUrl().rawUrl());
-            //servlet 处理
-            matchedServlet.service(request, response);
         }
     }
 }

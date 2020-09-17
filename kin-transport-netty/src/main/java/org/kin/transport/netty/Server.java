@@ -106,10 +106,15 @@ public class Server extends ServerConnection {
             latch.countDown();
         });
 
+        long connectTimeout = transportOption.getConnectTimeout();
         try {
-            boolean success = latch.await(transportOption.getConnectTimeout(), TimeUnit.MILLISECONDS);
-            if (!success) {
-                throw new ServerBindTimeoutException(address.toString());
+            if (connectTimeout > 0) {
+                boolean success = latch.await(connectTimeout, TimeUnit.MILLISECONDS);
+                if (!success) {
+                    throw new ServerBindTimeoutException(address.toString());
+                }
+            } else {
+                latch.await();
             }
         } catch (InterruptedException e) {
 

@@ -9,17 +9,16 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.StringUtils;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
 import org.kin.transport.netty.http.HttpRequestBody;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.MediaTypeWrapper;
 import org.kin.transport.netty.http.client.HttpHeaders;
+import org.kin.transport.netty.utils.ChannelUtils;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.*;
@@ -51,6 +50,10 @@ public class HttpServerbinaryTransfer
 
     @Override
     public Collection<ServletTransportEntity> decode(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
+        if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
+            return Collections.emptyList();
+        }
+
         HttpHeaders headers = new HttpHeaders();
         for (Map.Entry<String, String> entry : request.headers()) {
             headers.add(entry.getKey(), entry.getValue());
@@ -66,7 +69,7 @@ public class HttpServerbinaryTransfer
                 request.method(),
                 headers,
                 cookies,
-                HttpRequestBody.of(request.content(), MediaTypeWrapper.parse(contentType)),
+                StringUtils.isBlank(contentType) ? null : HttpRequestBody.of(request.content(), MediaTypeWrapper.parse(contentType)),
                 HttpUtil.isKeepAlive(request)
         );
 
@@ -84,7 +87,9 @@ public class HttpServerbinaryTransfer
 
         ByteBuf byteBuf = ctx.alloc().buffer();
         HttpResponseBody responseBody = servletResponse.getResponseBody();
-        byteBuf.writeBytes(responseBody.bytes());
+        if (Objects.nonNull(responseBody)) {
+            byteBuf.writeBytes(responseBody.bytes());
+        }
 
         HttpVersion httpVersion = httpUrl.getVersion();
         FullHttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.valueOf(servletResponse.getStatusCode()),
@@ -94,9 +99,12 @@ public class HttpServerbinaryTransfer
             response.headers().set(entry.getKey(), entry.getValue());
         }
 
+        if (Objects.nonNull(responseBody)) {
+            response.headers()
+                    .set(CONTENT_TYPE, responseBody.getMediaType().toContentType())
+                    .setInt(CONTENT_LENGTH, byteBuf.readableBytes());
+        }
         response.headers()
-                .set(CONTENT_TYPE, responseBody.getMediaType().toContentType())
-                .setInt(CONTENT_LENGTH, byteBuf.readableBytes())
                 .set(COOKIE, cookieEncoder.encode(servletResponse.getCookies().stream().map(Cookie::toNettyCookie).collect(Collectors.toList())));
 
         if (keepAlive) {

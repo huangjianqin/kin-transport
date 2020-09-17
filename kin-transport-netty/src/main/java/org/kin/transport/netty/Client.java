@@ -91,10 +91,16 @@ public class Client<MSG> extends ClientConnection {
                 latch.countDown();
             }
         });
+
+        long connectTimeout = transportOption.getConnectTimeout();
         try {
-            boolean success = latch.await(transportOption.getConnectTimeout(), TimeUnit.MILLISECONDS);
-            if (!success) {
-                throw new ClientConnectTimeoutException(address.toString());
+            if (connectTimeout > 0) {
+                boolean success = latch.await(transportOption.getConnectTimeout(), TimeUnit.MILLISECONDS);
+                if (!success) {
+                    throw new ClientConnectTimeoutException(address.toString());
+                }
+            } else {
+                latch.await();
             }
         } catch (InterruptedException e) {
 
