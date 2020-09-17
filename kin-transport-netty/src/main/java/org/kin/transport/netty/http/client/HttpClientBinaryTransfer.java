@@ -19,6 +19,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
+
 /**
  * 基于{@link SocketTransfer}
  *
@@ -97,7 +99,9 @@ public class HttpClientBinaryTransfer extends AbstractTransportProtocolTransfer<
         //设置content type
         if (Objects.nonNull(requestBody)) {
             //get时, body为空
-            request.headers().set(HttpHeaderNames.CONTENT_TYPE, requestBody.getMediaType().toContentType());
+            request.headers()
+                    .set(HttpHeaderNames.CONTENT_TYPE, requestBody.getMediaType().toContentType())
+                    .setInt(CONTENT_LENGTH, content.readableBytes());
         }
 
         return Collections.singletonList(request);

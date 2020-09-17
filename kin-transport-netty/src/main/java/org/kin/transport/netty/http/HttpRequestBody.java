@@ -21,21 +21,12 @@ public final class HttpRequestBody {
     }
 
     //-------------------------------------------------------------------------------------------------------------
-    public static HttpRequestBody of(String content, MediaTypeWrapper mediaTypeWrapper) {
-        HttpRequestBody requestBody = new HttpRequestBody();
-        byte[] bytes = content.getBytes();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
-        byteBuffer.flip();
-
-        requestBody.sink = byteBuffer;
-        requestBody.mediaTypeWrapper = mediaTypeWrapper;
-        return requestBody;
-    }
-
     public static HttpRequestBody of(ByteBuffer byteBuffer, MediaTypeWrapper mediaTypeWrapper) {
         HttpRequestBody requestBody = new HttpRequestBody();
         requestBody.sink = byteBuffer;
         requestBody.mediaTypeWrapper = mediaTypeWrapper;
+        //read
+        requestBody.sink.rewind();
         return requestBody;
     }
 

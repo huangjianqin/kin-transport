@@ -2,6 +2,7 @@ package org.kin.transport.netty.http;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * media type的封装
@@ -20,19 +21,29 @@ public final class MediaTypeWrapper {
         this.charset = charset;
     }
 
+    public MediaTypeWrapper(String mediaType) {
+        this(mediaType, StandardCharsets.UTF_8.name());
+    }
+
     //-------------------------------------------------------------------------------------------------------------
 
     /**
      * 从content type解析出media type
      */
     public static MediaTypeWrapper parse(String contentType) {
-        int index1 = contentType.lastIndexOf(";");
-        String mediaType = contentType.substring(0, index1).trim();
+        String[] splits = contentType.split(";");
+        //解析content-type
+        String mediaType = splits[0].trim().toLowerCase();
 
-        String charsetStr = contentType.substring(index1 + 1, contentType.length()).trim();
-        int index2 = charsetStr.lastIndexOf("=");
-        String charset = charsetStr.substring(index2 + 1, charsetStr.length());
-        return new MediaTypeWrapper(mediaType, charset);
+        //解析charset
+        for (int i = 1; i < splits.length; i++) {
+            String[] itemSplits = splits[i].split("=");
+            if (itemSplits[0].equals("charset")) {
+                return new MediaTypeWrapper(mediaType, itemSplits[1]);
+            }
+        }
+
+        return new MediaTypeWrapper(mediaType);
     }
 
     //-------------------------------------------------------------------------------------------------------------

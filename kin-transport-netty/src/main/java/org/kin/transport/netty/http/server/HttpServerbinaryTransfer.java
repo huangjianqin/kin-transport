@@ -56,7 +56,7 @@ public class HttpServerbinaryTransfer
 
         HttpHeaders headers = new HttpHeaders();
         for (Map.Entry<String, String> entry : request.headers()) {
-            headers.add(entry.getKey(), entry.getValue());
+            headers.add(entry.getKey().toLowerCase(), entry.getValue());
         }
 
         String contentType = headers.header(CONTENT_TYPE.toString());
