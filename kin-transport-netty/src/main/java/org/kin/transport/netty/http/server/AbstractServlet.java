@@ -20,7 +20,7 @@ public abstract class AbstractServlet implements Servlet {
         if (HttpMethod.GET.equals(method)) {
             handleReturn(doGet(request, response), response);
         } else if (HttpMethod.POST.equals(method)) {
-            handleReturn(doPost(request, response, request.getParams()), response);
+            handleReturn(doPost(request, response), response);
         } else if (HttpMethod.DELETE.equals(method)) {
             doDelete(request, response);
         } else if (HttpMethod.PUT.equals(method)) {
@@ -57,7 +57,7 @@ public abstract class AbstractServlet implements Servlet {
     /**
      * 处理post请求
      */
-    protected Object doPost(ServletRequest request, ServletResponse response, Map<String, Object> params) {
+    protected Object doPost(ServletRequest request, ServletResponse response) {
         return null;
     }
 

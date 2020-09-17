@@ -5,7 +5,6 @@ import org.kin.transport.netty.http.server.ServletRequest;
 import org.kin.transport.netty.http.server.ServletResponse;
 
 import java.util.Collections;
-import java.util.Map;
 
 /**
  * @author huangjianqin
@@ -14,13 +13,13 @@ import java.util.Map;
 public class PrintServlet extends AbstractServlet {
     @Override
     protected Object doGet(ServletRequest request, ServletResponse response) {
-        System.out.println(request.getContent());
+        System.out.println(request.getParams());
         return "/abc";
     }
 
     @Override
-    protected Object doPost(ServletRequest request, ServletResponse response, Map<String, Object> params) {
-        System.out.println(params);
+    protected Object doPost(ServletRequest request, ServletResponse response) {
+        System.out.println(request.getParams());
         return Collections.singletonMap("status", 1);
     }
 

@@ -1,11 +1,12 @@
 package org.kin.transport.netty.http.server;
 
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import org.kin.transport.netty.http.HttpRequestBody;
 import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.client.HttpHeaders;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -58,10 +59,21 @@ public final class ServletRequest implements ServletTransportEntity {
      * 获取参数map
      */
     public Map<String, Object> getParams() {
-        if (Objects.isNull(requestBody)) {
-            return Collections.emptyMap();
+        //默认先从url获取参数
+        Map<String, Object> params = new HashMap<>();
+        QueryStringDecoder decoder = new QueryStringDecoder(url.uri());
+        for (Map.Entry<String, List<String>> entry : decoder.parameters().entrySet()) {
+            // entry.getValue()是一个List, 只取第一个元素
+            params.put(entry.getKey(), entry.getValue().get(0));
         }
-        return requestBody.getParams();
+
+        if (Objects.isNull(requestBody)) {
+            return params;
+        }
+
+        //然后用body内容覆盖url的参数
+        params.putAll(requestBody.getParams());
+        return params;
     }
 
     /**
