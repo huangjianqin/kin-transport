@@ -1,11 +1,17 @@
 package org.kin.transport.netty.http.client;
 
+import com.google.common.base.Preconditions;
+import com.jakewharton.disklrucache.DiskLruCache;
 import io.netty.channel.ChannelOption;
+import org.kin.framework.Closeable;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -14,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020/9/4
  */
-public final class KinHttpClient {
+public final class KinHttpClient implements Closeable {
     /** http client池 */
     private final HttpClientPool pool;
     /** interceptors */
@@ -29,6 +35,8 @@ public final class KinHttpClient {
     private long readTimeout;
     /** 写超时,毫秒 */
     private long writeTimeout;
+    /** 缓存目录 */
+    private DiskLruCache cache;
 
     private KinHttpClient() {
         HttpClientTransportOption transportOption = new HttpClientTransportOption()
@@ -40,7 +48,7 @@ public final class KinHttpClient {
     }
 
     //builder
-    public static KinHttpClient builder() {
+    public static KinHttpClient create() {
         return new KinHttpClient();
     }
 
@@ -89,6 +97,24 @@ public final class KinHttpClient {
         return this;
     }
 
+    public KinHttpClient cacheDir(String dirPath, int maxSize) {
+        return cacheDir(new File(dirPath), maxSize);
+    }
+
+    public KinHttpClient cacheDir(File cacheDir, int maxSize) {
+        Preconditions.checkArgument(Objects.isNull(cache), "cache has been set");
+        Preconditions.checkArgument(Objects.nonNull(cacheDir) && cacheDir.isDirectory(),
+                "cache dir path must be a directory");
+        //1个app版本
+        //1个key对应1个value
+        try {
+            cache = DiskLruCache.open(cacheDir, 1, 1, maxSize);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
     //--------------------------------------------------------------------------------------------------------------
 
     /**
@@ -114,6 +140,17 @@ public final class KinHttpClient {
         pool.clientBack(address, client);
     }
 
+    @Override
+    public void close() {
+        if (Objects.nonNull(cache)) {
+            try {
+                cache.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     //--------------------------------------------------------------------------------------------------------------
     public List<Interceptor> getInterceptors() {
         return interceptors;
@@ -137,5 +174,9 @@ public final class KinHttpClient {
 
     public long getWriteTimeout() {
         return writeTimeout;
+    }
+
+    public DiskLruCache getCache() {
+        return cache;
     }
 }

@@ -28,11 +28,11 @@ public final class KinHttpServer {
     }
 
     //----------------------------------------------------------------------------------------------------------------
-    public static KinHttpServer builder(String appName) {
+    public static KinHttpServer create(String appName) {
         return new KinHttpServer(appName);
     }
 
-    public static KinHttpServer builder() {
+    public static KinHttpServer create() {
         return new KinHttpServer("default");
     }
 

@@ -19,6 +19,8 @@ public final class HttpRequest implements HttpEntity {
     private HttpHeaders headers;
     /** 请求的http内容 */
     private HttpRequestBody requestBody;
+    /** 缓存设置 */
+    private CacheControl cacheControl;
 
     private HttpRequest(HttpUrl url) {
         this.url = url;
@@ -83,6 +85,11 @@ public final class HttpRequest implements HttpEntity {
         return this;
     }
 
+    public HttpRequest cacheControl(CacheControl cacheControl) {
+        this.cacheControl = cacheControl;
+        return this;
+    }
+
     //-------------------------------------------------getter----------------------------------------------------------------
     public HttpUrl getUrl() {
         return url;
@@ -98,5 +105,9 @@ public final class HttpRequest implements HttpEntity {
 
     public HttpRequestBody getRequestBody() {
         return requestBody;
+    }
+
+    public CacheControl getCacheControl() {
+        return cacheControl;
     }
 }

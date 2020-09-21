@@ -48,5 +48,19 @@
             <artifactId>commons-pool2</artifactId>
             <version>${commons-pool2.version}</version>
         </dependency>
+
+        <!-- http client cache -->
+        <dependency>
+            <groupId>com.jakewharton</groupId>
+            <artifactId>disklrucache</artifactId>
+            <version>${disklrucache.version}</version>
+        </dependency>
+
+        <!-- kryo-->
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>${kryo.version}</version>
+        </dependency>
     </dependencies>
 </project>

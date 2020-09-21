@@ -42,6 +42,7 @@ public final class HttpCall {
         interceptors.addAll(kinHttpClient.getInterceptors());
         //内部实现的interceptor
         interceptors.add(new RetryCallInterceptor(kinHttpClient.getRetryTimes()));
+        interceptors.add(CacheInterceptor.INSTANCE);
         interceptors.add(ConnectInterceptor.INSTANCE);
         interceptors.add(CallServerInterceptor.INSTANCE);
 
