@@ -105,7 +105,8 @@ public class HttpServerbinaryTransfer
                     .setInt(CONTENT_LENGTH, byteBuf.readableBytes());
         }
         response.headers()
-                .set(COOKIE, cookieEncoder.encode(servletResponse.getCookies().stream().map(Cookie::toNettyCookie).collect(Collectors.toList())));
+                .set(COOKIE, cookieEncoder.encode(servletResponse.getCookies().stream().map(Cookie::toNettyCookie).collect(Collectors.toList())))
+                .set(SERVER, "kin-http-server");
 
         if (keepAlive) {
             if (!httpVersion.isKeepAliveDefault()) {

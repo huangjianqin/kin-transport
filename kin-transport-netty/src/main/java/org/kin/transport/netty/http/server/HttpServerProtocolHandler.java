@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutionException;
  * @date 2020/9/10
  */
 public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> {
-    private static final ExecutionContext EXECUTION_CONTEXT = ExecutionContext.cache("http-servet");
+    private static final ExecutionContext EXECUTION_CONTEXT = ExecutionContext.cache("kin-http-servet");
     private static final AttributeKey<ChannelServletRequestHandler> CHANNEL_SERVLET_REQUEST_HANDLER_KEY =
             AttributeKey.newInstance("ChannelServletRequestHandler");
 
