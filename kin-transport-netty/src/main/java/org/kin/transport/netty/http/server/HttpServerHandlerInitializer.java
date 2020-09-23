@@ -2,6 +2,7 @@ package org.kin.transport.netty.http.server;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
 
 import java.util.Collection;
@@ -23,9 +24,11 @@ public class HttpServerHandlerInitializer
     protected Collection<ChannelHandler> firstHandlers() {
         List<ChannelHandler> channelHandlers = setUpChannelHandlers(transportOption);
 
-        channelHandlers.add(new HttpResponseEncoder());
-        channelHandlers.add(new HttpRequestDecoder());
+        channelHandlers.add(new HttpServerCodec());
+        channelHandlers.add(new HttpContentCompressor());
         channelHandlers.add(new HttpObjectAggregator(65536));
+        channelHandlers.add(new ChunkedWriteHandler());
+
         return channelHandlers;
     }
 }

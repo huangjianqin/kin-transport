@@ -2,6 +2,7 @@ package org.kin.transport.netty.http.client;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
 
 import java.util.Collection;
@@ -22,9 +23,11 @@ public class HttpClientHandlerInitializer
     protected Collection<ChannelHandler> firstHandlers() {
         List<ChannelHandler> channelHandlers = setUpChannelHandlers(transportOption);
 
-        channelHandlers.add(new HttpResponseDecoder());
-        channelHandlers.add(new HttpRequestEncoder());
+        channelHandlers.add(new HttpClientCodec());
+        //客户端没必要压缩数据
+        channelHandlers.add(new HttpContentDecompressor());
         channelHandlers.add(new HttpObjectAggregator(65536));
+        channelHandlers.add(new ChunkedWriteHandler());
         return channelHandlers;
     }
 }
