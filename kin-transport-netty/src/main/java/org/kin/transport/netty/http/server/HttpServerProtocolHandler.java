@@ -239,7 +239,7 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
         response.setStatusCode(ServletResponse.SC_INTERNAL_SERVER_ERROR);
         ByteBuf buffer = channel.alloc().buffer();
         buffer.writeBytes(StandardCharsets.UTF_8.encode(cause.toString()));
-        //TDOO
+        //TODO
         response.setResponseBody(HttpResponseBody.of(buffer, MediaType.PLAIN_TEXT.transfer(StandardCharsets.UTF_8.name())));
     }
 

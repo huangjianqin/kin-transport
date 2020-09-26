@@ -1,6 +1,7 @@
 package org.kin.transport.netty.http.client;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import org.kin.framework.log.LoggerOprs;
@@ -69,7 +70,7 @@ class HttpClientTransfer extends AbstractTransportProtocolTransfer<FullHttpRespo
             content = ctx.alloc().buffer(byteBuffer.capacity());
             content.writeBytes(byteBuffer);
         } else {
-            content = ctx.alloc().buffer();
+            content = Unpooled.EMPTY_BUFFER;
         }
 
         //配置HttpRequest的请求数据和一些配置信息
