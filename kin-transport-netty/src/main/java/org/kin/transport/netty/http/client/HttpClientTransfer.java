@@ -1,6 +1,5 @@
 package org.kin.transport.netty.http.client;
 
-import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
@@ -11,7 +10,6 @@ import org.kin.transport.netty.http.HttpRequestBody;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.MediaTypeWrapper;
 import org.kin.transport.netty.socket.SocketTransfer;
-import org.kin.transport.netty.utils.ChannelUtils;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -29,16 +27,9 @@ import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
  */
 class HttpClientTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, HttpEntity, FullHttpRequest>
         implements LoggerOprs {
-    /** 限流 */
-    private final RateLimiter globalRateLimiter;
 
     public HttpClientTransfer(boolean compression, int globalRateLimit) {
         super(compression);
-        if (globalRateLimit > 0) {
-            globalRateLimiter = RateLimiter.create(globalRateLimit);
-        } else {
-            globalRateLimiter = null;
-        }
     }
 
     @Override
@@ -65,10 +56,6 @@ class HttpClientTransfer extends AbstractTransportProtocolTransfer<FullHttpRespo
 
     @Override
     public Collection<FullHttpRequest> encode(ChannelHandlerContext ctx, HttpEntity httpEntity) throws Exception {
-        if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
-            return Collections.emptyList();
-        }
-
         if (!(httpEntity instanceof HttpRequest)) {
             return Collections.emptyList();
         }
