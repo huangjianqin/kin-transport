@@ -3,8 +3,13 @@ package org.kin.transport.netty.http.server;
 import io.netty.handler.codec.http.HttpMethod;
 import org.kin.transport.netty.http.MediaType;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +40,26 @@ public abstract class AbstractServlet implements Servlet {
      */
     private void handleReturn(Object returnObj, ServletResponse response) {
         if (returnObj instanceof String) {
-            response.setResponseBody(MediaType.PLAIN_TEXT.toResponseBody(returnObj.toString(), StandardCharsets.UTF_8));
+            String content = (String) returnObj;
+
+            //尝试去定位资源
+            URL resource = getClass().getClassLoader().getResource(content);
+            if (Objects.nonNull(resource)) {
+                try {
+                    OutputStream outputStream = response.getOutputStream();
+                    InputStream inputStream = resource.openStream();
+                    byte[] chunked = new byte[1024];
+                    while (inputStream.available() > 0) {
+                        inputStream.read(chunked);
+                        outputStream.write(chunked);
+                    }
+                } catch (IOException e) {
+                    response.setResponseBody(MediaType.PLAIN_TEXT.toResponseBody(e.getMessage(), StandardCharsets.UTF_8));
+                }
+            } else {
+                //不资源, 则直接当成字符串返回
+                response.setResponseBody(MediaType.PLAIN_TEXT.toResponseBody(returnObj.toString(), StandardCharsets.UTF_8));
+            }
         } else if (returnObj instanceof Map) {
             Map<String, Object> respContent =
                     ((Map<Object, Object>) returnObj).entrySet()

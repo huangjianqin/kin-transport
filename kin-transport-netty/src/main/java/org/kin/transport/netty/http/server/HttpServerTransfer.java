@@ -1,12 +1,12 @@
 package org.kin.transport.netty.http.server;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
+import io.netty.handler.stream.ChunkedStream;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.StringUtils;
 import org.kin.transport.netty.AbstractTransportProtocolTransfer;
@@ -16,6 +16,7 @@ import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.MediaTypeWrapper;
 import org.kin.transport.netty.http.client.HttpHeaders;
 
+import java.io.ByteArrayInputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,8 @@ import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
 class HttpServerTransfer
         extends AbstractTransportProtocolTransfer<FullHttpRequest, ServletTransportEntity, FullHttpResponse>
         implements LoggerOprs {
+    /** response内容大小, 如果大于10m, 则采用chunked write, 否则直接write full response todo 测试1k */
+    private static final int CONTENT_SIZE_LIMIT = 1024 * 1;
     /** cookie 解码 */
     private final ServerCookieDecoder cookieDecoder = ServerCookieDecoder.STRICT;
     /** cookie 编码 */
@@ -69,14 +72,36 @@ class HttpServerTransfer
             return Collections.emptyList();
         }
         ServletResponse servletResponse = (ServletResponse) servletTransportEntity;
-        HttpUrl httpUrl = servletResponse.getUrl();
-        boolean keepAlive = servletResponse.isKeepAlive();
 
-        ByteBuf byteBuf = ctx.alloc().buffer();
         HttpResponseBody responseBody = servletResponse.getResponseBody();
+        int contentSize = 0;
+        if (Objects.nonNull(responseBody)) {
+            contentSize = responseBody.contentSize();
+        }
+
+        if (contentSize >= CONTENT_SIZE_LIMIT) {
+            //write chunked
+            writeChunkedResponse(ctx, servletResponse);
+        } else {
+            //write full response
+            writeFullResponse(ctx, servletResponse);
+        }
+
+        return Collections.emptyList();
+    }
+
+    /**
+     * 直接write full response
+     */
+    private void writeFullResponse(ChannelHandlerContext ctx, ServletResponse servletResponse) {
+        HttpResponseBody responseBody = servletResponse.getResponseBody();
+        ByteBuf byteBuf = Unpooled.EMPTY_BUFFER;
         if (Objects.nonNull(responseBody)) {
             byteBuf.writeBytes(responseBody.bytes());
         }
+
+        HttpUrl httpUrl = servletResponse.getUrl();
+        boolean keepAlive = servletResponse.isKeepAlive();
 
         HttpVersion httpVersion = httpUrl.getVersion();
         FullHttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.valueOf(servletResponse.getStatusCode()),
@@ -89,7 +114,7 @@ class HttpServerTransfer
         if (Objects.nonNull(responseBody)) {
             response.headers()
                     .set(CONTENT_TYPE, responseBody.getMediaType().toContentType())
-                    .setInt(CONTENT_LENGTH, byteBuf.readableBytes());
+                    .setInt(CONTENT_LENGTH, response.content().readableBytes());
         }
         response.headers()
                 .set(COOKIE, cookieEncoder.encode(servletResponse.getCookies().stream().map(Cookie::toNettyCookie).collect(Collectors.toList())))
@@ -108,7 +133,68 @@ class HttpServerTransfer
         if (!keepAlive) {
             f.addListener(ChannelFutureListener.CLOSE);
         }
-        return Collections.emptyList();
+    }
+
+    private void writeChunkedResponse(ChannelHandlerContext ctx, ServletResponse servletResponse) {
+        HttpUrl httpUrl = servletResponse.getUrl();
+        boolean keepAlive = servletResponse.isKeepAlive();
+
+        HttpVersion httpVersion = httpUrl.getVersion();
+        HttpResponse response = new DefaultHttpResponse(httpVersion, HttpResponseStatus.valueOf(servletResponse.getStatusCode()));
+
+        for (Map.Entry<String, String> entry : response.headers()) {
+            response.headers().set(entry.getKey(), entry.getValue());
+        }
+
+        HttpResponseBody responseBody = servletResponse.getResponseBody();
+        byte[] contentBytes = responseBody.bytes();
+        if (Objects.nonNull(responseBody)) {
+            response.headers()
+                    .set(CONTENT_TYPE, responseBody.getMediaType().toContentType())
+                    .setInt(CONTENT_LENGTH, contentBytes.length);
+        }
+        response.headers()
+                .set(COOKIE, cookieEncoder.encode(servletResponse.getCookies().stream().map(Cookie::toNettyCookie).collect(Collectors.toList())))
+                .set(SERVER, "kin-http-server");
+
+        if (keepAlive) {
+            if (!httpVersion.isKeepAliveDefault()) {
+                response.headers().set(CONNECTION, CONNECTION);
+            }
+        } else {
+            // 通知client关闭连接
+            response.headers().set(CONNECTION, CLOSE);
+        }
+
+        //write response head
+        ctx.write(response);
+
+        //write the content
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(contentBytes);
+        ChannelFuture writeLastContentFuture = ctx.writeAndFlush(new HttpChunkedInput(new ChunkedStream(inputStream)),
+                ctx.newProgressivePromise());
+
+        writeLastContentFuture.addListener(new ChannelProgressiveFutureListener() {
+            @Override
+            public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
+                Channel channel = future.channel();
+                if (total < 0) {
+                    log().debug("{}({}) Transfer progress:{}", channel, servletResponse, progress);
+                } else {
+                    log().debug("{}({}) Transfer progress:{}/{}", channel, servletResponse, progress, total);
+                }
+            }
+
+            @Override
+            public void operationComplete(ChannelProgressiveFuture future) {
+                log().debug("{}({}) Transfer complete.", future.channel(), servletResponse);
+            }
+        });
+
+        if (!keepAlive) {
+            writeLastContentFuture.addListener(ChannelFutureListener.CLOSE);
+        }
+
     }
 
     @Override

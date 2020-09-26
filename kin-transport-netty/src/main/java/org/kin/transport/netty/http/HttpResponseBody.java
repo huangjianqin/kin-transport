@@ -61,8 +61,19 @@ public final class HttpResponseBody {
         return mediaTypeWrapper.mediaType().parseParams(source, mediaTypeWrapper.rawCharset());
     }
 
+    /**
+     * response content size
+     */
+    public int contentSize() {
+        return source.remaining();
+    }
+
     //-------------------------------------------------------------------------------------------------------------
     public MediaTypeWrapper getMediaType() {
         return mediaTypeWrapper;
+    }
+
+    public ByteBuffer getSource() {
+        return source;
     }
 }

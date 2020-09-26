@@ -1,11 +1,17 @@
 package org.kin.transport.netty.http.server;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
+import org.kin.framework.io.ByteBufferOutputStream;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.HttpUrl;
+import org.kin.transport.netty.http.MediaType;
+import org.kin.transport.netty.http.MediaTypeWrapper;
 import org.kin.transport.netty.http.client.HttpHeaders;
 
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author huangjianqin
@@ -24,6 +30,8 @@ public final class ServletResponse implements ServletTransportEntity {
     private final boolean isKeepAlive;
     /** 响应内容 */
     private HttpResponseBody responseBody;
+    /** 响应内容的stream */
+    private OutputStream outputStream;
 
     public ServletResponse(HttpUrl url, List<Cookie> cookies, boolean isKeepAlive) {
         this.url = url;
@@ -50,6 +58,16 @@ public final class ServletResponse implements ServletTransportEntity {
         } catch (Exception e) {
             statusCode = SC_NOT_FOUND;
         }
+    }
+
+    public OutputStream getOutputStream() {
+        if (Objects.isNull(responseBody)) {
+            //create new default 1k
+            ByteBuffer source = ByteBuffer.allocate(1024);
+            responseBody = HttpResponseBody.of(source, new MediaTypeWrapper(MediaType.HTML.name()));
+        }
+
+        return Objects.nonNull(outputStream) ? outputStream : new ByteBufferOutputStream(responseBody.getSource());
     }
 
     //setter && getter
@@ -84,7 +102,6 @@ public final class ServletResponse implements ServletTransportEntity {
     public void setResponseBody(HttpResponseBody responseBody) {
         this.responseBody = responseBody;
     }
-
 
     //------------------------------------------------------------------------------------------------------------
     /*
