@@ -12,7 +12,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020/8/25
  */
-public class HttpClientTransportOption
+class HttpClientTransportOption
         extends AbstractTransportOption<FullHttpResponse, HttpEntity, FullHttpRequest, HttpClientTransportOption> {
     public final HttpClient build(InetSocketAddress address) {
         HttpClientHandlerInitializer httpClientHandlerInitializer = new HttpClientHandlerInitializer(this);

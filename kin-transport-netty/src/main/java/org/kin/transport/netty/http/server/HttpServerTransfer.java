@@ -28,7 +28,7 @@ import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
  * @author huangjianqin
  * @date 2020/8/31
  */
-public class HttpServerTransfer
+class HttpServerTransfer
         extends AbstractTransportProtocolTransfer<FullHttpRequest, ServletTransportEntity, FullHttpResponse>
         implements LoggerOprs {
     /** 限流 */

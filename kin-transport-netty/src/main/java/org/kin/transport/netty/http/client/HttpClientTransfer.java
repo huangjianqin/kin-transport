@@ -27,7 +27,7 @@ import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
  * @author huangjianqin
  * @date 2020/8/31
  */
-public class HttpClientTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, HttpEntity, FullHttpRequest>
+class HttpClientTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, HttpEntity, FullHttpRequest>
         implements LoggerOprs {
     /** 限流 */
     private final RateLimiter globalRateLimiter;
