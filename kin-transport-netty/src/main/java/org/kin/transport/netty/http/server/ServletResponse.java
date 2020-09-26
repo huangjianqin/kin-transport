@@ -1,5 +1,6 @@
 package org.kin.transport.netty.http.server;
 
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.client.HttpHeaders;
@@ -41,9 +42,15 @@ public final class ServletResponse implements ServletTransportEntity {
      * 重定向
      */
     public void sendRedirect(String location) {
-        //TODO
+        try {
+            //clean buff
+            responseBody = null;
+            headers.add(HttpHeaderNames.LOCATION.toString(), location);
+            statusCode = SC_FOUND;
+        } catch (Exception e) {
+            statusCode = SC_NOT_FOUND;
+        }
     }
-
 
     //setter && getter
     public HttpUrl getUrl() {
@@ -77,6 +84,7 @@ public final class ServletResponse implements ServletTransportEntity {
     public void setResponseBody(HttpResponseBody responseBody) {
         this.responseBody = responseBody;
     }
+
 
     //------------------------------------------------------------------------------------------------------------
     /*
