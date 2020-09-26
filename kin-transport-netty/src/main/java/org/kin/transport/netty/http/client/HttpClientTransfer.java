@@ -27,12 +27,12 @@ import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
  * @author huangjianqin
  * @date 2020/8/31
  */
-public class HttpClientBinaryTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, HttpEntity, FullHttpRequest>
+public class HttpClientTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, HttpEntity, FullHttpRequest>
         implements LoggerOprs {
     /** 限流 */
     private final RateLimiter globalRateLimiter;
 
-    public HttpClientBinaryTransfer(boolean compression, int globalRateLimit) {
+    public HttpClientTransfer(boolean compression, int globalRateLimit) {
         super(compression);
         if (globalRateLimit > 0) {
             globalRateLimiter = RateLimiter.create(globalRateLimit);

@@ -28,7 +28,7 @@ import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
  * @author huangjianqin
  * @date 2020/8/31
  */
-public class HttpServerbinaryTransfer
+public class HttpServerTransfer
         extends AbstractTransportProtocolTransfer<FullHttpRequest, ServletTransportEntity, FullHttpResponse>
         implements LoggerOprs {
     /** 限流 */
@@ -39,7 +39,7 @@ public class HttpServerbinaryTransfer
     private final ServerCookieEncoder cookieEncoder = ServerCookieEncoder.STRICT;
 
 
-    public HttpServerbinaryTransfer(boolean compression, int globalRateLimit) {
+    public HttpServerTransfer(boolean compression, int globalRateLimit) {
         super(compression);
         if (globalRateLimit > 0) {
             globalRateLimiter = RateLimiter.create(globalRateLimit);

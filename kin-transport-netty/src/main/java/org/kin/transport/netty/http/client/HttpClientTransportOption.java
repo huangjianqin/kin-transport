@@ -25,7 +25,7 @@ public class HttpClientTransportOption
     @Override
     public TransportProtocolTransfer<FullHttpResponse, HttpEntity, FullHttpRequest> getTransportProtocolTransfer() {
         if (Objects.isNull(super.getTransportProtocolTransfer())) {
-            return new HttpClientBinaryTransfer(isCompression(), getGlobalRateLimit());
+            return new HttpClientTransfer(isCompression(), getGlobalRateLimit());
         }
 
         return super.getTransportProtocolTransfer();
