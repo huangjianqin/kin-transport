@@ -1,13 +1,11 @@
 package org.kin.transport.netty.socket.handler;
 
-import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 import io.netty.handler.codec.CorruptedFrameException;
 import io.netty.util.ReferenceCountUtil;
-import org.kin.transport.netty.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,8 +31,6 @@ public class SocketFrameCodec extends ByteToMessageCodec<ByteBuf> {
     private final boolean serverElseClient;
     /** 协议头+协议体大小字段的字节长度 */
     private final int frameBaseLength;
-    /** 限流 */
-    private final RateLimiter globalRateLimiter;
 
     //---------------------------------------------------------------------------------------------------------------
 
@@ -43,23 +39,14 @@ public class SocketFrameCodec extends ByteToMessageCodec<ByteBuf> {
      */
     public static SocketFrameCodec clientFrameCodec() {
         //默认包体最大18M
-        return new SocketFrameCodec(18 * 1024 * 1024, false, 0);
+        return new SocketFrameCodec(18 * 1024 * 1024, false);
     }
 
     /**
      * server端的数据流解析
      */
     public static SocketFrameCodec serverFrameCodec() {
-        return serverFrameCodec(0);
-    }
-
-    /**
-     * server端的数据流解析
-     *
-     * @param globalRateLimit 全局限流
-     */
-    public static SocketFrameCodec serverFrameCodec(int globalRateLimit) {
-        return new SocketFrameCodec(18 * 1024 * 1024, true, globalRateLimit);
+        return new SocketFrameCodec(18 * 1024 * 1024, true);
     }
 
     //---------------------------------------------------------------------------------------------------------------
@@ -67,17 +54,11 @@ public class SocketFrameCodec extends ByteToMessageCodec<ByteBuf> {
     /**
      * @param maxBodySize      传输层帧大小
      * @param serverElseClient true = server, false = client
-     * @param globalRateLimit  全局限流
      */
-    public SocketFrameCodec(int maxBodySize, boolean serverElseClient, int globalRateLimit) {
+    public SocketFrameCodec(int maxBodySize, boolean serverElseClient) {
         this.maxBodySize = maxBodySize;
         this.serverElseClient = serverElseClient;
         this.frameBaseLength = FRAME_MAGIC.length + FRAME_BODY_SIZE;
-        if (globalRateLimit > 0) {
-            globalRateLimiter = RateLimiter.create(globalRateLimit);
-        } else {
-            globalRateLimiter = null;
-        }
     }
 
     /**
@@ -104,9 +85,6 @@ public class SocketFrameCodec extends ByteToMessageCodec<ByteBuf> {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
         try {
-            if (ChannelUtils.globalRateLimit(ctx, globalRateLimiter)) {
-                return;
-            }
             //解决拆包问题
             in.markReaderIndex();
             //合并解包

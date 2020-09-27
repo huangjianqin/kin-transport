@@ -24,8 +24,6 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
 
     /** 是否压缩 */
     private boolean compression;
-    /** 全局控流 */
-    private int globalRateLimit;
     /** 读空闲时间(秒) */
     private int readIdleTime;
     /** 写空闲时间(秒) */
@@ -83,11 +81,6 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
 
     public O uncompress() {
         this.compression = false;
-        return (O) this;
-    }
-
-    public O globalRateLimit(int globalRateLimit) {
-        this.globalRateLimit = globalRateLimit;
         return (O) this;
     }
 
@@ -155,10 +148,6 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
 
     public boolean isCompression() {
         return compression;
-    }
-
-    public int getGlobalRateLimit() {
-        return globalRateLimit;
     }
 
     public int getReadIdleTime() {

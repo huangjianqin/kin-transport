@@ -29,7 +29,7 @@ public class SocketHandlerInitializer<O extends AbstractSocketTransportOption<O>
     protected Collection<ChannelHandler> firstHandlers() {
         List<ChannelHandler> channelHandlers = new ArrayList<>(super.firstHandlers());
         if (serverElseClient) {
-            channelHandlers.add(SocketFrameCodec.serverFrameCodec(transportOption.getGlobalRateLimit()));
+            channelHandlers.add(SocketFrameCodec.serverFrameCodec());
         } else {
             channelHandlers.add(SocketFrameCodec.clientFrameCodec());
         }

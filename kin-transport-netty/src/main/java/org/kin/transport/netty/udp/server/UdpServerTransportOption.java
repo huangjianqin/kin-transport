@@ -35,6 +35,6 @@ public class UdpServerTransportOption extends AbstractUdpTransportOption<UdpServ
         return Objects.nonNull(super.getTransportProtocolTransfer()) ?
                 super.getTransportProtocolTransfer() :
                 //默认
-                new UdpTransfer(isCompression(), true, getGlobalRateLimit());
+                new UdpTransfer(isCompression(), true);
     }
 }

@@ -29,7 +29,7 @@ import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 class HttpClientTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, HttpEntity, FullHttpRequest>
         implements LoggerOprs {
 
-    public HttpClientTransfer(boolean compression, int globalRateLimit) {
+    public HttpClientTransfer(boolean compression) {
         super(compression);
     }
 

@@ -23,14 +23,9 @@ class HttpClientTransportOption
 
     //----------------------------------------------------------------------------------------------------------------
     @Override
-    public int getGlobalRateLimit() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public TransportProtocolTransfer<FullHttpResponse, HttpEntity, FullHttpRequest> getTransportProtocolTransfer() {
         if (Objects.isNull(super.getTransportProtocolTransfer())) {
-            return new HttpClientTransfer(isCompression(), getGlobalRateLimit());
+            return new HttpClientTransfer(isCompression());
         }
 
         return super.getTransportProtocolTransfer();

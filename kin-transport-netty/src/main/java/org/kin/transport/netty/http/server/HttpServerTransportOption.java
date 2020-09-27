@@ -23,12 +23,6 @@ public class HttpServerTransportOption
     }
 
     //----------------------------------------------------------------------------------------------------------------
-
-    @Override
-    public int getGlobalRateLimit() {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     public TransportProtocolTransfer<FullHttpRequest, ServletTransportEntity, FullHttpResponse> getTransportProtocolTransfer() {
         if (Objects.isNull(super.getTransportProtocolTransfer())) {
