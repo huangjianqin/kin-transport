@@ -67,7 +67,11 @@ public final class ServletResponse implements ServletTransportEntity {
             responseBody = HttpResponseBody.of(source, new MediaTypeWrapper(MediaType.HTML.name()));
         }
 
-        return Objects.nonNull(outputStream) ? outputStream : new ByteBufferOutputStream(responseBody.getSource());
+        if (Objects.isNull(outputStream)) {
+            outputStream = new ByteBufferOutputStream(responseBody.getSource());
+        }
+
+        return outputStream;
     }
 
     //setter && getter

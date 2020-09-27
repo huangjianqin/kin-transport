@@ -57,7 +57,7 @@ public abstract class AbstractServlet implements Servlet {
                     response.setResponseBody(MediaType.PLAIN_TEXT.toResponseBody(e.getMessage(), StandardCharsets.UTF_8));
                 }
             } else {
-                //不资源, 则直接当成字符串返回
+                //没有资源, 则直接当成字符串返回
                 response.setResponseBody(MediaType.PLAIN_TEXT.toResponseBody(returnObj.toString(), StandardCharsets.UTF_8));
             }
         } else if (returnObj instanceof Map) {

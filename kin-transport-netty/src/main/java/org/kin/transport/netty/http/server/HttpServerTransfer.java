@@ -148,11 +148,9 @@ class HttpServerTransfer
 
         HttpResponseBody responseBody = servletResponse.getResponseBody();
         byte[] contentBytes = responseBody.bytes();
-        if (Objects.nonNull(responseBody)) {
-            response.headers()
-                    .set(CONTENT_TYPE, responseBody.getMediaType().toContentType())
-                    .setInt(CONTENT_LENGTH, contentBytes.length);
-        }
+        response.headers()
+                .set(CONTENT_TYPE, responseBody.getMediaType().toContentType())
+                .setInt(CONTENT_LENGTH, contentBytes.length);
         response.headers()
                 .set(COOKIE, cookieEncoder.encode(servletResponse.getCookies().stream().map(Cookie::toNettyCookie).collect(Collectors.toList())))
                 .set(SERVER, "kin-http-server");
