@@ -29,7 +29,7 @@ public final class HttpResponseBody {
         responseBody.source = source;
         responseBody.mediaTypeWrapper = mediaTypeWrapper;
         //change read
-        responseBody.source.rewind();
+        responseBody.source.flip();
         return responseBody;
     }
     //-------------------------------------------------------------------------------------------------------------

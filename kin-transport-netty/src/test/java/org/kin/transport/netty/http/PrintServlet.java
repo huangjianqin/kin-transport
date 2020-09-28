@@ -14,7 +14,7 @@ public class PrintServlet extends AbstractServlet {
     @Override
     protected Object doGet(ServletRequest request, ServletResponse response) {
         System.out.println(request.getParams());
-        return "/abc";
+        return "test.html";
     }
 
     @Override

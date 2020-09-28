@@ -26,7 +26,7 @@ public final class HttpRequestBody {
         requestBody.sink = byteBuffer;
         requestBody.mediaTypeWrapper = mediaTypeWrapper;
         //read
-        requestBody.sink.rewind();
+        requestBody.sink.flip();
         return requestBody;
     }
 

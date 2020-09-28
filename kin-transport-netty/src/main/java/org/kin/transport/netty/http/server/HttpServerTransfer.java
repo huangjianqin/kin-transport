@@ -56,7 +56,6 @@ class HttpServerTransfer
                 StringUtils.isBlank(contentType) ? null : HttpRequestBody.of(request.content(), MediaTypeWrapper.parse(contentType)),
                 HttpUtil.isKeepAlive(request)
         );
-
         return Collections.singleton(servletRequest);
     }
 
@@ -80,7 +79,6 @@ class HttpServerTransfer
             //write full response
             writeFullResponse(ctx, servletResponse);
         }
-
         return Collections.emptyList();
     }
 
@@ -89,9 +87,12 @@ class HttpServerTransfer
      */
     private void writeFullResponse(ChannelHandlerContext ctx, ServletResponse servletResponse) {
         HttpResponseBody responseBody = servletResponse.getResponseBody();
-        ByteBuf byteBuf = Unpooled.EMPTY_BUFFER;
+        ByteBuf byteBuf;
         if (Objects.nonNull(responseBody)) {
+            byteBuf = ctx.alloc().buffer();
             byteBuf.writeBytes(responseBody.bytes());
+        } else {
+            byteBuf = Unpooled.EMPTY_BUFFER;
         }
 
         HttpUrl httpUrl = servletResponse.getUrl();

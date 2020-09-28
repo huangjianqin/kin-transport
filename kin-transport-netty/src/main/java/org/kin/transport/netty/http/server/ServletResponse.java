@@ -5,9 +5,9 @@ import org.kin.framework.io.ByteBufferOutputStream;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.MediaType;
-import org.kin.transport.netty.http.MediaTypeWrapper;
 import org.kin.transport.netty.http.client.HttpHeaders;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -61,17 +61,67 @@ public final class ServletResponse implements ServletTransportEntity {
     }
 
     public OutputStream getOutputStream() {
-        if (Objects.isNull(responseBody)) {
-            //create new default 1k
-            ByteBuffer source = ByteBuffer.allocate(1024);
-            responseBody = HttpResponseBody.of(source, new MediaTypeWrapper(MediaType.HTML.name()));
-        }
-
         if (Objects.isNull(outputStream)) {
-            outputStream = new ByteBufferOutputStream(responseBody.getSource());
+            responseBody = null;
+            //create new default 1M
+            outputStream = new AutoExpandByteBufferOutputStream();
         }
 
         return outputStream;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * 支持自动扩容的ByteBufferOutputStream
+     * 一次写入的bytes不能超过1M
+     */
+    private class AutoExpandByteBufferOutputStream extends ByteBufferOutputStream {
+        public AutoExpandByteBufferOutputStream() {
+            super(1024 * 1024);
+        }
+
+        public AutoExpandByteBufferOutputStream(ByteBuffer sink) {
+            super(sink);
+            //仅仅继承, 但本质上不支持
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void flush() throws IOException {
+            super.flush();
+            ByteBuffer sink = getSink();
+            int sinkLimit = sink.limit();
+            if (Objects.isNull(responseBody)) {
+                responseBody = HttpResponseBody.of(ByteBuffer.allocate(sinkLimit), MediaType.HTML.transfer("UTF-8"));
+            }
+
+            ByteBuffer source = responseBody.getSource();
+            ByteBuffer newSource = null;
+            source.position(source.limit());
+            source.limit(source.capacity());
+            while (source.position() > 0 && source.remaining() < sinkLimit) {
+                int oldCapacity = source.capacity();
+                newSource = ByteBuffer.allocate(Math.min(oldCapacity * 2, Integer.MAX_VALUE));
+                source.flip();
+                newSource.put(source);
+
+                source = newSource;
+            }
+
+            if (sinkLimit > 0) {
+                sink.flip();
+                source.put(sink);
+                sink.clear();
+            }
+
+            if (Objects.nonNull(newSource)) {
+                responseBody = HttpResponseBody.of(newSource,
+                        Objects.nonNull(responseBody) ? responseBody.getMediaType() : MediaType.HTML.transfer("UTF-8"));
+            } else {
+                source.flip();
+            }
+        }
     }
 
     //setter && getter

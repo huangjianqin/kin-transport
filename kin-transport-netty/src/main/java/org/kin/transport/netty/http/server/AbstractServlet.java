@@ -48,10 +48,15 @@ public abstract class AbstractServlet implements Servlet {
                 try {
                     OutputStream outputStream = response.getOutputStream();
                     InputStream inputStream = resource.openStream();
-                    byte[] chunked = new byte[1024];
-                    while (inputStream.available() > 0) {
-                        inputStream.read(chunked);
-                        outputStream.write(chunked);
+                    try {
+                        //每16k bytes 写一次
+                        byte[] chunked = new byte[1024 * 16];
+                        while (inputStream.read(chunked) > 0) {
+                            outputStream.write(chunked);
+                        }
+                        outputStream.flush();
+                    } finally {
+                        inputStream.close();
                     }
                 } catch (IOException e) {
                     response.setResponseBody(MediaType.PLAIN_TEXT.toResponseBody(e.getMessage(), StandardCharsets.UTF_8));

@@ -9,6 +9,7 @@ import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
+import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.transport.netty.ProtocolHandler;
@@ -16,6 +17,8 @@ import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.MediaType;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -27,7 +30,7 @@ import java.util.concurrent.ExecutionException;
  * @author huangjianqin
  * @date 2020/9/10
  */
-public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> {
+public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> implements LoggerOprs {
     private static final ExecutionContext EXECUTION_CONTEXT = ExecutionContext.cache("kin-http-servet");
     private static final AttributeKey<ChannelServletRequestHandler> CHANNEL_SERVLET_REQUEST_HANDLER_KEY =
             AttributeKey.newInstance("ChannelServletRequestHandler");
@@ -219,6 +222,7 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
             }
         } catch (Exception e) {
             handleException(channel, response, e);
+            log().error("", e);
         } finally {
             channel.writeAndFlush(response);
         }
@@ -238,8 +242,12 @@ public class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportE
     private void handleException(Channel channel, ServletResponse response, Throwable cause) {
         response.setStatusCode(ServletResponse.SC_INTERNAL_SERVER_ERROR);
         ByteBuf buffer = channel.alloc().buffer();
-        buffer.writeBytes(StandardCharsets.UTF_8.encode(cause.toString()));
-        //TODO
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        cause.printStackTrace(new PrintWriter(baos));
+
+        buffer.writeBytes(StandardCharsets.UTF_8.encode(new String(baos.toByteArray())));
+
         response.setResponseBody(HttpResponseBody.of(buffer, MediaType.PLAIN_TEXT.transfer(StandardCharsets.UTF_8.name())));
     }
 
