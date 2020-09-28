@@ -9,7 +9,7 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.stream.ChunkedStream;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.StringUtils;
-import org.kin.transport.netty.AbstractTransportProtocolTransfer;
+import org.kin.transport.netty.TransportProtocolTransfer;
 import org.kin.transport.netty.http.HttpRequestBody;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.HttpUrl;
@@ -28,19 +28,13 @@ import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
  * @date 2020/8/31
  */
 class HttpServerTransfer
-        extends AbstractTransportProtocolTransfer<FullHttpRequest, ServletTransportEntity, FullHttpResponse>
-        implements LoggerOprs {
+        implements TransportProtocolTransfer<FullHttpRequest, ServletTransportEntity, FullHttpResponse>, LoggerOprs {
     /** response内容大小, 如果大于10m, 则采用chunked write, 否则直接write full response todo 测试1k */
     private static final int CONTENT_SIZE_LIMIT = 1024 * 1;
     /** cookie 解码 */
     private final ServerCookieDecoder cookieDecoder = ServerCookieDecoder.STRICT;
     /** cookie 编码 */
     private final ServerCookieEncoder cookieEncoder = ServerCookieEncoder.STRICT;
-
-
-    public HttpServerTransfer(boolean compression) {
-        super(compression);
-    }
 
     @Override
     public Collection<ServletTransportEntity> decode(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {

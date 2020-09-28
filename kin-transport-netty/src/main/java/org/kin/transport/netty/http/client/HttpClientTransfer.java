@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.StringUtils;
-import org.kin.transport.netty.AbstractTransportProtocolTransfer;
+import org.kin.transport.netty.TransportProtocolTransfer;
 import org.kin.transport.netty.http.HttpRequestBody;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.MediaTypeWrapper;
@@ -26,13 +26,7 @@ import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
  * @author huangjianqin
  * @date 2020/8/31
  */
-class HttpClientTransfer extends AbstractTransportProtocolTransfer<FullHttpResponse, HttpEntity, FullHttpRequest>
-        implements LoggerOprs {
-
-    public HttpClientTransfer(boolean compression) {
-        super(compression);
-    }
-
+class HttpClientTransfer implements TransportProtocolTransfer<FullHttpResponse, HttpEntity, FullHttpRequest>, LoggerOprs {
     @Override
     public Collection<HttpEntity> decode(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
         /**

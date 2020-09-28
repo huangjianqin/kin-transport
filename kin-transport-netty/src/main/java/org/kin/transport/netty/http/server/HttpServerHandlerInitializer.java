@@ -25,6 +25,7 @@ public class HttpServerHandlerInitializer
         List<ChannelHandler> channelHandlers = setUpChannelHandlers(transportOption);
 
         channelHandlers.add(new HttpServerCodec());
+        //通过在header增加Accept-Encoding -> gzip | deflate, netty就自动完成压缩
         channelHandlers.add(new HttpContentCompressor());
         channelHandlers.add(new HttpObjectAggregator(65536));
         channelHandlers.add(new ChunkedWriteHandler());
