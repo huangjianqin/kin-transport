@@ -1,7 +1,5 @@
 package org.kin.transport.netty.http.client;
 
-import com.sun.istack.internal.NotNull;
-
 import java.io.IOException;
 
 /**
@@ -17,7 +15,7 @@ public interface HttpCallback {
      * @param httpCall  http 请求
      * @param exception 异常
      */
-    void onFailure(@NotNull HttpCall httpCall, @NotNull Exception exception);
+    void onFailure(HttpCall httpCall, Exception exception);
 
     /**
      * 成功回调
@@ -25,5 +23,5 @@ public interface HttpCallback {
      * @param httpCall http 请求
      * @param response http 响应
      */
-    void onResponse(@NotNull HttpCall httpCall, @NotNull HttpResponse httpResponse) throws IOException;
+    void onResponse(HttpCall httpCall, HttpResponse httpResponse) throws IOException;
 }

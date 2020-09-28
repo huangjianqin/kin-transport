@@ -1,7 +1,5 @@
 package org.kin.transport.netty.http.client;
 
-import com.sun.istack.internal.NotNull;
-
 import java.io.IOException;
 
 /**
@@ -12,5 +10,11 @@ import java.io.IOException;
  */
 @FunctionalInterface
 public interface Interceptor {
-    HttpResponse intercept(@NotNull HttpInterceptorChain chain) throws IOException;
+    /**
+     * 拦截逻辑
+     *
+     * @param chain
+     * @return 有效的http response
+     */
+    HttpResponse intercept(HttpInterceptorChain chain) throws IOException;
 }
