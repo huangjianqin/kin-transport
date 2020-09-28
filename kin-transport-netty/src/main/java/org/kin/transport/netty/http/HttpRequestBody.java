@@ -1,6 +1,7 @@
 package org.kin.transport.netty.http;
 
 import io.netty.buffer.ByteBuf;
+import org.kin.framework.io.ByteBufferUtils;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -25,10 +26,7 @@ public final class HttpRequestBody {
         HttpRequestBody requestBody = new HttpRequestBody();
         requestBody.sink = byteBuffer;
         requestBody.mediaTypeWrapper = mediaTypeWrapper;
-        if (requestBody.sink.position() != 0 || requestBody.sink.limit() == requestBody.sink.capacity()) {
-            //change read
-            requestBody.sink.flip();
-        }
+        ByteBufferUtils.toReadMode(requestBody.sink);
         return requestBody;
     }
 

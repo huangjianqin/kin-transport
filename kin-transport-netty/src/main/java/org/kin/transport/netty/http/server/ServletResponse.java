@@ -2,6 +2,7 @@ package org.kin.transport.netty.http.server;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.kin.framework.io.ByteBufferOutputStream;
+import org.kin.framework.io.ByteBufferUtils;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.MediaType;
@@ -98,28 +99,25 @@ public final class ServletResponse implements ServletTransportEntity {
 
             ByteBuffer source = responseBody.getSource();
             ByteBuffer newSource = null;
-            source.position(source.limit());
-            source.limit(source.capacity());
+            ByteBufferUtils.toWriteMode(source);
             while (source.position() > 0 && source.remaining() < sinkLimit) {
                 int oldCapacity = source.capacity();
                 newSource = ByteBuffer.allocate(Math.min(oldCapacity * 2, Integer.MAX_VALUE));
-                source.flip();
-                newSource.put(source);
+
+                ByteBufferUtils.copy(newSource, source);
 
                 source = newSource;
             }
 
             if (sinkLimit > 0) {
-                sink.flip();
-                source.put(sink);
-                sink.clear();
+                ByteBufferUtils.copyAndClear(source, sink);
             }
 
             if (Objects.nonNull(newSource)) {
                 responseBody = HttpResponseBody.of(newSource,
                         Objects.nonNull(responseBody) ? responseBody.getMediaType() : MediaType.HTML.transfer("UTF-8"));
             } else {
-                source.flip();
+                ByteBufferUtils.toReadMode(source);
             }
         }
     }

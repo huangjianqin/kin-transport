@@ -1,6 +1,7 @@
 package org.kin.transport.netty.http;
 
 import io.netty.buffer.ByteBuf;
+import org.kin.framework.io.ByteBufferUtils;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -12,7 +13,7 @@ import java.util.Map;
  * @date 2020/9/4
  */
 public final class HttpResponseBody {
-    /** response内容, 仅仅consume 一次 */
+    /** response内容, 一直处于read mode, 仅仅consume 一次 */
     private ByteBuffer source;
     /** 类型 */
     private MediaTypeWrapper mediaTypeWrapper;
@@ -28,10 +29,7 @@ public final class HttpResponseBody {
         HttpResponseBody responseBody = new HttpResponseBody();
         responseBody.source = source;
         responseBody.mediaTypeWrapper = mediaTypeWrapper;
-        if (responseBody.source.position() != 0 || responseBody.source.limit() == responseBody.source.capacity()) {
-            //change read
-            responseBody.source.flip();
-        }
+        ByteBufferUtils.toReadMode(responseBody.source);
         return responseBody;
     }
     //-------------------------------------------------------------------------------------------------------------
