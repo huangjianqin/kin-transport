@@ -28,8 +28,10 @@ public final class HttpResponseBody {
         HttpResponseBody responseBody = new HttpResponseBody();
         responseBody.source = source;
         responseBody.mediaTypeWrapper = mediaTypeWrapper;
-        //change read
-        responseBody.source.flip();
+        if (responseBody.source.position() != 0 || responseBody.source.limit() == responseBody.source.capacity()) {
+            //change read
+            responseBody.source.flip();
+        }
         return responseBody;
     }
     //-------------------------------------------------------------------------------------------------------------

@@ -25,8 +25,10 @@ public final class HttpRequestBody {
         HttpRequestBody requestBody = new HttpRequestBody();
         requestBody.sink = byteBuffer;
         requestBody.mediaTypeWrapper = mediaTypeWrapper;
-        //read
-        requestBody.sink.flip();
+        if (requestBody.sink.position() != 0 || requestBody.sink.limit() == requestBody.sink.capacity()) {
+            //change read
+            requestBody.sink.flip();
+        }
         return requestBody;
     }
 
