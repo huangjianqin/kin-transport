@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020/9/11
  */
-public class HttpServerConstants {
+public final class HttpServerConstants {
     /** session 移除时间(毫秒) */
     public static final long SESSION_EXPIRE_TIME = TimeUnit.MINUTES.toMillis(30);
     /** session id 长度 */

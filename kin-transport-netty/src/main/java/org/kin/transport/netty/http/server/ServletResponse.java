@@ -120,6 +120,16 @@ public final class ServletResponse implements ServletTransportEntity {
                 ByteBufferUtils.toReadMode(source);
             }
         }
+
+        @Override
+        public void write(byte[] bytes, int offset, int length) throws IOException {
+            int bytesLen = length - offset;
+            int streamBufferSize = getSink().capacity();
+            if (bytesLen > streamBufferSize) {
+                throw new IllegalArgumentException(String.format("write bytes length(%sB) greater than stream buffer size(%sB)", bytesLen, streamBufferSize));
+            }
+            super.write(bytes, offset, length);
+        }
     }
 
     //setter && getter

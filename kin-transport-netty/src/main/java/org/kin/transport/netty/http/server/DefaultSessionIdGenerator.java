@@ -13,7 +13,7 @@ import java.security.SecureRandom;
  * @author huangjianqin
  * @date 2020/9/11
  */
-public class DefaultSessionIdGenerator implements SessionIdGenerator {
+public final class DefaultSessionIdGenerator implements SessionIdGenerator {
     /** 随机数长度 */
     protected final int sessionIdLen;
 

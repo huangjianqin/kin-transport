@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020/9/11
  */
-public class DefaultSessionManager implements HttpSessionManager {
+public final class DefaultSessionManager implements HttpSessionManager {
     /**
      * session 缓存, 读写空闲30min后移除
      */

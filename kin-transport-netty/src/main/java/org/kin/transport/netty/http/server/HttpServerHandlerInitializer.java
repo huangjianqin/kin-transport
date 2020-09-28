@@ -12,7 +12,7 @@ import java.util.List;
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class HttpServerHandlerInitializer
+final class HttpServerHandlerInitializer
         extends AbstractChannelHandlerInitializer<FullHttpRequest, ServletTransportEntity, FullHttpResponse,
         HttpServerTransportOption> {
 
