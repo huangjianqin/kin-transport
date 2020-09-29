@@ -59,9 +59,9 @@ class HttpClientTransfer implements TransportProtocolTransfer<FullHttpResponse, 
         HttpRequestBody requestBody = httpRequest.getRequestBody();
         ByteBuf content;
         if (Objects.nonNull(requestBody)) {
-            ByteBuffer byteBuffer = requestBody.getSink();
-            content = ctx.alloc().buffer(byteBuffer.capacity());
-            content.writeBytes(byteBuffer);
+            ByteBuffer buf = requestBody.getBuf();
+            content = ctx.alloc().buffer(buf.capacity());
+            content.writeBytes(buf);
         } else {
             //get时, body为空
             content = Unpooled.EMPTY_BUFFER;

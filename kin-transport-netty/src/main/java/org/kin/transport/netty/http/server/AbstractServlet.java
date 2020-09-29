@@ -111,7 +111,7 @@ public abstract class AbstractServlet implements Servlet, LoggerOprs {
                     HttpResponseBody responseBody = response.getResponseBody();
                     response.setResponseBody(
                             HttpResponseBody.of(
-                                    responseBody.getSource(),
+                                    responseBody.getBuf(),
                                     new MediaTypeWrapper(mimeTypesMap.getContentType(file), StandardCharsets.UTF_8.name())));
                 } catch (Exception e) {
                     response.setResponseBody(MediaType.PLAIN_TEXT.toResponseBody(e.getMessage(), StandardCharsets.UTF_8));

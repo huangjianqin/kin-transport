@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public final class HttpRequestBody {
     /** request内容, 仅仅被消费一次 */
-    private ByteBuffer sink;
+    private ByteBuffer buf;
     /** media类型 */
     private MediaTypeWrapper mediaTypeWrapper;
 
@@ -24,9 +24,9 @@ public final class HttpRequestBody {
     //-------------------------------------------------------------------------------------------------------------
     public static HttpRequestBody of(ByteBuffer byteBuffer, MediaTypeWrapper mediaTypeWrapper) {
         HttpRequestBody requestBody = new HttpRequestBody();
-        requestBody.sink = byteBuffer;
+        requestBody.buf = byteBuffer;
         requestBody.mediaTypeWrapper = mediaTypeWrapper;
-        ByteBufferUtils.toReadMode(requestBody.sink);
+        ByteBufferUtils.toReadMode(requestBody.buf);
         return requestBody;
     }
 
@@ -42,19 +42,19 @@ public final class HttpRequestBody {
      * 获取content string
      */
     public String getContent() {
-        return mediaTypeWrapper.mediaType().parseContent(sink, mediaTypeWrapper.rawCharset());
+        return mediaTypeWrapper.mediaType().parseContent(buf, mediaTypeWrapper.rawCharset());
     }
 
     /**
      * 将content转换成map参数并返回
      */
     public Map<String, Object> getParams() {
-        return mediaTypeWrapper.mediaType().parseParams(sink, mediaTypeWrapper.rawCharset());
+        return mediaTypeWrapper.mediaType().parseParams(buf, mediaTypeWrapper.rawCharset());
     }
 
     //-------------------------------------------------------------------------------------------------------------
-    public ByteBuffer getSink() {
-        return sink;
+    public ByteBuffer getBuf() {
+        return buf;
     }
 
     public MediaTypeWrapper getMediaType() {

@@ -98,27 +98,27 @@ public final class ServletResponse implements ServletTransportEntity {
                 responseBody = HttpResponseBody.of(ByteBuffer.allocate(sinkLimit), MediaType.HTML.transfer(StandardCharsets.UTF_8.name()));
             }
 
-            ByteBuffer source = responseBody.getSource();
-            ByteBuffer newSource = null;
-            ByteBufferUtils.toWriteMode(source);
-            while (source.position() > 0 && source.remaining() < sinkLimit) {
-                int oldCapacity = source.capacity();
-                newSource = ByteBuffer.allocate(Math.min(oldCapacity * 2, Integer.MAX_VALUE));
+            ByteBuffer buf = responseBody.getBuf();
+            ByteBuffer newBuf = null;
+            ByteBufferUtils.toWriteMode(buf);
+            while (buf.position() > 0 && buf.remaining() < sinkLimit) {
+                int oldCapacity = buf.capacity();
+                newBuf = ByteBuffer.allocate(Math.min(oldCapacity * 2, Integer.MAX_VALUE));
 
-                ByteBufferUtils.copy(newSource, source);
+                ByteBufferUtils.copy(newBuf, buf);
 
-                source = newSource;
+                buf = newBuf;
             }
 
             if (sinkLimit > 0) {
-                ByteBufferUtils.copyAndClear(source, sink);
+                ByteBufferUtils.copyAndClear(buf, sink);
             }
 
-            if (Objects.nonNull(newSource)) {
-                responseBody = HttpResponseBody.of(newSource,
+            if (Objects.nonNull(newBuf)) {
+                responseBody = HttpResponseBody.of(newBuf,
                         Objects.nonNull(responseBody) ? responseBody.getMediaType() : MediaType.HTML.transfer(StandardCharsets.UTF_8.name()));
             } else {
-                ByteBufferUtils.toReadMode(source);
+                ByteBufferUtils.toReadMode(buf);
             }
         }
 

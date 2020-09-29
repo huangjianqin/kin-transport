@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public final class HttpResponseBody {
     /** response内容, 一直处于read mode, 仅仅consume 一次 */
-    private ByteBuffer source;
+    private ByteBuffer buf;
     /** 类型 */
     private MediaTypeWrapper mediaTypeWrapper;
 
@@ -27,9 +27,9 @@ public final class HttpResponseBody {
 
     public static HttpResponseBody of(ByteBuffer source, MediaTypeWrapper mediaTypeWrapper) {
         HttpResponseBody responseBody = new HttpResponseBody();
-        responseBody.source = source;
+        responseBody.buf = source;
         responseBody.mediaTypeWrapper = mediaTypeWrapper;
-        ByteBufferUtils.toReadMode(responseBody.source);
+        ByteBufferUtils.toReadMode(responseBody.buf);
         return responseBody;
     }
     //-------------------------------------------------------------------------------------------------------------
@@ -38,34 +38,34 @@ public final class HttpResponseBody {
      * 将response内容转换成字节数组, 并返回
      */
     public byte[] bytes() {
-        byte[] bytes = new byte[source.remaining()];
-        source.get(bytes);
+        byte[] bytes = new byte[buf.remaining()];
+        buf.get(bytes);
         return bytes;
     }
 
     public String str() {
-        return mediaTypeWrapper.transfer(source);
+        return mediaTypeWrapper.transfer(buf);
     }
 
     /**
      * 获取content string
      */
     public String getContent() {
-        return mediaTypeWrapper.mediaType().parseContent(source, mediaTypeWrapper.rawCharset());
+        return mediaTypeWrapper.mediaType().parseContent(buf, mediaTypeWrapper.rawCharset());
     }
 
     /**
      * 将content转换成map参数并返回
      */
     public Map<String, Object> getParams() {
-        return mediaTypeWrapper.mediaType().parseParams(source, mediaTypeWrapper.rawCharset());
+        return mediaTypeWrapper.mediaType().parseParams(buf, mediaTypeWrapper.rawCharset());
     }
 
     /**
      * response content size
      */
     public int contentSize() {
-        return source.remaining();
+        return buf.remaining();
     }
 
     //-------------------------------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ public final class HttpResponseBody {
         return mediaTypeWrapper;
     }
 
-    public ByteBuffer getSource() {
-        return source;
+    public ByteBuffer getBuf() {
+        return buf;
     }
 }
