@@ -2,7 +2,7 @@ package org.kin.transport.netty.websocket;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import org.kin.transport.netty.AbstractTransportProtocolTransfer;
+import org.kin.transport.netty.TransportProtocolTransfer;
 import org.kin.transport.netty.socket.SocketTransfer;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
@@ -16,22 +16,20 @@ import java.util.stream.Collectors;
  * @author huangjianqin
  * @date 2020/8/31
  */
-public class WsBinaryTransfer
-        extends AbstractTransportProtocolTransfer<BinaryWebSocketFrame, SocketProtocol, BinaryWebSocketFrame> {
+public class WsBinaryTransfer implements TransportProtocolTransfer<BinaryWebSocketFrame, SocketProtocol, BinaryWebSocketFrame> {
     private final SocketTransfer transfer;
 
-    public WsBinaryTransfer(boolean compression, boolean serverElseClient) {
-        super(compression);
-        this.transfer = new SocketTransfer(compression, serverElseClient);
+    public WsBinaryTransfer(boolean serverElseClient) {
+        this.transfer = new SocketTransfer(serverElseClient);
     }
 
     @Override
-    public Collection<SocketProtocol> decode(ChannelHandlerContext ctx, BinaryWebSocketFrame frame) throws Exception {
+    public Collection<SocketProtocol> decode(ChannelHandlerContext ctx, BinaryWebSocketFrame frame) {
         return transfer.decode(ctx, frame.content());
     }
 
     @Override
-    public Collection<BinaryWebSocketFrame> encode(ChannelHandlerContext ctx, SocketProtocol protocol) throws Exception {
+    public Collection<BinaryWebSocketFrame> encode(ChannelHandlerContext ctx, SocketProtocol protocol) {
         return transfer.encode(ctx, protocol).stream().map(BinaryWebSocketFrame::new).collect(Collectors.toList());
     }
 

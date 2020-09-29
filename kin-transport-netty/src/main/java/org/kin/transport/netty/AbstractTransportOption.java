@@ -23,7 +23,7 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
     private TransportProtocolTransfer<IN, MSG, OUT> transportProtocolTransfer;
 
     /** 是否压缩 */
-    private boolean compression;
+    private CompressionType compressionType = CompressionType.NONE;
     /** 读空闲时间(秒) */
     private int readIdleTime;
     /** 写空闲时间(秒) */
@@ -74,13 +74,13 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
         return (O) this;
     }
 
-    public O compress() {
-        this.compression = true;
+    public O compress(CompressionType compressionType) {
+        this.compressionType = compressionType;
         return (O) this;
     }
 
     public O uncompress() {
-        this.compression = false;
+        this.compressionType = CompressionType.NONE;
         return (O) this;
     }
 
@@ -146,8 +146,8 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
         return transportProtocolTransfer;
     }
 
-    public boolean isCompression() {
-        return compression;
+    public CompressionType getCompressionType() {
+        return compressionType;
     }
 
     public int getReadIdleTime() {

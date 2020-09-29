@@ -36,6 +36,6 @@ public class SocketClientTransportOption extends AbstractSocketTransportOption<S
         return Objects.nonNull(super.getTransportProtocolTransfer()) ?
                 super.getTransportProtocolTransfer() :
                 //默认
-                new SocketTransfer(isCompression(), false);
+                new SocketTransfer(false);
     }
 }

@@ -34,9 +34,7 @@ public class WsClientHandlerInitializer<MSG, INOUT extends WebSocketFrame>
 
         channelHandlers.add(new HttpClientCodec());
         channelHandlers.add(new HttpObjectAggregator(65536));
-        if (transportOption.isCompression()) {
-            channelHandlers.add(WebSocketClientCompressionHandler.INSTANCE);
-        }
+        channelHandlers.add(WebSocketClientCompressionHandler.INSTANCE);
         channelHandlers.add(wsClientHandler);
 
         return channelHandlers;

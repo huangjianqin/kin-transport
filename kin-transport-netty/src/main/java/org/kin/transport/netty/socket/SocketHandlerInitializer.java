@@ -2,6 +2,7 @@ package org.kin.transport.netty.socket;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
+import io.netty.handler.codec.MessageToByteEncoder;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
 import org.kin.transport.netty.socket.handler.SocketFrameCodec;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
@@ -9,6 +10,7 @@ import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * socket channel handler初始化
@@ -32,6 +34,13 @@ public class SocketHandlerInitializer<O extends AbstractSocketTransportOption<O>
             channelHandlers.add(SocketFrameCodec.serverFrameCodec());
         } else {
             channelHandlers.add(SocketFrameCodec.clientFrameCodec());
+        }
+        //处理压缩
+        channelHandlers.add(new SocketDecompressor());
+        channelHandlers.add(new SocketCompressor(transportOption.getCompressionType()));
+        MessageToByteEncoder<ByteBuf> compressionEncoder = transportOption.getCompressionType().encoder();
+        if (Objects.nonNull(compressionEncoder)) {
+            channelHandlers.add(compressionEncoder);
         }
 
         return channelHandlers;

@@ -32,9 +32,7 @@ public class WsServerHandlerInitializer<MSG, INOUT extends WebSocketFrame>
 
         channelHandlers.add(new HttpServerCodec());
         channelHandlers.add(new HttpObjectAggregator(65536));
-        if (transportOption.isCompression()) {
-            channelHandlers.add(new WebSocketServerCompressionHandler());
-        }
+        channelHandlers.add(new WebSocketServerCompressionHandler());
         //适配指定url
         //会对websocketframe进行引用release, 后面handler处理不能再release websocketframe
         channelHandlers.add(new WebSocketServerProtocolHandler(transportOption.getHandshakeUrl(), null, true));

@@ -29,6 +29,7 @@
         <commons-pool2.version>2.8.1</commons-pool2.version>
         <disklrucache.version>2.0.2</disklrucache.version>
         <kryo.version>4.0.0</kryo.version>
+        <compress-lzf.version>1.0.4</compress-lzf.version>
     </properties>
 
     <dependencyManagement>

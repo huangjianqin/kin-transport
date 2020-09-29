@@ -1,6 +1,7 @@
 package org.kin.transport.netty.websocket;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOption;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.Server;
 import org.kin.transport.netty.Transports;
@@ -33,7 +34,9 @@ public class WebsocketTest {
                             System.out.println(protocol);
                             ctx.channel().writeAndFlush(Protocol1.of(2));
                         }
-                    }).build(address);
+                    })
+                    .channelOption(ChannelOption.TCP_NODELAY, true)
+                    .build(address);
 
             client = Transports
                     .websocket()
@@ -43,7 +46,9 @@ public class WebsocketTest {
                         public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                             System.out.println(protocol);
                         }
-                    }).build(address);
+                    })
+                    .channelOption(ChannelOption.TCP_NODELAY, true)
+                    .build(address);
             client.request(Protocol1.of(1));
 
             Thread.sleep(5000);

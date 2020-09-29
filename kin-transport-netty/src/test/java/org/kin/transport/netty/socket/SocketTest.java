@@ -1,7 +1,9 @@
 package org.kin.transport.netty.socket;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOption;
 import org.kin.transport.netty.Client;
+import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Server;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.socket.protocol.Protocol1;
@@ -29,14 +31,14 @@ public class SocketTest {
                     System.out.println(protocol);
                     ctx.channel().writeAndFlush(Protocol1.of(2));
                 }
-            }).build(address);
+            }).compress(CompressionType.SNAPPY).channelOption(ChannelOption.TCP_NODELAY, true).build(address);
 
             client = Transports.socket().client().protocolHandler(new SocketProtocolHandler() {
                 @Override
                 public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                     System.out.println(protocol);
                 }
-            }).build(address);
+            }).channelOption(ChannelOption.TCP_NODELAY, true).build(address);
             client.request(Protocol1.of(1));
 
             Thread.sleep(5000);

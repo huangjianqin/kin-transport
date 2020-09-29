@@ -36,6 +36,6 @@ public class UdpClientTransportOption extends AbstractUdpTransportOption<UdpClie
         return Objects.nonNull(super.getTransportProtocolTransfer()) ?
                 super.getTransportProtocolTransfer() :
                 //默认
-                new UdpTransfer(isCompression(), false);
+                new UdpTransfer(false);
     }
 }

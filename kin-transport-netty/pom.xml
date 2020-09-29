@@ -21,13 +21,6 @@
             <version>${netty.version}</version>
         </dependency>
 
-        <!-- 压缩工具-->
-        <dependency>
-            <groupId>org.xerial.snappy</groupId>
-            <artifactId>snappy-java</artifactId>
-            <version>${snappy.version}</version>
-        </dependency>
-
         <!-- jackson-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -61,6 +54,13 @@
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
             <version>${kryo.version}</version>
+        </dependency>
+
+        <!-- lzf compression-->
+        <dependency>
+            <groupId>com.ning</groupId>
+            <artifactId>compress-lzf</artifactId>
+            <version>${compress-lzf.version}</version>
         </dependency>
     </dependencies>
 </project>

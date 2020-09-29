@@ -1,6 +1,7 @@
 package org.kin.transport.netty.udp;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOption;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.socket.protocol.Protocol1;
 import org.kin.transport.netty.socket.protocol.ProtocolFactory;
@@ -28,14 +29,14 @@ public class UdpTest {
                     System.out.println(protocol.getProtocol());
                     ctx.channel().writeAndFlush(UdpProtocolWrapper.senderWrapper(Protocol1.of(2), protocol.getSenderAddress()));
                 }
-            }).build(address);
+            }).channelOption(ChannelOption.TCP_NODELAY, true).build(address);
 
             client = Transports.datagram().client().protocolHandler(new UdpProtocolHandler() {
                 @Override
                 public void handle(ChannelHandlerContext ctx, UdpProtocolWrapper protocol) {
                     System.out.println(protocol.getProtocol());
                 }
-            }).build(address);
+            }).channelOption(ChannelOption.TCP_NODELAY, true).build(address);
             client.request(Protocol1.of(1));
 
             Thread.sleep(5000);
