@@ -16,7 +16,7 @@ final class HttpServerHandlerInitializer
         extends AbstractChannelHandlerInitializer<FullHttpRequest, ServletTransportEntity, FullHttpResponse,
         HttpServerTransportOption> {
 
-    public HttpServerHandlerInitializer(HttpServerTransportOption transportOption) {
+    HttpServerHandlerInitializer(HttpServerTransportOption transportOption) {
         super(transportOption);
     }
 

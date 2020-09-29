@@ -15,7 +15,7 @@ import java.util.Objects;
  */
 final class HttpServerTransportOption
         extends AbstractTransportOption<FullHttpRequest, ServletTransportEntity, FullHttpResponse, HttpServerTransportOption> {
-    public final Server build(InetSocketAddress address) {
+    final Server build(InetSocketAddress address) {
         HttpServerHandlerInitializer httpServerHandlerInitializer = new HttpServerHandlerInitializer(this);
         Server server = new Server(address);
         server.bind(this, httpServerHandlerInitializer);

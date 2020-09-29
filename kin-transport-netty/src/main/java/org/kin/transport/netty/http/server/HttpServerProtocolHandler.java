@@ -44,7 +44,7 @@ final class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEn
     /** servlet 缓存 */
     private Cache<Class<? extends Servlet>, Servlet> servletCache = CacheBuilder.newBuilder().build();
 
-    public HttpServerProtocolHandler(KinHttpServer kinHttpServer) {
+    HttpServerProtocolHandler(KinHttpServer kinHttpServer) {
         this.kinHttpServer = kinHttpServer;
         this.sessionManager = kinHttpServer.getSessionManager();
     }
