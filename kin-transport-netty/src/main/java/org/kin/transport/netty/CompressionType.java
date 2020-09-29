@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.codec.compression.*;
+import org.kin.transport.netty.compression.*;
 
 import java.util.HashSet;
 
@@ -84,6 +85,48 @@ public enum CompressionType {
         @Override
         public MessageToByteEncoder<ByteBuf> encoder() {
             return new FastLzFrameEncoder();
+        }
+    },
+    /**
+     * bzip2
+     */
+    BZIP2(5) {
+        @Override
+        public ByteToMessageDecoder decoder() {
+            return new BZip2Decoder();
+        }
+
+        @Override
+        public MessageToByteEncoder<ByteBuf> encoder() {
+            return new BZip2Encoder();
+        }
+    },
+    /**
+     * BlockLZ4
+     */
+    BLOCK_LZ4(6) {
+        @Override
+        public ByteToMessageDecoder decoder() {
+            return new BlockLZ4Decoder();
+        }
+
+        @Override
+        public MessageToByteEncoder<ByteBuf> encoder() {
+            return new BlockLZ4Encoder();
+        }
+    },
+    /**
+     * FramedLZ4
+     */
+    FRAMED_LZ4(7) {
+        @Override
+        public ByteToMessageDecoder decoder() {
+            return new FramedLZ4Decoder();
+        }
+
+        @Override
+        public MessageToByteEncoder<ByteBuf> encoder() {
+            return new FramedLZ4Encoder();
         }
     },
     ;

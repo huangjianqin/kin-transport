@@ -38,7 +38,7 @@ public class SocketTest {
                 public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                     System.out.println(protocol);
                 }
-            }).channelOption(ChannelOption.TCP_NODELAY, true).build(address);
+            }).compress(CompressionType.FRAMED_LZ4).channelOption(ChannelOption.TCP_NODELAY, true).build(address);
             client.request(Protocol1.of(1));
 
             Thread.sleep(5000);

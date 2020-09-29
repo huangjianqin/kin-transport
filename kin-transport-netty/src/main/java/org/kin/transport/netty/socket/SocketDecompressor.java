@@ -37,7 +37,6 @@ public class SocketDecompressor extends SimpleChannelInboundHandler<ByteBuf> {
 
         ReferenceCountUtil.retain(in);
 
-
         if (!CompressionType.NONE.equals(compressionType)) {
             ByteToMessageDecoder decoder = decoderCache.get(compressionType, compressionType::decoder);
             decoder.channelRead(ctx, in);
