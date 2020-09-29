@@ -21,7 +21,10 @@ public final class KinHttpServer {
     private final Queue<ServletConfig> servletConfigs = new ConcurrentLinkedQueue<>();
     /** filter config */
     private final Queue<FilterConfig> filterConfigs = new ConcurrentLinkedQueue<>();
+    /** session manager */
     private Class<? extends HttpSessionManager> sessionManagerClass = DefaultSessionManager.class;
+    /** 服务是否已启动 */
+    private volatile boolean isExport;
 
     private KinHttpServer(String appName) {
         this.appName = appName;
@@ -38,24 +41,34 @@ public final class KinHttpServer {
 
     //----------------------------------------------------------------------------------------------------------------
     public KinHttpServer mappingServlet(String url, Class<? extends Servlet> servletClass) {
-        servletConfigs.add(new ServletConfig(url, servletClass));
+        if (!isExport) {
+            servletConfigs.add(new ServletConfig(url, servletClass));
+        }
         return this;
     }
 
     public KinHttpServer mappingFilter(String url, Class<? extends Filter> filterClass) {
-        filterConfigs.add(new FilterConfig(url, filterClass));
+        if (!isExport) {
+            filterConfigs.add(new FilterConfig(url, filterClass));
+        }
         return this;
     }
 
     public KinHttpServer sessionManager(Class<? extends HttpSessionManager> sessionManagerClass) {
-        this.sessionManagerClass = sessionManagerClass;
+        if (!isExport) {
+            this.sessionManagerClass = sessionManagerClass;
+        }
         return this;
     }
 
     public void build(InetSocketAddress address) {
+        if (isExport) {
+            return;
+        }
         new HttpServerTransportOption()
                 .protocolHandler(new HttpServerProtocolHandler(this))
                 .build(address);
+        isExport = true;
     }
 
     public HttpSessionManager getSessionManager() {
