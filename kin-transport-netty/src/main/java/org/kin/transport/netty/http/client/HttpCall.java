@@ -1,6 +1,7 @@
 package org.kin.transport.netty.http.client;
 
 import org.kin.framework.concurrent.ExecutionContext;
+import org.kin.framework.log.LoggerOprs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.concurrent.TimeoutException;
  * @author huangjianqin
  * @date 2020/9/2
  */
-public final class HttpCall {
+public final class HttpCall implements LoggerOprs {
     /** 异步执行http call线程池 */
     private static ExecutionContext executionContext = ExecutionContext.cache("kin-http-call");
     /** key -> http请求 value -> future */
@@ -38,11 +39,11 @@ public final class HttpCall {
      * 真正处理http call逻辑
      */
     private HttpResponse realExecute1() {
-        List<Interceptor> interceptors = new ArrayList<>();
-        interceptors.addAll(kinHttpClient.getInterceptors());
+        List<Interceptor> interceptors = new ArrayList<>(kinHttpClient.getInterceptors());
         //内部实现的interceptor
-        interceptors.add(new RetryCallInterceptor(kinHttpClient.getRetryTimes()));
+        interceptors.add(CookieInterceptor.INSTANCE);
         interceptors.add(CacheInterceptor.INSTANCE);
+        interceptors.add(new RetryCallInterceptor(kinHttpClient.getRetryTimes()));
         interceptors.add(ConnectInterceptor.INSTANCE);
         interceptors.add(CallServerInterceptor.INSTANCE);
 
@@ -64,6 +65,7 @@ public final class HttpCall {
                 response = realExecute1();
                 callback.onResponse(this, response);
             } catch (Exception e) {
+                log().error("", e);
                 callback.onFailure(this, e);
             }
             futures.remove(this);

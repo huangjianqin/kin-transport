@@ -20,6 +20,7 @@ public class HttpClientTest {
         post();
 
         Thread.sleep(5000);
+        kinHttpClient.close();
     }
 
     public static void get() {

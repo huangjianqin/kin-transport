@@ -50,7 +50,7 @@ class CacheInterceptor implements Interceptor, LoggerOprs {
             //使用缓存
             DiskLruCache cache = kinHttpClient.getCache();
             //key
-            String key = generateCacheKey(httpRequest);
+            String key = CacheUtils.generateCacheKey(httpRequest);
             DiskLruCache.Snapshot snapshot = cache.get(key);
             if (Objects.nonNull(snapshot)) {
                 //有缓存
@@ -84,21 +84,13 @@ class CacheInterceptor implements Interceptor, LoggerOprs {
             //使用缓存
             DiskLruCache cache = kinHttpClient.getCache();
             //key
-            String key = generateCacheKey(httpRequest);
+            String key = CacheUtils.generateCacheKey(httpRequest);
             writeCache(cache, key, cacheControl, httpResponse);
 
             log().debug("cache update, key='{}'", key);
         }
 
         return httpResponse;
-    }
-
-    /**
-     * 生成缓存key
-     * 相当于 url的hashcode的16进制字符串
-     */
-    private String generateCacheKey(HttpRequest httpRequest) {
-        return Integer.toHexString(httpRequest.getUrl().url().toString().hashCode());
     }
 
     /**

@@ -65,8 +65,9 @@ public final class HttpUrl {
      * 转换成{@link InetSocketAddress}
      */
     public InetSocketAddress address() {
-        URI uri = uri();
-        return new InetSocketAddress(uri.getHost(), uri.getPort());
+        URL url = url();
+        int port = url.getPort() > 0 ? url.getPort() : url.getDefaultPort();
+        return new InetSocketAddress(url.getHost(), port);
     }
 
     public HttpVersion getVersion() {
