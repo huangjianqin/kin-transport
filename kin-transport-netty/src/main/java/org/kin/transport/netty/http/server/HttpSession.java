@@ -13,7 +13,8 @@ import java.util.concurrent.ConcurrentMap;
  * @date 2020/8/25
  */
 public final class HttpSession {
-    public static final String SESSION_ID = "kin-session-id";
+    /** cookies 中保存的session id key */
+    public static final String SESSION_ID = "_kinId";
 
     /** session id */
     private final String sessionId;

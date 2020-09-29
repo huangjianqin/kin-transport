@@ -102,7 +102,7 @@ final class HttpServerTransfer
         FullHttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.valueOf(servletResponse.getStatusCode()),
                 byteBuf);
 
-        for (Map.Entry<String, String> entry : response.headers()) {
+        for (Map.Entry<String, String> entry : servletResponse.getHeaders().entrySet()) {
             response.headers().set(entry.getKey(), entry.getValue());
         }
 
@@ -111,8 +111,10 @@ final class HttpServerTransfer
                     .set(CONTENT_TYPE, responseBody.getMediaType().toContentType())
                     .setInt(CONTENT_LENGTH, response.content().readableBytes());
         }
+
+
         response.headers()
-                .set(COOKIE, cookieEncoder.encode(servletResponse.getCookies().stream().map(Cookie::toNettyCookie).collect(Collectors.toList())))
+                .set(SET_COOKIE, cookieEncoder.encode(servletResponse.getCookies().stream().map(Cookie::toNettyCookie).collect(Collectors.toList())))
                 .set(SERVER, "kin-http-server");
 
         if (keepAlive) {
@@ -124,7 +126,7 @@ final class HttpServerTransfer
             response.headers().set(CONNECTION, CLOSE);
         }
 
-        ChannelFuture f = ctx.write(response);
+        ChannelFuture f = ctx.writeAndFlush(response);
         if (!keepAlive) {
             f.addListener(ChannelFutureListener.CLOSE);
         }
@@ -137,7 +139,7 @@ final class HttpServerTransfer
         HttpVersion httpVersion = httpUrl.getVersion();
         HttpResponse response = new DefaultHttpResponse(httpVersion, HttpResponseStatus.valueOf(servletResponse.getStatusCode()));
 
-        for (Map.Entry<String, String> entry : response.headers()) {
+        for (Map.Entry<String, String> entry : servletResponse.getHeaders().entrySet()) {
             response.headers().set(entry.getKey(), entry.getValue());
         }
 
@@ -147,7 +149,7 @@ final class HttpServerTransfer
                 .set(CONTENT_TYPE, responseBody.getMediaType().toContentType())
                 .setInt(CONTENT_LENGTH, contentBytes.length);
         response.headers()
-                .set(COOKIE, cookieEncoder.encode(servletResponse.getCookies().stream().map(Cookie::toNettyCookie).collect(Collectors.toList())))
+                .set(SET_COOKIE, cookieEncoder.encode(servletResponse.getCookies().stream().map(Cookie::toNettyCookie).collect(Collectors.toList())))
                 .set(SERVER, "kin-http-server");
 
         if (keepAlive) {

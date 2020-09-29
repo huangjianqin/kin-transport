@@ -11,6 +11,7 @@ import org.kin.transport.netty.http.client.HttpHeaders;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
@@ -94,7 +95,7 @@ public final class ServletResponse implements ServletTransportEntity {
             ByteBuffer sink = getSink();
             int sinkLimit = sink.limit();
             if (Objects.isNull(responseBody)) {
-                responseBody = HttpResponseBody.of(ByteBuffer.allocate(sinkLimit), MediaType.HTML.transfer("UTF-8"));
+                responseBody = HttpResponseBody.of(ByteBuffer.allocate(sinkLimit), MediaType.HTML.transfer(StandardCharsets.UTF_8.name()));
             }
 
             ByteBuffer source = responseBody.getSource();
@@ -115,7 +116,7 @@ public final class ServletResponse implements ServletTransportEntity {
 
             if (Objects.nonNull(newSource)) {
                 responseBody = HttpResponseBody.of(newSource,
-                        Objects.nonNull(responseBody) ? responseBody.getMediaType() : MediaType.HTML.transfer("UTF-8"));
+                        Objects.nonNull(responseBody) ? responseBody.getMediaType() : MediaType.HTML.transfer(StandardCharsets.UTF_8.name()));
             } else {
                 ByteBufferUtils.toReadMode(source);
             }
