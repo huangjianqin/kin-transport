@@ -47,7 +47,7 @@ public enum CompressionType {
     /**
      * zlib
      */
-    ZLIB(3) {
+    ZLIB(2) {
         @Override
         public ByteToMessageDecoder decoder() {
             return new JdkZlibDecoder();
@@ -61,7 +61,7 @@ public enum CompressionType {
     /**
      * lzf
      */
-    LZF(4) {
+    LZF(3) {
         @Override
         public ByteToMessageDecoder decoder() {
             return new LzfDecoder();
@@ -75,7 +75,7 @@ public enum CompressionType {
     /**
      * fastLz
      */
-    FASTLZ(6) {
+    FASTLZ(4) {
         @Override
         public ByteToMessageDecoder decoder() {
             return new FastLzFrameDecoder();
