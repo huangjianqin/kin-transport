@@ -97,8 +97,9 @@ public abstract class AbstractServlet implements Servlet, LoggerOprs {
                     try {
                         //每16k bytes 写一次
                         byte[] chunked = new byte[1024 * 16];
-                        while (inputStream.read(chunked) > 0) {
-                            outputStream.write(chunked);
+                        int readNum;
+                        while ((readNum = inputStream.read(chunked)) > 0) {
+                            outputStream.write(chunked, 0, readNum);
                         }
                         outputStream.flush();
                     } finally {
