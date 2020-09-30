@@ -36,7 +36,8 @@ public class WebsocketTest {
                         }
                     })
                     .channelOption(ChannelOption.TCP_NODELAY, true)
-                    .build(address);
+                    .build()
+                    .bind(address);
 
             client = Transports
                     .websocket()
@@ -48,7 +49,8 @@ public class WebsocketTest {
                         }
                     })
                     .channelOption(ChannelOption.TCP_NODELAY, true)
-                    .build(address);
+                    .build()
+                    .connect(address);
             client.request(Protocol1.of(1));
 
             Thread.sleep(5000);

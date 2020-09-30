@@ -19,7 +19,7 @@ public class WsServerTransportOption<MSG, INOUT extends WebSocketFrame>
     /**
      * 构建websocket server
      */
-    public final Server build(InetSocketAddress address) {
+    public final Server bind(InetSocketAddress address) {
         WsServerHandlerInitializer<MSG, INOUT> handlerInitializer = new WsServerHandlerInitializer<>(this);
         Server server = new Server(address);
         server.bind(this, handlerInitializer);
@@ -35,5 +35,17 @@ public class WsServerTransportOption<MSG, INOUT extends WebSocketFrame>
         }
 
         return super.getTransportProtocolTransfer();
+    }
+
+    //------------------------------------------------------builder------------------------------------------------------
+    public static <MSG, INOUT extends WebSocketFrame> WsServerTransportOptionBuilder<MSG, INOUT> builder() {
+        return new WsServerTransportOptionBuilder<>();
+    }
+
+    public static class WsServerTransportOptionBuilder<MSG, INOUT extends WebSocketFrame>
+            extends WsTransportOptionBuilder<MSG, INOUT, WsServerTransportOption<MSG, INOUT>> {
+        public WsServerTransportOptionBuilder() {
+            super(new WsServerTransportOption<>());
+        }
     }
 }

@@ -15,119 +15,33 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTransportOption<IN, MSG, OUT, O>> {
     /** server/selector channel 配置 */
-    private Map<ChannelOption, Object> serverOptions = new HashMap<>();
+    protected Map<ChannelOption, Object> serverOptions = new HashMap<>();
     /** channel 配置 */
-    private Map<ChannelOption, Object> channelOptions = new HashMap<>();
+    protected Map<ChannelOption, Object> channelOptions = new HashMap<>();
 
-    private ProtocolHandler<MSG> protocolHandler;
-    private TransportProtocolTransfer<IN, MSG, OUT> transportProtocolTransfer;
+    protected ProtocolHandler<MSG> protocolHandler;
+    protected TransportProtocolTransfer<IN, MSG, OUT> transportProtocolTransfer;
 
     /** 是否压缩 */
-    private CompressionType compressionType = CompressionType.NONE;
+    protected CompressionType compressionType = CompressionType.NONE;
     /** 读空闲时间(秒) */
-    private int readIdleTime;
+    protected int readIdleTime;
     /** 写空闲时间(秒) */
-    private int writeIdleTime;
+    protected int writeIdleTime;
     /** 读写空闲时间(秒) */
-    private int readWriteIdleTime;
+    protected int readWriteIdleTime;
     /** ssl */
-    private boolean ssl;
+    protected boolean ssl;
     /** 证书路径 */
-    private String certFilePath;
+    protected String certFilePath;
     /** 证书密钥路径 */
-    private String certKeyFilePath;
+    protected String certKeyFilePath;
     /** 读超时(秒) */
-    private int readTimeout;
+    protected int readTimeout;
     /** 写超时(秒) */
-    private int writeTimeout;
+    protected int writeTimeout;
     /** 连接超时(毫秒) */
-    private long connectTimeout;
-
-    //------------------------------------------------------------------------------------------------------------------
-    public O serverOptions(Map<ChannelOption, Object> channelOptions) {
-        this.serverOptions.putAll(channelOptions);
-        return (O) this;
-    }
-
-    public <E> O serverOption(ChannelOption<E> channelOption, E value) {
-        this.serverOptions.put(channelOption, value);
-        return (O) this;
-    }
-
-    public O channelOptions(Map<ChannelOption, Object> channelOptions) {
-        this.channelOptions.putAll(channelOptions);
-        return (O) this;
-    }
-
-    public <E> O channelOption(ChannelOption<E> channelOption, E value) {
-        this.channelOptions.put(channelOption, value);
-        return (O) this;
-    }
-
-    public O protocolHandler(ProtocolHandler<MSG> protocolHandler) {
-        this.protocolHandler = protocolHandler;
-        return (O) this;
-    }
-
-    public O transportProtocolTransfer(TransportProtocolTransfer<IN, MSG, OUT> transfer) {
-        this.transportProtocolTransfer = transfer;
-        return (O) this;
-    }
-
-    public O compress(CompressionType compressionType) {
-        this.compressionType = compressionType;
-        return (O) this;
-    }
-
-    public O uncompress() {
-        this.compressionType = CompressionType.NONE;
-        return (O) this;
-    }
-
-    public O readIdleTime(long readIdleTime, TimeUnit unit) {
-        this.readIdleTime = (int) unit.toSeconds(readIdleTime);
-        return (O) this;
-    }
-
-    public O writeIdleTime(long writeIdleTime, TimeUnit unit) {
-        this.writeIdleTime = (int) unit.toSeconds(writeIdleTime);
-        return (O) this;
-    }
-
-    public O readWriteIdleTime(long readWriteIdleTime, TimeUnit unit) {
-        this.readWriteIdleTime = (int) unit.toSeconds(readWriteIdleTime);
-        return (O) this;
-    }
-
-    public O ssl() {
-        this.ssl = true;
-        return (O) this;
-    }
-
-    public O certFile(String certFilePath) {
-        this.certFilePath = certFilePath;
-        return (O) this;
-    }
-
-    public O certKeyFile(String certKeyFilePath) {
-        this.certKeyFilePath = certKeyFilePath;
-        return (O) this;
-    }
-
-    public O readTimeout(long readTimeout, TimeUnit unit) {
-        this.readTimeout = (int) unit.toSeconds(readTimeout);
-        return (O) this;
-    }
-
-    public O writeTimeout(long writeTimeout, TimeUnit unit) {
-        this.writeTimeout = (int) unit.toSeconds(writeTimeout);
-        return (O) this;
-    }
-
-    public O connectTimeout(long connectTimeout, TimeUnit unit) {
-        this.connectTimeout = unit.toMillis(connectTimeout);
-        return (O) this;
-    }
+    protected long connectTimeout;
 
     //getter
     public Map<ChannelOption, Object> getServerOptions() {
@@ -200,5 +114,107 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
 
     public long getConnectTimeout() {
         return connectTimeout;
+    }
+
+    //------------------------------------------------------builder------------------------------------------------------
+    public static class TransportOptionBuilder<IN, MSG, OUT, O extends AbstractTransportOption<IN, MSG, OUT, O>> {
+        /** target */
+        protected final O transportOption;
+
+        private volatile boolean exported;
+
+        public TransportOptionBuilder(O transportOption) {
+            this.transportOption = transportOption;
+        }
+
+        public O build() {
+            exported = true;
+            return transportOption;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> serverOptions(Map<ChannelOption, Object> channelOptions) {
+            transportOption.serverOptions.putAll(channelOptions);
+            return this;
+        }
+
+        public <E> TransportOptionBuilder<IN, MSG, OUT, O> serverOption(ChannelOption<E> channelOption, E value) {
+            transportOption.serverOptions.put(channelOption, value);
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> channelOptions(Map<ChannelOption, Object> channelOptions) {
+            transportOption.channelOptions.putAll(channelOptions);
+            return this;
+        }
+
+        public <E> TransportOptionBuilder<IN, MSG, OUT, O> channelOption(ChannelOption<E> channelOption, E value) {
+            transportOption.channelOptions.put(channelOption, value);
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> protocolHandler(ProtocolHandler<MSG> protocolHandler) {
+            transportOption.protocolHandler = protocolHandler;
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> transportProtocolTransfer(TransportProtocolTransfer<IN, MSG, OUT> transfer) {
+            transportOption.transportProtocolTransfer = transfer;
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> compress(CompressionType compressionType) {
+            transportOption.compressionType = compressionType;
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> uncompress() {
+            transportOption.compressionType = CompressionType.NONE;
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> readIdleTime(long readIdleTime, TimeUnit unit) {
+            transportOption.readIdleTime = (int) unit.toSeconds(readIdleTime);
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> writeIdleTime(long writeIdleTime, TimeUnit unit) {
+            transportOption.writeIdleTime = (int) unit.toSeconds(writeIdleTime);
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> readWriteIdleTime(long readWriteIdleTime, TimeUnit unit) {
+            transportOption.readWriteIdleTime = (int) unit.toSeconds(readWriteIdleTime);
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> ssl() {
+            transportOption.ssl = true;
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> certFile(String certFilePath) {
+            transportOption.certFilePath = certFilePath;
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> certKeyFile(String certKeyFilePath) {
+            transportOption.certKeyFilePath = certKeyFilePath;
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> readTimeout(long readTimeout, TimeUnit unit) {
+            transportOption.readTimeout = (int) unit.toSeconds(readTimeout);
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> writeTimeout(long writeTimeout, TimeUnit unit) {
+            transportOption.writeTimeout = (int) unit.toSeconds(writeTimeout);
+            return this;
+        }
+
+        public TransportOptionBuilder<IN, MSG, OUT, O> connectTimeout(long connectTimeout, TimeUnit unit) {
+            transportOption.connectTimeout = unit.toMillis(connectTimeout);
+            return this;
+        }
     }
 }

@@ -3,6 +3,7 @@ package org.kin.transport.netty.http.client;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import org.kin.transport.netty.AbstractTransportOption;
+import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.TransportProtocolTransfer;
 
 import java.net.InetSocketAddress;
@@ -14,7 +15,7 @@ import java.util.Objects;
  */
 class HttpClientTransportOption
         extends AbstractTransportOption<FullHttpResponse, HttpEntity, FullHttpRequest, HttpClientTransportOption> {
-    public final HttpClient build(InetSocketAddress address) {
+    public final HttpClient connect(InetSocketAddress address) {
         HttpClientHandlerInitializer httpClientHandlerInitializer = new HttpClientHandlerInitializer(this);
         HttpClient client = new HttpClient(address);
         client.connect(this, httpClientHandlerInitializer);
@@ -29,5 +30,26 @@ class HttpClientTransportOption
         }
 
         return super.getTransportProtocolTransfer();
+    }
+
+    //------------------------------------------------------builder------------------------------------------------------
+    static HttpClientTransportOptionBuilder builder() {
+        return new HttpClientTransportOptionBuilder();
+    }
+
+    static class HttpClientTransportOptionBuilder extends TransportOptionBuilder<FullHttpResponse, HttpEntity, FullHttpRequest, HttpClientTransportOption> {
+        public HttpClientTransportOptionBuilder() {
+            super(new HttpClientTransportOption());
+        }
+
+        @Override
+        public TransportOptionBuilder<FullHttpResponse, HttpEntity, FullHttpRequest, HttpClientTransportOption> compress(CompressionType compressionType) {
+            throw new UnsupportedOperationException("http compression set through http hearders");
+        }
+
+        @Override
+        public TransportOptionBuilder<FullHttpResponse, HttpEntity, FullHttpRequest, HttpClientTransportOption> uncompress() {
+            throw new UnsupportedOperationException("http compression set through http hearders");
+        }
     }
 }

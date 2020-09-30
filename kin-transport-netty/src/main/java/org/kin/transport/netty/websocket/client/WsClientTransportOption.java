@@ -28,15 +28,15 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
     /**
      * 构建websocket client实例
      */
-    public final Client<MSG> build(InetSocketAddress address) {
+    public final Client<MSG> connect(InetSocketAddress address) {
         String prefix = isSsl() ? WsConstants.SSL_WS_PREFIX : WsConstants.WS_PREFIX;
-        return build(prefix.concat(":/").concat(address.toString()).concat(getHandshakeUrl()));
+        return connect(prefix.concat(":/").concat(address.toString()).concat(getHandshakeUrl()));
     }
 
     /**
      * 构建websocket client实例
      */
-    public final Client<MSG> build(String url) {
+    public final Client<MSG> connect(String url) {
         URI uri;
         try {
             uri = new URI(url);
@@ -102,5 +102,17 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
         }
 
         return super.getTransportProtocolTransfer();
+    }
+
+    //------------------------------------------------------builder------------------------------------------------------
+    public static <MSG, INOUT extends WebSocketFrame> WsClientTransportOptionBuilder<MSG, INOUT> builder() {
+        return new WsClientTransportOptionBuilder<>();
+    }
+
+    public static class WsClientTransportOptionBuilder<MSG, INOUT extends WebSocketFrame>
+            extends WsTransportOptionBuilder<MSG, INOUT, WsClientTransportOption<MSG, INOUT>> {
+        public WsClientTransportOptionBuilder() {
+            super(new WsClientTransportOption<>());
+        }
     }
 }

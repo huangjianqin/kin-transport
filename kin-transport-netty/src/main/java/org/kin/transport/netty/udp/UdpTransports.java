@@ -13,12 +13,12 @@ public class UdpTransports {
     public static final UdpTransports INSTANCE = new UdpTransports();
 
     /** server配置 */
-    public final UdpServerTransportOption server() {
-        return new UdpServerTransportOption();
+    public final UdpServerTransportOption.UdpServerTransportOptionBuilder server() {
+        return UdpServerTransportOption.builder();
     }
 
     /** client配置 */
-    public final UdpClientTransportOption client() {
-        return new UdpClientTransportOption();
+    public final UdpClientTransportOption.UdpClientTransportOptionBuilder client() {
+        return UdpClientTransportOption.builder();
     }
 }

@@ -10,11 +10,8 @@ import org.kin.transport.netty.TransportProtocolTransfer;
  */
 public abstract class AbstractWsTransportOption<MSG, INOUT extends WebSocketFrame, O extends AbstractWsTransportOption<MSG, INOUT, O>>
         extends AbstractTransportOption<INOUT, MSG, INOUT, O> {
-    public static final AbstractWsTransportOption INSTANCE = new AbstractWsTransportOption() {
-    };
-
     /** websocket 握手url */
-    private String handshakeUrl = WsConstants.WS_PATH;
+    protected String handshakeUrl = WsConstants.WS_PATH;
 
     //----------------------------------------------------------------------------------------------------------------
 
@@ -30,14 +27,22 @@ public abstract class AbstractWsTransportOption<MSG, INOUT extends WebSocketFram
                 new WsBinaryTransfer(serverOrClient);
     }
 
-    //----------------------------------------------------------------------------------------------------------------
-    public O handshakeUrl(String handshakeUrl) {
-        this.handshakeUrl = handshakeUrl;
-        return (O) this;
-    }
-
     //getter
     public String getHandshakeUrl() {
         return handshakeUrl;
+    }
+
+
+    //------------------------------------------------------builder------------------------------------------------------
+    public static class WsTransportOptionBuilder<MSG, INOUT extends WebSocketFrame, O extends AbstractWsTransportOption<MSG, INOUT, O>>
+            extends TransportOptionBuilder<INOUT, MSG, INOUT, O> {
+        public WsTransportOptionBuilder(O transportOption) {
+            super(transportOption);
+        }
+
+        public WsTransportOptionBuilder<MSG, INOUT, O> handshakeUrl(String handshakeUrl) {
+            transportOption.handshakeUrl = handshakeUrl;
+            return this;
+        }
     }
 }

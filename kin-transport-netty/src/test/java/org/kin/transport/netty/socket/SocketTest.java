@@ -31,14 +31,14 @@ public class SocketTest {
                     System.out.println(protocol);
                     ctx.channel().writeAndFlush(Protocol1.of(2));
                 }
-            }).compress(CompressionType.SNAPPY).channelOption(ChannelOption.TCP_NODELAY, true).build(address);
+            }).compress(CompressionType.SNAPPY).channelOption(ChannelOption.TCP_NODELAY, true).build().bind(address);
 
             client = Transports.socket().client().protocolHandler(new SocketProtocolHandler() {
                 @Override
                 public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                     System.out.println(protocol);
                 }
-            }).compress(CompressionType.FRAMED_LZ4).channelOption(ChannelOption.TCP_NODELAY, true).build(address);
+            }).compress(CompressionType.FRAMED_LZ4).channelOption(ChannelOption.TCP_NODELAY, true).build().connect(address);
             client.request(Protocol1.of(1));
 
             Thread.sleep(5000);

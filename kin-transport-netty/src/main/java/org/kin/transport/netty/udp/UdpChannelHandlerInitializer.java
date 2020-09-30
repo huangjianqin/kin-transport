@@ -3,6 +3,7 @@ package org.kin.transport.netty.udp;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.socket.DatagramPacket;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
+import org.kin.transport.netty.AbstractTransportOption;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -13,7 +14,7 @@ import java.util.Collections;
  * @author huangjianqin
  * @date 2020/9/1
  */
-public class UdpChannelHandlerInitializer<O extends AbstractUdpTransportOption<O>>
+public class UdpChannelHandlerInitializer<O extends AbstractTransportOption<DatagramPacket, UdpProtocolWrapper, DatagramPacket, O>>
         extends AbstractChannelHandlerInitializer<DatagramPacket, UdpProtocolWrapper, DatagramPacket, O> {
     public UdpChannelHandlerInitializer(O transportOption) {
         super(transportOption);

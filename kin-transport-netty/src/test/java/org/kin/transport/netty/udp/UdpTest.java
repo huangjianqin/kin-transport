@@ -29,14 +29,14 @@ public class UdpTest {
                     System.out.println(protocol.getProtocol());
                     ctx.channel().writeAndFlush(UdpProtocolWrapper.senderWrapper(Protocol1.of(2), protocol.getSenderAddress()));
                 }
-            }).channelOption(ChannelOption.TCP_NODELAY, true).build(address);
+            }).channelOption(ChannelOption.TCP_NODELAY, true).build().bind(address);
 
             client = Transports.datagram().client().protocolHandler(new UdpProtocolHandler() {
                 @Override
                 public void handle(ChannelHandlerContext ctx, UdpProtocolWrapper protocol) {
                     System.out.println(protocol.getProtocol());
                 }
-            }).channelOption(ChannelOption.TCP_NODELAY, true).build(address);
+            }).channelOption(ChannelOption.TCP_NODELAY, true).build().connect(address);
             client.request(Protocol1.of(1));
 
             Thread.sleep(5000);

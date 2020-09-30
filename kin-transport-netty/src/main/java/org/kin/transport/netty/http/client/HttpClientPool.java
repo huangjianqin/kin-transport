@@ -85,7 +85,7 @@ final class HttpClientPool {
 
         @Override
         public HttpClient create() throws Exception {
-            return (HttpClient) transportOption.build(address);
+            return (HttpClient) transportOption.connect(address);
         }
 
         @Override

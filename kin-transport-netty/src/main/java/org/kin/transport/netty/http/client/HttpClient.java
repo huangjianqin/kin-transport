@@ -3,8 +3,6 @@ package org.kin.transport.netty.http.client;
 import io.netty.channel.ChannelHandlerContext;
 import org.kin.framework.concurrent.lock.OneLock;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.transport.netty.AbstractTransportOption;
-import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.ProtocolHandler;
 
@@ -36,14 +34,6 @@ class HttpClient extends Client<HttpEntity> {
     }
 
     //-------------------------------------------------------------------------------------------------------------
-
-
-    @Override
-    public void connect(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
-        transportOption.protocolHandler(HttpClientProtocolHandler.INSTANCE);
-        super.connect(transportOption, channelHandlerInitializer);
-    }
-
     Future<HttpResponse> request(HttpCall httpCall) {
         CountDownLatch latch = new CountDownLatch(1);
         HttpCallFuture httpCallFuture = new HttpCallFuture(httpCall);
@@ -70,8 +60,8 @@ class HttpClient extends Client<HttpEntity> {
     /**
      * http client protocol handler
      */
-    private static class HttpClientProtocolHandler extends ProtocolHandler<HttpEntity> {
-        private static final HttpClientProtocolHandler INSTANCE = new HttpClientProtocolHandler();
+    static class HttpClientProtocolHandler extends ProtocolHandler<HttpEntity> {
+        static final HttpClientProtocolHandler INSTANCE = new HttpClientProtocolHandler();
 
         private HttpClientProtocolHandler() {
         }

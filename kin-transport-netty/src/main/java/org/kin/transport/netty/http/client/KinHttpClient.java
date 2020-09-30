@@ -39,11 +39,13 @@ public final class KinHttpClient implements Closeable {
     private DiskLruCache cache;
 
     private KinHttpClient() {
-        HttpClientTransportOption transportOption = new HttpClientTransportOption()
+        HttpClientTransportOption transportOption = HttpClientTransportOption.builder()
                 .readTimeout(readTimeout, TimeUnit.MILLISECONDS)
                 .writeTimeout(writeTimeout, TimeUnit.MILLISECONDS)
                 .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
-                .channelOption(ChannelOption.SO_KEEPALIVE, true);
+                .channelOption(ChannelOption.SO_KEEPALIVE, true)
+                .protocolHandler(HttpClient.HttpClientProtocolHandler.INSTANCE)
+                .build();
         pool = new HttpClientPool(transportOption);
     }
 
@@ -120,7 +122,7 @@ public final class KinHttpClient implements Closeable {
     public static class KinHttpClientBuilder {
         /** target */
         private KinHttpClient kinHttpClient = new KinHttpClient();
-        private volatile boolean exported = false;
+        private volatile boolean exported;
 
         public KinHttpClient build() {
             exported = true;

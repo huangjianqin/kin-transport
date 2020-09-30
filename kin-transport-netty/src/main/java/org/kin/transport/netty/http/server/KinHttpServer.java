@@ -89,9 +89,10 @@ public final class KinHttpServer {
                 return;
             }
             kinHttpServer.isExport = true;
-            new HttpServerTransportOption()
+            HttpServerTransportOption.builder()
                     .protocolHandler(new HttpServerProtocolHandler(kinHttpServer))
-                    .build(address);
+                    .build()
+                    .bind(address);
         }
     }
 

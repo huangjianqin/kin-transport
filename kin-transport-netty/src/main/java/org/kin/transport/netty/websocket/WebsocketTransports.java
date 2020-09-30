@@ -15,22 +15,22 @@ public class WebsocketTransports {
     public static final WebsocketTransports INSTANCE = new WebsocketTransports();
 
     /** binary server配置 */
-    public final <MSG> WsServerTransportOption<MSG, BinaryWebSocketFrame> binaryServer(Class<MSG> msgClass) {
-        return new WsServerTransportOption<>();
+    public final <MSG> WsServerTransportOption.WsServerTransportOptionBuilder<MSG, BinaryWebSocketFrame> binaryServer(Class<MSG> msgClass) {
+        return WsServerTransportOption.builder();
     }
 
     /** binary client配置 */
-    public final <MSG> WsClientTransportOption<MSG, BinaryWebSocketFrame> binaryClient(Class<MSG> msgClass) {
-        return new WsClientTransportOption<>();
+    public final <MSG> WsClientTransportOption.WsClientTransportOptionBuilder<MSG, BinaryWebSocketFrame> binaryClient(Class<MSG> msgClass) {
+        return WsClientTransportOption.builder();
     }
 
     /** text server配置 */
-    public final <MSG> WsServerTransportOption<MSG, TextWebSocketFrame> textServer(Class<MSG> msgClass) {
-        return new WsServerTransportOption<>();
+    public final <MSG> WsServerTransportOption.WsServerTransportOptionBuilder<MSG, TextWebSocketFrame> textServer(Class<MSG> msgClass) {
+        return WsServerTransportOption.builder();
     }
 
     /** text client配置 */
-    public final <MSG> WsClientTransportOption<MSG, TextWebSocketFrame> textClient(Class<MSG> msgClass) {
-        return new WsClientTransportOption<>();
+    public final <MSG> WsClientTransportOption.WsClientTransportOptionBuilder<MSG, TextWebSocketFrame> textClient(Class<MSG> msgClass) {
+        return WsClientTransportOption.builder();
     }
 }
