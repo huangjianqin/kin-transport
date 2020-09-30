@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * @author huangjianqin
  * @date 2020/9/1
  */
-public class UdpTransfer implements TransportProtocolTransfer<DatagramPacket, UdpProtocolWrapper, DatagramPacket> {
+public class UdpTransfer implements TransportProtocolTransfer<DatagramPacket, UdpProtocolDetails, DatagramPacket> {
     private final SocketTransfer transfer;
 
     public UdpTransfer(boolean serverElseClient) {
@@ -27,15 +27,15 @@ public class UdpTransfer implements TransportProtocolTransfer<DatagramPacket, Ud
     }
 
     @Override
-    public Collection<UdpProtocolWrapper> decode(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
+    public Collection<UdpProtocolDetails> decode(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         Collection<SocketProtocol> protocols = transfer.decode(ctx, datagramPacket.content());
         return protocols.stream()
-                .map(sp -> UdpProtocolWrapper.receiverWrapper(sp, datagramPacket.sender()))
+                .map(sp -> UdpProtocolDetails.receiverWrapper(sp, datagramPacket.sender()))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public Collection<DatagramPacket> encode(ChannelHandlerContext ctx, UdpProtocolWrapper wrapper) {
+    public Collection<DatagramPacket> encode(ChannelHandlerContext ctx, UdpProtocolDetails wrapper) {
         List<ByteBuf> byteBufs = new ArrayList<>(transfer.encode(ctx, wrapper.getProtocol()));
         List<DatagramPacket> datagramPackets = new ArrayList<>(byteBufs.size());
         for (ByteBuf byteBuf : byteBufs) {
@@ -51,7 +51,7 @@ public class UdpTransfer implements TransportProtocolTransfer<DatagramPacket, Ud
     }
 
     @Override
-    public Class<UdpProtocolWrapper> getMsgClass() {
-        return UdpProtocolWrapper.class;
+    public Class<UdpProtocolDetails> getMsgClass() {
+        return UdpProtocolDetails.class;
     }
 }

@@ -11,7 +11,7 @@ import java.net.InetSocketAddress;
  * @author huangjianqin
  * @date 2020/9/1
  */
-public class UdpProtocolWrapper {
+public class UdpProtocolDetails {
     /** 封装的协议 */
     private SocketProtocol protocol;
     /** 目标地址 */
@@ -22,21 +22,21 @@ public class UdpProtocolWrapper {
     /**
      * 封装 接收到的 协议
      */
-    public static UdpProtocolWrapper receiverWrapper(SocketProtocol protocol, InetSocketAddress senderAddress) {
-        UdpProtocolWrapper wrapper = new UdpProtocolWrapper();
-        wrapper.protocol = protocol;
-        wrapper.senderAddress = senderAddress;
-        return wrapper;
+    public static UdpProtocolDetails receiverWrapper(SocketProtocol protocol, InetSocketAddress senderAddress) {
+        UdpProtocolDetails details = new UdpProtocolDetails();
+        details.protocol = protocol;
+        details.senderAddress = senderAddress;
+        return details;
     }
 
     /**
      * 封装 待发送的 协议
      */
-    public static UdpProtocolWrapper senderWrapper(SocketProtocol protocol, InetSocketAddress targetAddress) {
-        UdpProtocolWrapper wrapper = new UdpProtocolWrapper();
-        wrapper.protocol = protocol;
-        wrapper.targetAddress = targetAddress;
-        return wrapper;
+    public static UdpProtocolDetails senderWrapper(SocketProtocol protocol, InetSocketAddress targetAddress) {
+        UdpProtocolDetails details = new UdpProtocolDetails();
+        details.protocol = protocol;
+        details.targetAddress = targetAddress;
+        return details;
     }
 
     //---------------------------------------------------------------------------------------------------------

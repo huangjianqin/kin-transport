@@ -5,7 +5,7 @@ import org.kin.transport.netty.AbstractTransportOption;
 import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.TransportProtocolTransfer;
 import org.kin.transport.netty.udp.UdpChannelHandlerInitializer;
-import org.kin.transport.netty.udp.UdpProtocolWrapper;
+import org.kin.transport.netty.udp.UdpProtocolDetails;
 import org.kin.transport.netty.udp.UdpTransfer;
 
 import java.net.InetSocketAddress;
@@ -17,12 +17,12 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020/9/1
  */
-public class UdpServerTransportOption extends AbstractTransportOption<DatagramPacket, UdpProtocolWrapper, DatagramPacket, UdpServerTransportOption> {
+public class UdpServerTransportOption extends AbstractTransportOption<DatagramPacket, UdpProtocolDetails, DatagramPacket, UdpServerTransportOption> {
     /**
      * 构建udp server实例
      */
     public UdpServer bind(InetSocketAddress address) {
-        ChannelHandlerInitializer<DatagramPacket, UdpProtocolWrapper, DatagramPacket>
+        ChannelHandlerInitializer<DatagramPacket, UdpProtocolDetails, DatagramPacket>
                 channelHandlerInitializer = new UdpChannelHandlerInitializer<>(this);
         UdpServer server = new UdpServer(address);
         server.bind(this, channelHandlerInitializer);
@@ -31,7 +31,7 @@ public class UdpServerTransportOption extends AbstractTransportOption<DatagramPa
 
     //------------------------------------------------------------------------------------------------------------------
     @Override
-    public TransportProtocolTransfer<DatagramPacket, UdpProtocolWrapper, DatagramPacket> getTransportProtocolTransfer() {
+    public TransportProtocolTransfer<DatagramPacket, UdpProtocolDetails, DatagramPacket> getTransportProtocolTransfer() {
         return Objects.nonNull(super.getTransportProtocolTransfer()) ?
                 super.getTransportProtocolTransfer() :
                 //默认
@@ -43,7 +43,7 @@ public class UdpServerTransportOption extends AbstractTransportOption<DatagramPa
         return new UdpServerTransportOptionBuilder();
     }
 
-    public static class UdpServerTransportOptionBuilder extends TransportOptionBuilder<DatagramPacket, UdpProtocolWrapper, DatagramPacket, UdpServerTransportOption> {
+    public static class UdpServerTransportOptionBuilder extends TransportOptionBuilder<DatagramPacket, UdpProtocolDetails, DatagramPacket, UdpServerTransportOption> {
         public UdpServerTransportOptionBuilder() {
             super(new UdpServerTransportOption());
         }

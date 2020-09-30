@@ -25,16 +25,16 @@ public class UdpTest {
             InetSocketAddress address = new InetSocketAddress("127.0.0.1", 9000);
             server = Transports.datagram().server().protocolHandler(new UdpProtocolHandler() {
                 @Override
-                public void handle(ChannelHandlerContext ctx, UdpProtocolWrapper protocol) {
-                    System.out.println(protocol.getProtocol());
-                    ctx.channel().writeAndFlush(UdpProtocolWrapper.senderWrapper(Protocol1.of(2), protocol.getSenderAddress()));
+                public void handle(ChannelHandlerContext ctx, UdpProtocolDetails details) {
+                    System.out.println(details.getProtocol());
+                    ctx.channel().writeAndFlush(UdpProtocolDetails.senderWrapper(Protocol1.of(2), details.getSenderAddress()));
                 }
             }).channelOption(ChannelOption.TCP_NODELAY, true).build().bind(address);
 
             client = Transports.datagram().client().protocolHandler(new UdpProtocolHandler() {
                 @Override
-                public void handle(ChannelHandlerContext ctx, UdpProtocolWrapper protocol) {
-                    System.out.println(protocol.getProtocol());
+                public void handle(ChannelHandlerContext ctx, UdpProtocolDetails details) {
+                    System.out.println(details.getProtocol());
                 }
             }).channelOption(ChannelOption.TCP_NODELAY, true).build().connect(address);
             client.request(Protocol1.of(1));

@@ -13,7 +13,7 @@ import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.ClientConnectTimeoutException;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
-import org.kin.transport.netty.udp.UdpProtocolWrapper;
+import org.kin.transport.netty.udp.UdpProtocolDetails;
 
 import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;
@@ -104,7 +104,7 @@ public class UdpClient extends Client<SocketProtocol> {
     public void request(SocketProtocol protocol, ChannelFutureListener... listeners) {
         if (isActive() && Objects.nonNull(protocol)) {
             ChannelFuture channelFuture =
-                    channel.writeAndFlush(UdpProtocolWrapper.senderWrapper(protocol, address));
+                    channel.writeAndFlush(UdpProtocolDetails.senderWrapper(protocol, address));
             if (CollectionUtils.isNonEmpty(listeners)) {
                 channelFuture.addListeners(listeners);
             }

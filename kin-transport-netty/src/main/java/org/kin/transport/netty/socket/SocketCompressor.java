@@ -13,7 +13,7 @@ import org.kin.transport.netty.CompressionType;
  * @author huangjianqin
  * @date 2020/9/29
  */
-public class SocketCompressor extends ChannelOutboundHandlerAdapter {
+class SocketCompressor extends ChannelOutboundHandlerAdapter {
     /** 压缩类型 */
     private final CompressionType compressionType;
 

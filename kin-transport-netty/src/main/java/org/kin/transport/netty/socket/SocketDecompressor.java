@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020/9/29
  */
-public class SocketDecompressor extends SimpleChannelInboundHandler<ByteBuf> {
+class SocketDecompressor extends SimpleChannelInboundHandler<ByteBuf> {
     /** decoder缓存, 软引用, 30min空闲移除 */
     private Cache<CompressionType, ByteToMessageDecoder> decoderCache =
             CacheBuilder.newBuilder()
