@@ -47,74 +47,6 @@ public final class KinHttpClient implements Closeable {
         pool = new HttpClientPool(transportOption);
     }
 
-    //builder
-    public static KinHttpClient create() {
-        return new KinHttpClient();
-    }
-
-    public KinHttpClient retryTimes(int retryTimes) {
-        this.retryTimes = retryTimes;
-        return this;
-    }
-
-    public KinHttpClient connectTimeout(long connectTimeout, TimeUnit unit) {
-        this.connectTimeout = unit.toMillis(connectTimeout);
-        return this;
-    }
-
-    public KinHttpClient callTimeout(long callTimeout, TimeUnit unit) {
-        this.callTimeout = unit.toMillis(callTimeout);
-        return this;
-    }
-
-    public KinHttpClient readTimeout(long readTimeout, TimeUnit unit) {
-        this.readTimeout = unit.toMillis(readTimeout);
-        return this;
-    }
-
-    public KinHttpClient writeTimeout(long writeTimeout, TimeUnit unit) {
-        this.writeTimeout = unit.toMillis(writeTimeout);
-        return this;
-    }
-
-    public KinHttpClient addInterceptor(Interceptor interceptor) {
-        interceptors.add(interceptor);
-        return this;
-    }
-
-    public KinHttpClient addInterceptors(Collection<Interceptor> interceptors) {
-        this.interceptors.addAll(interceptors);
-        return this;
-    }
-
-    public KinHttpClient removeInterceptor(Interceptor interceptor) {
-        interceptors.remove(interceptor);
-        return this;
-    }
-
-    public KinHttpClient removeInterceptors(Collection<Interceptor> interceptors) {
-        this.interceptors.removeAll(interceptors);
-        return this;
-    }
-
-    public KinHttpClient cacheDir(String dirPath, int maxSize) {
-        return cacheDir(new File(dirPath), maxSize);
-    }
-
-    public KinHttpClient cacheDir(File cacheDir, int maxSize) {
-        Preconditions.checkArgument(Objects.isNull(cache), "cache has been set");
-        Preconditions.checkArgument(Objects.nonNull(cacheDir) && cacheDir.isDirectory(),
-                "cache dir path must be a directory");
-        //1个app版本
-        //1个key对应1个value
-        try {
-            cache = DiskLruCache.open(cacheDir, 1, 1, maxSize);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
-    }
-
     //--------------------------------------------------------------------------------------------------------------
 
     /**
@@ -178,5 +110,104 @@ public final class KinHttpClient implements Closeable {
 
     public DiskLruCache getCache() {
         return cache;
+    }
+
+    //------------------------------------------------------builder------------------------------------------------------
+    public static KinHttpClientBuilder builder() {
+        return new KinHttpClientBuilder();
+    }
+
+    public static class KinHttpClientBuilder {
+        /** target */
+        private KinHttpClient kinHttpClient = new KinHttpClient();
+        private volatile boolean exported = false;
+
+        public KinHttpClient build() {
+            exported = true;
+            return kinHttpClient;
+        }
+
+        public KinHttpClientBuilder retryTimes(int retryTimes) {
+            if (!exported) {
+                kinHttpClient.retryTimes = retryTimes;
+            }
+            return this;
+        }
+
+        public KinHttpClientBuilder connectTimeout(long connectTimeout, TimeUnit unit) {
+            if (!exported) {
+                kinHttpClient.connectTimeout = unit.toMillis(connectTimeout);
+            }
+            return this;
+        }
+
+        public KinHttpClientBuilder callTimeout(long callTimeout, TimeUnit unit) {
+            if (!exported) {
+                kinHttpClient.callTimeout = unit.toMillis(callTimeout);
+            }
+            return this;
+        }
+
+        public KinHttpClientBuilder readTimeout(long readTimeout, TimeUnit unit) {
+            if (!exported) {
+                kinHttpClient.readTimeout = unit.toMillis(readTimeout);
+            }
+            return this;
+        }
+
+        public KinHttpClientBuilder writeTimeout(long writeTimeout, TimeUnit unit) {
+            if (!exported) {
+                kinHttpClient.writeTimeout = unit.toMillis(writeTimeout);
+            }
+            return this;
+        }
+
+        public KinHttpClientBuilder addInterceptor(Interceptor interceptor) {
+            if (!exported) {
+                kinHttpClient.interceptors.add(interceptor);
+            }
+            return this;
+        }
+
+        public KinHttpClientBuilder addInterceptors(Collection<Interceptor> interceptors) {
+            if (!exported) {
+                kinHttpClient.interceptors.addAll(interceptors);
+            }
+            return this;
+        }
+
+        public KinHttpClientBuilder removeInterceptor(Interceptor interceptor) {
+            if (!exported) {
+                kinHttpClient.interceptors.remove(interceptor);
+            }
+            return this;
+        }
+
+        public KinHttpClientBuilder removeInterceptors(Collection<Interceptor> interceptors) {
+            if (!exported) {
+                kinHttpClient.interceptors.removeAll(interceptors);
+            }
+            return this;
+        }
+
+        public KinHttpClientBuilder cacheDir(String dirPath, int maxSize) {
+            return cacheDir(new File(dirPath), maxSize);
+        }
+
+        public KinHttpClientBuilder cacheDir(File cacheDir, int maxSize) {
+            if (!exported) {
+                Preconditions.checkArgument(Objects.isNull(kinHttpClient.cache), "cache has been set");
+                Preconditions.checkArgument(Objects.nonNull(cacheDir) && cacheDir.isDirectory(),
+                        "cache dir path must be a directory");
+                //1个app版本
+                //1个key对应1个value
+                try {
+                    kinHttpClient.cache = DiskLruCache.open(cacheDir, 1, 1, maxSize);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return this;
+        }
     }
 }

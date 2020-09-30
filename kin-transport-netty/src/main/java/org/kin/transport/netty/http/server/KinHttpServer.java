@@ -30,47 +30,6 @@ public final class KinHttpServer {
         this.appName = appName;
     }
 
-    //----------------------------------------------------------------------------------------------------------------
-    public static KinHttpServer create(String appName) {
-        return new KinHttpServer(appName);
-    }
-
-    public static KinHttpServer create() {
-        return new KinHttpServer("default");
-    }
-
-    //----------------------------------------------------------------------------------------------------------------
-    public KinHttpServer mappingServlet(String url, Class<? extends Servlet> servletClass) {
-        if (!isExport) {
-            servletConfigs.add(new ServletConfig(url, servletClass));
-        }
-        return this;
-    }
-
-    public KinHttpServer mappingFilter(String url, Class<? extends Filter> filterClass) {
-        if (!isExport) {
-            filterConfigs.add(new FilterConfig(url, filterClass));
-        }
-        return this;
-    }
-
-    public KinHttpServer sessionManager(Class<? extends HttpSessionManager> sessionManagerClass) {
-        if (!isExport) {
-            this.sessionManagerClass = sessionManagerClass;
-        }
-        return this;
-    }
-
-    public void build(InetSocketAddress address) {
-        if (isExport) {
-            return;
-        }
-        new HttpServerTransportOption()
-                .protocolHandler(new HttpServerProtocolHandler(this))
-                .build(address);
-        isExport = true;
-    }
-
     public HttpSessionManager getSessionManager() {
         return ClassUtils.instance(sessionManagerClass);
     }
@@ -86,6 +45,54 @@ public final class KinHttpServer {
 
     Queue<FilterConfig> getFilterConfigs() {
         return filterConfigs;
+    }
+
+    //------------------------------------------------------builder------------------------------------------------------
+    public static KinHttpServerBuilder builder(String appName) {
+        return new KinHttpServerBuilder(appName);
+    }
+
+    public static KinHttpServerBuilder builder() {
+        return new KinHttpServerBuilder("default");
+    }
+
+    public static class KinHttpServerBuilder {
+        private KinHttpServer kinHttpServer;
+
+        public KinHttpServerBuilder(String appName) {
+            this.kinHttpServer = new KinHttpServer(appName);
+        }
+
+        public KinHttpServerBuilder mappingServlet(String url, Class<? extends Servlet> servletClass) {
+            if (!kinHttpServer.isExport) {
+                kinHttpServer.servletConfigs.add(new ServletConfig(url, servletClass));
+            }
+            return this;
+        }
+
+        public KinHttpServerBuilder mappingFilter(String url, Class<? extends Filter> filterClass) {
+            if (!kinHttpServer.isExport) {
+                kinHttpServer.filterConfigs.add(new FilterConfig(url, filterClass));
+            }
+            return this;
+        }
+
+        public KinHttpServerBuilder sessionManager(Class<? extends HttpSessionManager> sessionManagerClass) {
+            if (!kinHttpServer.isExport) {
+                kinHttpServer.sessionManagerClass = sessionManagerClass;
+            }
+            return this;
+        }
+
+        public void bind(InetSocketAddress address) {
+            if (kinHttpServer.isExport) {
+                return;
+            }
+            kinHttpServer.isExport = true;
+            new HttpServerTransportOption()
+                    .protocolHandler(new HttpServerProtocolHandler(kinHttpServer))
+                    .build(address);
+        }
     }
 
     //----------------------------------------------------------------------------------------------------------------

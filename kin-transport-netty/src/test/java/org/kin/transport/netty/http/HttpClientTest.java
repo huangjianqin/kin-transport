@@ -12,7 +12,7 @@ import java.util.Map;
  * @date 2020/9/17
  */
 public class HttpClientTest {
-    private static KinHttpClient kinHttpClient = KinHttpClient.create();
+    private static KinHttpClient kinHttpClient = KinHttpClient.builder().build();
 
     public static void main(String[] args) throws InterruptedException {
         get();
