@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020/9/21
  */
-public class CacheControl {
+public final class CacheControl {
     /** 不使用缓存，使用网络请求 */
     private boolean noCache;
     /** 不使用缓存也不存储缓存数据 */

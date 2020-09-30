@@ -13,7 +13,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020/8/21
  */
-final class HttpServerTransportOption
+class HttpServerTransportOption
         extends AbstractTransportOption<FullHttpRequest, ServletTransportEntity, FullHttpResponse, HttpServerTransportOption> {
     final Server build(InetSocketAddress address) {
         HttpServerHandlerInitializer httpServerHandlerInitializer = new HttpServerHandlerInitializer(this);

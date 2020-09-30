@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author huangjianqin
  * @date 2020/9/8
  */
-final class HttpClient extends Client<HttpEntity> {
+class HttpClient extends Client<HttpEntity> {
     /**
      * 假设服务端和客户端都遵循http pipeline规定(req resp req resp一个接一个的形式)
      * <p>
@@ -31,7 +31,7 @@ final class HttpClient extends Client<HttpEntity> {
      */
     private static final Map<String, Queue<HttpCallFuture>> CHANNEL_ID_2_CALLS = new ConcurrentHashMap<>();
 
-    public HttpClient(InetSocketAddress address) {
+    HttpClient(InetSocketAddress address) {
         super(address);
     }
 
@@ -44,7 +44,7 @@ final class HttpClient extends Client<HttpEntity> {
         super.connect(transportOption, channelHandlerInitializer);
     }
 
-    public Future<HttpResponse> request(HttpCall httpCall) {
+    Future<HttpResponse> request(HttpCall httpCall) {
         CountDownLatch latch = new CountDownLatch(1);
         HttpCallFuture httpCallFuture = new HttpCallFuture(httpCall);
         super.request(httpCall.getRequest(), future -> {
@@ -66,6 +66,10 @@ final class HttpClient extends Client<HttpEntity> {
     }
 
     //-------------------------------------------------------------------------------------------------------------
+
+    /**
+     * http client protocol handler
+     */
     private static class HttpClientProtocolHandler extends ProtocolHandler<HttpEntity> {
         private static final HttpClientProtocolHandler INSTANCE = new HttpClientProtocolHandler();
 
@@ -123,6 +127,9 @@ final class HttpClient extends Client<HttpEntity> {
         }
     }
 
+    /**
+     * http call future
+     */
     private class HttpCallFuture implements Future<HttpResponse> {
         private final HttpCall httpCall;
         private final OneLock sync;

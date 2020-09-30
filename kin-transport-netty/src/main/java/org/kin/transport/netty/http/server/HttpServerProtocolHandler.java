@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutionException;
  * @author huangjianqin
  * @date 2020/9/10
  */
-final class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> implements LoggerOprs {
+class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> implements LoggerOprs {
     private static final ExecutionContext EXECUTION_CONTEXT = ExecutionContext.cache("kin-http-servet");
     /** 每个channel存储一个handler, 一个channel的请求按顺序处理, 前后互不影响 */
     private static final AttributeKey<ChannelServletRequestHandler> CHANNEL_SERVLET_REQUEST_HANDLER_KEY =

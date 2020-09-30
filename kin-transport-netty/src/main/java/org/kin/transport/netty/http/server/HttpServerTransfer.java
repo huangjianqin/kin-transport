@@ -27,7 +27,7 @@ import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
  * @author huangjianqin
  * @date 2020/8/31
  */
-final class HttpServerTransfer
+class HttpServerTransfer
         implements TransportProtocolTransfer<FullHttpRequest, ServletTransportEntity, FullHttpResponse>, LoggerOprs {
     /** response内容大小, 如果大于10m, 则采用chunked write, 否则直接write full response todo 测试1k */
     private static final int CONTENT_SIZE_LIMIT = 1024 * 1;

@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2020/9/21
  */
 class CacheInterceptor implements Interceptor, LoggerOprs {
-    public static final CacheInterceptor INSTANCE = new CacheInterceptor();
+    static final CacheInterceptor INSTANCE = new CacheInterceptor();
 
     /**
      * 以kryo序列化存储
