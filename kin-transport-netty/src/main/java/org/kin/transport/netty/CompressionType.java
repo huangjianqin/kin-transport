@@ -179,7 +179,7 @@ public enum CompressionType {
     /**
      * @return 根据id获取压缩类型
      */
-    public static CompressionType getByName(int id) {
+    public static CompressionType getById(int id) {
         for (CompressionType type : values()) {
             if (type.getId() == id) {
                 return type;

@@ -30,7 +30,7 @@ class SocketDecompressor extends SimpleChannelInboundHandler<ByteBuf> {
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
         //压缩类型
         int compressionId = in.readByte();
-        CompressionType compressionType = CompressionType.getByName(compressionId);
+        CompressionType compressionType = CompressionType.getById(compressionId);
         if (Objects.isNull(compressionType)) {
             return;
         }
