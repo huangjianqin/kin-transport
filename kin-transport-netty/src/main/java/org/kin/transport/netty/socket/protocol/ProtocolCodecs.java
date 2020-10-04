@@ -7,6 +7,7 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import org.kin.framework.utils.ClassUtils;
+import org.kin.framework.utils.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -17,7 +18,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -29,6 +29,10 @@ public class ProtocolCodecs {
     private static final Logger log = LoggerFactory.getLogger(ProtocolCodecs.class);
     /** javassist class pool */
     private static final ClassPool POOL = ClassPool.getDefault();
+
+    static {
+        POOL.importPackage("org.kin");
+    }
 
     /** {@link ProtocolCodec} 缓存 */
     private static Cache<Class<?>, ProtocolCodec<?>> protocolCodecs = CacheBuilder.newBuilder().build();
@@ -80,7 +84,6 @@ public class ProtocolCodecs {
             return;
         }
         List<Field> fields = ClassUtils.getAllFields(target);
-        Collections.reverse(fields);
         List<Field> validField = new ArrayList<>(fields.size());
         for (Field field : fields) {
             if (!ProtocolUtils.isFieldValid(field)) {
@@ -107,7 +110,7 @@ public class ProtocolCodecs {
             ProtocolVO protocolVO = fieldType.getAnnotation(ProtocolVO.class);
             if (Objects.nonNull(protocolVO)) {
                 //先初始化
-                init(fieldType, isProtocol);
+                init(fieldType, false);
             }
 
             validField.add(field);
@@ -118,6 +121,9 @@ public class ProtocolCodecs {
             String codecCtClassName = target.getName().concat("Codec");
             CtClass codecCtClass = POOL.makeClass(codecCtClassName);
             codecCtClass.addInterface(POOL.getCtClass(ProtocolCodec.class.getName()));
+
+            log.debug(System.lineSeparator());
+            log.debug("#############".concat(codecCtClassName).concat("#############").concat(System.lineSeparator()));
 
             //生成read方法
             addReadMethod(codecCtClass, target, validField, isProtocol);
@@ -133,219 +139,308 @@ public class ProtocolCodecs {
 
             Object instance = codecCtClass.toClass().getConstructor().newInstance();
             protocolCodecs.put(target, (ProtocolCodec<?>) instance);
+
+            log.debug("##########################".concat(System.lineSeparator()));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * 添加解析协议方法
+     */
     private static void addReadMethod(CtClass codecCtClass, Class<?> target, List<Field> validField, boolean isProtocol) throws NoSuchMethodException, CannotCompileException {
         Method readMethod = ProtocolCodec.class.getMethod("read", SocketRequestOprs.class, SocketProtocol.class);
         StringBuilder readMethodBody = new StringBuilder();
-        readMethodBody.append(ClassUtils.generateMethodDeclaration(readMethod).concat("{"));
+        prettyMethodHead(readMethodBody, ClassUtils.generateMethodDeclaration(readMethod));
         if (isProtocol) {
-            readMethodBody.append(target.getName().concat(" protocol = (".concat(target.getName()).concat(")").concat("$2;")));
+            String sinkName = "protocol";
+            prettyStatement(readMethodBody,
+                    target.getName()
+                            .concat(" ")
+                            .concat(sinkName)
+                            .concat(" = (")
+                            .concat(target.getName())
+                            .concat(")")
+                            .concat("$2;"));
 
             for (Field field : validField) {
-                //setter
-                Method setterMethod = ClassUtils.setterMethod(target, field);
-
-                Class<?> fieldType = field.getType();
-                ProtocolVO protocolVO = fieldType.getAnnotation(ProtocolVO.class);
-                if (Objects.isNull(protocolVO)) {
-                    //基础类型
-                    if (String.class.equals(fieldType)) {
-                        BigString bigString = field.getAnnotation(BigString.class);
-                        if (bigString != null) {
-                            readMethodBody.append("protocol.".concat(setterMethod.getName()).concat("(").concat("$1.readBigString()").concat(");").concat(System.lineSeparator()));
-                        } else {
-                            readMethodBody.append("protocol.".concat(setterMethod.getName()).concat("(").concat("$1.readString()").concat(");").concat(System.lineSeparator()));
-                        }
-                    } else if (Boolean.class.equals(fieldType) || Boolean.TYPE.equals(fieldType)) {
-                        readMethodBody.append("protocol.".concat(setterMethod.getName()).concat("(").concat("$1.readBoolean()").concat(");").concat(System.lineSeparator()));
-                    } else if (Byte.class.equals(fieldType) || Byte.TYPE.equals(fieldType)) {
-                        readMethodBody.append("protocol.".concat(setterMethod.getName()).concat("(").concat("$1.readByte()").concat(");").concat(System.lineSeparator()));
-                    } else if (Short.class.equals(fieldType) || Short.TYPE.equals(fieldType)) {
-                        readMethodBody.append("protocol.".concat(setterMethod.getName()).concat("(").concat("$1.readShort()").concat(");").concat(System.lineSeparator()));
-                    } else if (Integer.class.equals(fieldType) || Integer.TYPE.equals(fieldType)) {
-                        readMethodBody.append("protocol.".concat(setterMethod.getName()).concat("(").concat("$1.readInt()").concat(");").concat(System.lineSeparator()));
-                    } else if (Long.class.equals(fieldType) || Long.TYPE.equals(fieldType)) {
-                        readMethodBody.append("protocol.".concat(setterMethod.getName()).concat("(").concat("$1.readLong()").concat(");").concat(System.lineSeparator()));
-                    } else if (Float.class.equals(fieldType) || Float.TYPE.equals(fieldType)) {
-                        readMethodBody.append("protocol.".concat(setterMethod.getName()).concat("(").concat("$1.readFloat()").concat(");").concat(System.lineSeparator()));
-                    } else if (Double.class.equals(fieldType) || Double.TYPE.equals(fieldType)) {
-                        readMethodBody.append("protocol.".concat(setterMethod.getName()).concat("(").concat("$1.readDouble()").concat(");").concat(System.lineSeparator()));
-                    }
-                } else {
-                    //vo
-                    readMethodBody.append("protocol.".concat(setterMethod.getName()).concat("(").concat("ProtocolCodecs.codec(".concat(field.getType().getName()).concat(").read($1)")).concat(");").concat(System.lineSeparator()));
-                }
+                addFieldRead(readMethodBody, sinkName, "$1", target, field);
             }
         } else {
-            readMethodBody.append("throw new UnsupportedOperationException();");
+            prettyStatement(readMethodBody, "throw new UnsupportedOperationException();");
         }
-        readMethodBody.append("}");
+        prettyMethodTail(readMethodBody);
+
+        log.debug(readMethodBody.toString());
 
         CtMethod readCtMethod = CtMethod.make(readMethodBody.toString(), codecCtClass);
         codecCtClass.addMethod(readCtMethod);
     }
 
+    /**
+     * 添加解析VO方法
+     */
     private static void addReadVOMethod(CtClass codecCtClass, Class<?> target, List<Field> validField, boolean isProtocol) throws NoSuchMethodException, CannotCompileException {
         Method readVOMethod = ProtocolCodec.class.getMethod("readVO", SocketRequestOprs.class);
         StringBuilder readVOMethodBody = new StringBuilder();
-        readVOMethodBody.append(ClassUtils.generateMethodDeclaration(readVOMethod).concat("{"));
+        prettyMethodHead(readVOMethodBody, ClassUtils.generateMethodDeclaration(readVOMethod));
         if (!isProtocol) {
-            readVOMethodBody.append(target.getName().concat(" msg = new ").concat(target.getName()).concat("();").concat(System.lineSeparator()));
+            String sinkName = "msg";
+            prettyStatement(readVOMethodBody,
+                    target.getName()
+                            .concat(" ")
+                            .concat(sinkName)
+                            .concat(" = new ")
+                            .concat(target.getName())
+                            .concat("();"));
 
             for (Field field : validField) {
-                //setter
-                Method setterMethod = ClassUtils.setterMethod(target, field);
-
-                Class<?> fieldType = field.getType();
-                ProtocolVO protocolVO = fieldType.getAnnotation(ProtocolVO.class);
-                if (Objects.isNull(protocolVO)) {
-                    //基础类型
-                    if (String.class.equals(fieldType)) {
-                        BigString bigString = field.getAnnotation(BigString.class);
-                        if (bigString != null) {
-                            readVOMethodBody.append("msg.".concat(setterMethod.getName()).concat("(").concat("$1.readBigString()").concat(");").concat(System.lineSeparator()));
-                        } else {
-                            readVOMethodBody.append("msg.".concat(setterMethod.getName()).concat("(").concat("$1.readString()").concat(");").concat(System.lineSeparator()));
-                        }
-                    } else if (Boolean.class.equals(fieldType) || Boolean.TYPE.equals(fieldType)) {
-                        readVOMethodBody.append("msg.".concat(setterMethod.getName()).concat("(").concat("$1.readBoolean()").concat(");").concat(System.lineSeparator()));
-                    } else if (Byte.class.equals(fieldType) || Byte.TYPE.equals(fieldType)) {
-                        readVOMethodBody.append("msg.".concat(setterMethod.getName()).concat("(").concat("$1.readByte()").concat(");").concat(System.lineSeparator()));
-                    } else if (Short.class.equals(fieldType) || Short.TYPE.equals(fieldType)) {
-                        readVOMethodBody.append("msg.".concat(setterMethod.getName()).concat("(").concat("$1.readShort()").concat(");").concat(System.lineSeparator()));
-                    } else if (Integer.class.equals(fieldType) || Integer.TYPE.equals(fieldType)) {
-                        readVOMethodBody.append("msg.".concat(setterMethod.getName()).concat("(").concat("$1.readInt()").concat(");").concat(System.lineSeparator()));
-                    } else if (Long.class.equals(fieldType) || Long.TYPE.equals(fieldType)) {
-                        readVOMethodBody.append("msg.".concat(setterMethod.getName()).concat("(").concat("$1.readLong()").concat(");").concat(System.lineSeparator()));
-                    } else if (Float.class.equals(fieldType) || Float.TYPE.equals(fieldType)) {
-                        readVOMethodBody.append("msg.".concat(setterMethod.getName()).concat("(").concat("$1.readFloat()").concat(");").concat(System.lineSeparator()));
-                    } else if (Double.class.equals(fieldType) || Double.TYPE.equals(fieldType)) {
-                        readVOMethodBody.append("msg.".concat(setterMethod.getName()).concat("(").concat("$1.readDouble()").concat(");").concat(System.lineSeparator()));
-                    }
-                } else {
-                    //vo
-                    readVOMethodBody.append("msg.".concat(setterMethod.getName()).concat("(").concat("ProtocolCodecs.codec(".concat(field.getType().getName()).concat(").read($1)")).concat(");").concat(System.lineSeparator()));
-                }
-
-                readVOMethodBody.append("return msg;".concat(System.lineSeparator()));
+                addFieldRead(readVOMethodBody, sinkName, "$1", target, field);
             }
+            prettyStatement(readVOMethodBody, "return msg;");
         } else {
-            readVOMethodBody.append("throw new UnsupportedOperationException();");
+            prettyStatement(readVOMethodBody, "throw new UnsupportedOperationException();");
         }
-        readVOMethodBody.append("}");
+        prettyMethodTail(readVOMethodBody);
+
+        log.debug(readVOMethodBody.toString());
 
         CtMethod readCtMethod = CtMethod.make(readVOMethodBody.toString(), codecCtClass);
         codecCtClass.addMethod(readCtMethod);
     }
 
+    /**
+     * 每个成员域的解析方法
+     */
+    private static void addFieldRead(StringBuilder sb, String sinkName, String sourceName, Class<?> target, Field field) {
+        //setter
+        Method setterMethod = ClassUtils.setterMethod(target, field);
+
+        Class<?> fieldType = field.getType();
+        ProtocolVO protocolVO = fieldType.getAnnotation(ProtocolVO.class);
+        if (Objects.isNull(protocolVO)) {
+            //基础类型
+            if (String.class.equals(fieldType)) {
+                BigString bigString = field.getAnnotation(BigString.class);
+                if (bigString != null) {
+                    prettyStatement(sb, addFieldReadMethod(BigString.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
+                } else {
+                    prettyStatement(sb, addFieldReadMethod(String.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
+                }
+            } else if (Boolean.class.equals(fieldType) || Boolean.TYPE.equals(fieldType)) {
+                prettyStatement(sb, addFieldReadMethod(Boolean.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
+            } else if (Byte.class.equals(fieldType) || Byte.TYPE.equals(fieldType)) {
+                prettyStatement(sb, addFieldReadMethod(Byte.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
+            } else if (Short.class.equals(fieldType) || Short.TYPE.equals(fieldType)) {
+                prettyStatement(sb, addFieldReadMethod(Short.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
+            } else if (Integer.class.equals(fieldType) || Integer.TYPE.equals(fieldType)) {
+                prettyStatement(sb, addFieldReadMethod("int", sinkName, sourceName, setterMethod.getName()));
+            } else if (Long.class.equals(fieldType) || Long.TYPE.equals(fieldType)) {
+                prettyStatement(sb, addFieldReadMethod(Long.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
+            } else if (Float.class.equals(fieldType) || Float.TYPE.equals(fieldType)) {
+                prettyStatement(sb, addFieldReadMethod(Float.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
+            } else if (Double.class.equals(fieldType) || Double.TYPE.equals(fieldType)) {
+                prettyStatement(sb, addFieldReadMethod(Double.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
+            }
+        } else {
+            //vo
+            prettyStatement(sb,
+                    sinkName.concat(".")
+                            .concat(setterMethod.getName())
+                            .concat("((")
+                            .concat(fieldType.getName())
+                            .concat(")")
+                            .concat(ProtocolCodecs.class.getName())
+                            .concat(".codec(")
+                            .concat(field.getType().getName())
+                            .concat(".class).readVO(")
+                            .concat(sourceName)
+                            .concat(")")
+                            .concat(");"));
+        }
+    }
+
+    /**
+     * 每个成员域的解析方法
+     */
+    private static String addFieldReadMethod(String typeName, String sinkName, String sourceName, String sourceSetterMethod) {
+        return sinkName
+                .concat(".")
+                .concat(sourceSetterMethod)
+                .concat("(")
+                .concat(sourceName)
+                .concat(".read")
+                .concat(StringUtils.firstUpperCase(typeName))
+                .concat("()")
+                .concat(");");
+    }
+
+    /**
+     * 添加协议编码方法
+     */
     private static void addWriteMethod(CtClass codecCtClass, Class<?> target, List<Field> validField, boolean isProtocol) throws NoSuchMethodException, CannotCompileException {
         Method writeMethod = ProtocolCodec.class.getMethod("write", SocketProtocol.class);
-        StringBuffer writeMethodBody = new StringBuffer();
-        writeMethodBody.append(ClassUtils.generateMethodDeclaration(writeMethod).concat("{"));
+        StringBuilder writeMethodBody = new StringBuilder();
+        prettyMethodHead(writeMethodBody, ClassUtils.generateMethodDeclaration(writeMethod));
         if (isProtocol) {
-            writeMethodBody.append(target.getName().concat(" protocol = (").concat(target.getName()).concat(")$1;"));
-            writeMethodBody.append(SocketResponseOprs.class.getName().concat(" response = new ").concat(SocketProtocolByteBuf.class.getName()).concat("(protocol.getProtocolId());"));
+            String sinkName = "response";
+            String sourceName = "protocol";
+            prettyStatement(writeMethodBody,
+                    target.getName()
+                            .concat(" ")
+                            .concat(sourceName)
+                            .concat(" = (")
+                            .concat(target.getName())
+                            .concat(")$1;"));
+            prettyStatement(writeMethodBody,
+                    SocketResponseOprs.class.getName()
+                            .concat(" ")
+                            .concat(sinkName)
+                            .concat(" = new ")
+                            .concat(SocketProtocolByteBuf.class.getName())
+                            .concat("(protocol.getProtocolId());"));
 
             for (Field field : validField) {
-                //setter
-                Method getterMethod = ClassUtils.getterMethod(target, field);
-
-                Class<?> fieldType = field.getType();
-                ProtocolVO protocolVO = fieldType.getAnnotation(ProtocolVO.class);
-                if (Objects.isNull(protocolVO)) {
-                    //基础类型
-                    if (String.class.equals(fieldType)) {
-                        BigString bigString = field.getAnnotation(BigString.class);
-                        if (bigString != null) {
-                            writeMethodBody.append("response.writeBigString(protocol.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                        } else {
-                            writeMethodBody.append("response.writeString(protocol.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                        }
-                    } else if (Boolean.class.equals(fieldType) || Boolean.TYPE.equals(fieldType)) {
-                        writeMethodBody.append("response.writeBoolean(protocol.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    } else if (Byte.class.equals(fieldType) || Byte.TYPE.equals(fieldType)) {
-                        writeMethodBody.append("response.writeByte(protocol.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    } else if (Short.class.equals(fieldType) || Short.TYPE.equals(fieldType)) {
-                        writeMethodBody.append("response.writeShort(protocol.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    } else if (Integer.class.equals(fieldType) || Integer.TYPE.equals(fieldType)) {
-                        writeMethodBody.append("response.writeInt(protocol.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    } else if (Long.class.equals(fieldType) || Long.TYPE.equals(fieldType)) {
-                        writeMethodBody.append("response.writeLong(protocol.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    } else if (Float.class.equals(fieldType) || Float.TYPE.equals(fieldType)) {
-                        writeMethodBody.append("response.writeFloat(protocol.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    } else if (Double.class.equals(fieldType) || Double.TYPE.equals(fieldType)) {
-                        writeMethodBody.append("response.writeDouble(protocol.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    }
-                } else {
-                    //vo
-                    writeMethodBody.append("ProtocolCodecs.codec(".concat(field.getType().getName()).concat(").writeVO(msg.").concat(getterMethod.getName()).concat(", response);").concat(System.lineSeparator()));
-                }
+                addFieldWrite(writeMethodBody, sinkName, sourceName, target, field);
             }
 
-            writeMethodBody.append("return response;");
+            prettyStatement(writeMethodBody, "return response;");
         } else {
-            writeMethodBody.append("throw new UnsupportedOperationException();");
+            prettyStatement(writeMethodBody, "throw new UnsupportedOperationException();");
         }
-        writeMethodBody.append("}");
+        prettyMethodTail(writeMethodBody);
+
+        log.debug(writeMethodBody.toString());
 
         CtMethod writeCtMethod = CtMethod.make(writeMethodBody.toString(), codecCtClass);
         codecCtClass.addMethod(writeCtMethod);
     }
 
+    /**
+     * 添加VO编码方法
+     */
     private static void addWriteVOMethod(CtClass codecCtClass, Class<?> target, List<Field> validField, boolean isProtocol) throws NoSuchMethodException, CannotCompileException {
         Method writeVOMethod = ProtocolCodec.class.getMethod("writeVO", Object.class, SocketResponseOprs.class);
-        StringBuffer writeVOMethodBody = new StringBuffer();
-        writeVOMethodBody.append(ClassUtils.generateMethodDeclaration(writeVOMethod).concat("{"));
+        StringBuilder writeVOMethodBody = new StringBuilder();
+        prettyMethodHead(writeVOMethodBody, ClassUtils.generateMethodDeclaration(writeVOMethod));
         if (!isProtocol) {
-            writeVOMethodBody.append(target.getName().concat(" msg = (").concat(target.getName()).concat(")$1;"));
+            String sinkName = "$2";
+            String sourceName = "msg";
+            prettyStatement(writeVOMethodBody,
+                    target.getName()
+                            .concat(" ")
+                            .concat(sourceName)
+                            .concat(" = (")
+                            .concat(target.getName())
+                            .concat(")$1;"));
 
             for (Field field : validField) {
-                //setter
-                Method getterMethod = ClassUtils.getterMethod(target, field);
-
-                Class<?> fieldType = field.getType();
-                ProtocolVO protocolVO = fieldType.getAnnotation(ProtocolVO.class);
-                if (Objects.isNull(protocolVO)) {
-                    //基础类型
-                    if (String.class.equals(fieldType)) {
-                        BigString bigString = field.getAnnotation(BigString.class);
-                        if (bigString != null) {
-                            writeVOMethodBody.append("response.writeBigString(msg.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                        } else {
-                            writeVOMethodBody.append("response.writeString(msg.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                        }
-                    } else if (Boolean.class.equals(fieldType) || Boolean.TYPE.equals(fieldType)) {
-                        writeVOMethodBody.append("response.writeBoolean(msg.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    } else if (Byte.class.equals(fieldType) || Byte.TYPE.equals(fieldType)) {
-                        writeVOMethodBody.append("response.writeByte(msg.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    } else if (Short.class.equals(fieldType) || Short.TYPE.equals(fieldType)) {
-                        writeVOMethodBody.append("response.writeShort(msg.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    } else if (Integer.class.equals(fieldType) || Integer.TYPE.equals(fieldType)) {
-                        writeVOMethodBody.append("response.writeInt(msg.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    } else if (Long.class.equals(fieldType) || Long.TYPE.equals(fieldType)) {
-                        writeVOMethodBody.append("response.writeLong(msg.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    } else if (Float.class.equals(fieldType) || Float.TYPE.equals(fieldType)) {
-                        writeVOMethodBody.append("response.writeFloat(msg.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    } else if (Double.class.equals(fieldType) || Double.TYPE.equals(fieldType)) {
-                        writeVOMethodBody.append("response.writeDouble(msg.".concat(getterMethod.getName()).concat("());").concat(System.lineSeparator()));
-                    }
-                } else {
-                    //vo
-                    writeVOMethodBody.append("ProtocolCodecs.codec(".concat(field.getType().getName()).concat(").writeVO(msg.").concat(getterMethod.getName()).concat(", response);").concat(System.lineSeparator()));
-                }
+                addFieldWrite(writeVOMethodBody, sinkName, sourceName, target, field);
             }
-
-            writeVOMethodBody.append("return response;");
         } else {
-            writeVOMethodBody.append("throw new UnsupportedOperationException();");
+            prettyStatement(writeVOMethodBody, "throw new UnsupportedOperationException();");
         }
-        writeVOMethodBody.append("}");
+        prettyMethodTail(writeVOMethodBody);
+
+        log.debug(writeVOMethodBody.toString());
 
         CtMethod writeCtMethod = CtMethod.make(writeVOMethodBody.toString(), codecCtClass);
         codecCtClass.addMethod(writeCtMethod);
+    }
+
+    /**
+     * 每个成员域的编码方法
+     */
+    private static void addFieldWrite(StringBuilder sb, String sinkName, String sourceName, Class<?> target, Field field) {
+
+        //getter
+        Method getterMethod = ClassUtils.getterMethod(target, field);
+
+        Class<?> fieldType = field.getType();
+        ProtocolVO protocolVO = fieldType.getAnnotation(ProtocolVO.class);
+        if (Objects.isNull(protocolVO)) {
+            //基础类型
+            if (String.class.equals(fieldType)) {
+                BigString bigString = field.getAnnotation(BigString.class);
+                if (bigString != null) {
+                    prettyStatement(sb,
+                            sinkName.concat(addFieldWriteMethod(BigString.class.getSimpleName(), sourceName, getterMethod.getName())));
+                } else {
+                    prettyStatement(sb,
+                            sinkName.concat(addFieldWriteMethod(String.class.getSimpleName(), sourceName, getterMethod.getName())));
+                }
+            } else if (Boolean.class.equals(fieldType) || Boolean.TYPE.equals(fieldType)) {
+                prettyStatement(sb,
+                        sinkName.concat(addFieldWriteMethod(Boolean.class.getSimpleName(), sourceName, getterMethod.getName())));
+            } else if (Byte.class.equals(fieldType) || Byte.TYPE.equals(fieldType)) {
+                prettyStatement(sb,
+                        sinkName.concat(addFieldWriteMethod(Byte.class.getSimpleName(), sourceName, getterMethod.getName())));
+            } else if (Short.class.equals(fieldType) || Short.TYPE.equals(fieldType)) {
+                prettyStatement(sb,
+                        sinkName.concat(addFieldWriteMethod(Short.class.getSimpleName(), sourceName, getterMethod.getName())));
+            } else if (Integer.class.equals(fieldType) || Integer.TYPE.equals(fieldType)) {
+                prettyStatement(sb,
+                        sinkName.concat(addFieldWriteMethod("int", sourceName, getterMethod.getName())));
+            } else if (Long.class.equals(fieldType) || Long.TYPE.equals(fieldType)) {
+                prettyStatement(sb,
+                        sinkName.concat(addFieldWriteMethod(Long.class.getSimpleName(), sourceName, getterMethod.getName())));
+            } else if (Float.class.equals(fieldType) || Float.TYPE.equals(fieldType)) {
+                prettyStatement(sb,
+                        sinkName.concat(addFieldWriteMethod(Float.class.getSimpleName(), sourceName, getterMethod.getName())));
+            } else if (Double.class.equals(fieldType) || Double.TYPE.equals(fieldType)) {
+                prettyStatement(sb,
+                        sinkName.concat(addFieldWriteMethod(Double.class.getSimpleName(), sourceName, getterMethod.getName())));
+            }
+        } else {
+            //vo
+            prettyStatement(sb,
+                    ProtocolCodecs.class.getName()
+                            .concat(".codec(")
+                            .concat(field.getType().getName())
+                            .concat(".class).writeVO(")
+                            .concat(sourceName)
+                            .concat(".")
+                            .concat(getterMethod.getName())
+                            .concat("(), ")
+                            .concat(sinkName)
+                            .concat(");"));
+        }
+    }
+
+    /**
+     * 每个成员域的编码方法
+     */
+    private static String addFieldWriteMethod(String typeName, String sourceName, String sourceGetterMethod) {
+        return ".write"
+                .concat(StringUtils.firstUpperCase(typeName))
+                .concat("(")
+                .concat(sourceName)
+                .concat(".")
+                .concat(sourceGetterMethod)
+                .concat("());");
+    }
+
+    //------------------------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * 优雅格式化方法体每行代码
+     */
+    private static void prettyStatement(StringBuilder sb, String content) {
+        sb.append(" ".concat(content).concat(System.lineSeparator()));
+    }
+
+    /**
+     * 优雅格式化方法头
+     */
+    private static void prettyMethodHead(StringBuilder sb, String content) {
+        sb.append(content.concat("{").concat(System.lineSeparator()));
+    }
+
+    /**
+     * 优雅格式化方法头
+     */
+    private static void prettyMethodTail(StringBuilder sb) {
+        sb.append("}".concat(System.lineSeparator()));
     }
 }
