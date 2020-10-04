@@ -7,7 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 协议生成工厂
@@ -39,11 +43,12 @@ public class ProtocolFactory {
                     log.info("find protocol(id={}) >>> {}, rate={}", protocolAnnotation.id(), protocolClass, rate);
                 }
             }
+            ProtocolCodecs.init(scanPath);
         }
     }
 
     /**
-     * 根据id创建protocol, 并依照field定义顺序设置field value, 从子类开始算
+     * 根据id创建protocol, 并依照field定义(父类->子类)顺序设置field value, 从子类开始算
      */
     public static <T extends SocketProtocol> T createProtocol(int id, Object... fieldValues) {
         ProtocolInfo protocolInfo = PROTOCOL_CACHE.getIfPresent(id);
@@ -51,17 +56,17 @@ public class ProtocolFactory {
             Class<? extends SocketProtocol> claxx = protocolInfo.getProtocolClass();
             SocketProtocol protocol = ClassUtils.instance(claxx);
             if (protocol != null) {
-                //设置协议id
+                //设置成员域
                 Field[] fields = ClassUtils.getAllFields(claxx).toArray(new Field[0]);
-                for (Field field : fields) {
-                    if ("protocolId".equals(field.getName())) {
-                        ClassUtils.setFieldValue(protocol, field, id);
-                        break;
-                    }
-                }
+                List<Field> validFields = Stream.of(fields).filter(ProtocolUtils::isFieldValid).collect(Collectors.toList());
+                Collections.reverse(validFields);
+
+                //设置协议id
+                ClassUtils.setFieldValue(protocol, validFields.get(0), id);
+
                 if (fieldValues.length > 0) {
                     for (int i = 0; i < fieldValues.length; i++) {
-                        Field field = fields[i];
+                        Field field = validFields.get(i + 1);
                         ClassUtils.setFieldValue(protocol, field, fieldValues[i]);
                     }
                 }
@@ -70,7 +75,7 @@ public class ProtocolFactory {
             }
         }
 
-        throw new UnknownProtocolException(id);
+        throw new ProtocolException("unknow protocol '" + id + "'");
     }
 
     /**

@@ -12,14 +12,13 @@ public class Protocol1 extends SocketProtocol {
         return ProtocolFactory.createProtocol(1, f);
     }
 
-    @Override
-    public void read(SocketRequestOprs request) {
-        f = request.readInt();
+
+    public int getF() {
+        return f;
     }
 
-    @Override
-    public void write(SocketResponseOprs response) {
-        response.writeInt(f);
+    public void setF(int f) {
+        this.f = f;
     }
 
     @Override

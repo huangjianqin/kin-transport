@@ -29,19 +29,12 @@ public class SocketTransfer implements TransportProtocolTransfer<ByteBuf, Socket
         this.serverElseClient = serverElseClient;
     }
 
-    /**
-     * 将ProtocolByteBuf解析为AbstractProtocol
-     */
-    private SocketProtocol parseProtocolByteBuf(SocketRequestOprs byteBufRequest) {
-        SocketProtocol protocol = ProtocolFactory.createProtocol(byteBufRequest.getProtocolId());
-        protocol.read(byteBufRequest);
-        return protocol;
-    }
-
     @Override
     public Collection<SocketProtocol> decode(ChannelHandlerContext ctx, ByteBuf in) {
         SocketRequestOprs byteBufRequest = new SocketProtocolByteBuf(in);
-        SocketProtocol protocol = parseProtocolByteBuf(byteBufRequest);
+        //将ProtocolByteBuf解析为AbstractProtocol
+        SocketProtocol protocol = ProtocolFactory.createProtocol(byteBufRequest.getProtocolId());
+        ProtocolCodecs.codec(protocol.getClass()).read(byteBufRequest, protocol);
         if (serverElseClient) {
             //server receive request
             ProtocolStatisicService.instance()
@@ -59,7 +52,7 @@ public class SocketTransfer implements TransportProtocolTransfer<ByteBuf, Socket
     public Collection<ByteBuf> encode(ChannelHandlerContext ctx, SocketProtocol msg) {
         List<ByteBuf> out = new ArrayList<>();
 
-        SocketProtocolByteBuf protocolByteBuf = (SocketProtocolByteBuf) msg.write();
+        SocketProtocolByteBuf protocolByteBuf = (SocketProtocolByteBuf) ProtocolCodecs.codec(msg.getClass()).write(msg);
         ByteBuf outByteBuf = protocolByteBuf.getByteBuf();
         out.add(outByteBuf);
 
