@@ -6,6 +6,7 @@ import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
+import org.kin.framework.collection.Tuple;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
 import org.reflections.Reflections;
@@ -17,11 +18,14 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
+ * 协议自动生成javassist字节码
+ * <p>
+ * 集合数组和map在暂不支持嵌套(可以通过vo类型实现)
+ * 不支持null 实例, 请开发者自己生成empty 实例
+ *
  * @author huangjianqin
  * @date 2020/10/4
  */
@@ -155,7 +159,7 @@ public class ProtocolCodecs {
         prettyMethodHead(readMethodBody, ClassUtils.generateMethodDeclaration(readMethod));
         if (isProtocol) {
             String sinkName = "protocol";
-            prettyStatement(readMethodBody,
+            prettyMethodStatement(readMethodBody,
                     target.getName()
                             .concat(" ")
                             .concat(sinkName)
@@ -168,7 +172,7 @@ public class ProtocolCodecs {
                 addFieldRead(readMethodBody, sinkName, "$1", target, field);
             }
         } else {
-            prettyStatement(readMethodBody, "throw new UnsupportedOperationException();");
+            prettyMethodStatement(readMethodBody, "throw new UnsupportedOperationException();");
         }
         prettyMethodTail(readMethodBody);
 
@@ -187,7 +191,7 @@ public class ProtocolCodecs {
         prettyMethodHead(readVOMethodBody, ClassUtils.generateMethodDeclaration(readVOMethod));
         if (!isProtocol) {
             String sinkName = "msg";
-            prettyStatement(readVOMethodBody,
+            prettyMethodStatement(readVOMethodBody,
                     target.getName()
                             .concat(" ")
                             .concat(sinkName)
@@ -198,9 +202,9 @@ public class ProtocolCodecs {
             for (Field field : validField) {
                 addFieldRead(readVOMethodBody, sinkName, "$1", target, field);
             }
-            prettyStatement(readVOMethodBody, "return msg;");
+            prettyMethodStatement(readVOMethodBody, "return msg;");
         } else {
-            prettyStatement(readVOMethodBody, "throw new UnsupportedOperationException();");
+            prettyMethodStatement(readVOMethodBody, "throw new UnsupportedOperationException();");
         }
         prettyMethodTail(readVOMethodBody);
 
@@ -211,69 +215,306 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 每个成员域的解析方法
+     * 所有成员域set方法
+     *
+     * @param sinkName   协议
+     * @param sourceName request bytes
      */
     private static void addFieldRead(StringBuilder sb, String sinkName, String sourceName, Class<?> target, Field field) {
         //setter
         Method setterMethod = ClassUtils.setterMethod(target, field);
 
         Class<?> fieldType = field.getType();
-        ProtocolVO protocolVO = fieldType.getAnnotation(ProtocolVO.class);
-        if (Objects.isNull(protocolVO)) {
-            //基础类型
-            if (String.class.equals(fieldType)) {
-                BigString bigString = field.getAnnotation(BigString.class);
-                if (bigString != null) {
-                    prettyStatement(sb, addFieldReadMethod(BigString.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
-                } else {
-                    prettyStatement(sb, addFieldReadMethod(String.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
-                }
-            } else if (Boolean.class.equals(fieldType) || Boolean.TYPE.equals(fieldType)) {
-                prettyStatement(sb, addFieldReadMethod(Boolean.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
-            } else if (Byte.class.equals(fieldType) || Byte.TYPE.equals(fieldType)) {
-                prettyStatement(sb, addFieldReadMethod(Byte.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
-            } else if (Short.class.equals(fieldType) || Short.TYPE.equals(fieldType)) {
-                prettyStatement(sb, addFieldReadMethod(Short.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
-            } else if (Integer.class.equals(fieldType) || Integer.TYPE.equals(fieldType)) {
-                prettyStatement(sb, addFieldReadMethod("int", sinkName, sourceName, setterMethod.getName()));
-            } else if (Long.class.equals(fieldType) || Long.TYPE.equals(fieldType)) {
-                prettyStatement(sb, addFieldReadMethod(Long.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
-            } else if (Float.class.equals(fieldType) || Float.TYPE.equals(fieldType)) {
-                prettyStatement(sb, addFieldReadMethod(Float.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
-            } else if (Double.class.equals(fieldType) || Double.TYPE.equals(fieldType)) {
-                prettyStatement(sb, addFieldReadMethod(Double.class.getSimpleName(), sinkName, sourceName, setterMethod.getName()));
-            }
+        if (fieldType.isArray()) {
+            //数组类型
+            readArrayFieldStatement(sb, field, sinkName, sourceName, setterMethod.getName());
+        } else if (Collection.class.isAssignableFrom(fieldType)) {
+            //集合类型
+            readCollectionFieldStatement(sb, field, sinkName, sourceName, setterMethod.getName());
+        } else if (Map.class.isAssignableFrom(fieldType)) {
+            //map类型
+            readMapFieldStatement(sb, field, sinkName, sourceName, setterMethod.getName());
         } else {
-            //vo
-            prettyStatement(sb,
-                    sinkName.concat(".")
-                            .concat(setterMethod.getName())
-                            .concat("((")
-                            .concat(fieldType.getName())
-                            .concat(")")
-                            .concat(ProtocolCodecs.class.getName())
-                            .concat(".codec(")
-                            .concat(field.getType().getName())
-                            .concat(".class).readVO(")
-                            .concat(sourceName)
-                            .concat(")")
-                            .concat(");"));
+            //其他类型
+            prettyMethodStatement(sb, setFieldStatement(sinkName, setterMethod.getName(), readStatement(sourceName, fieldType)));
         }
     }
 
     /**
-     * 每个成员域的解析方法
+     * 生成 sink.setXX(source.readXXX) 代码
      */
-    private static String addFieldReadMethod(String typeName, String sinkName, String sourceName, String sourceSetterMethod) {
+    private static String setFieldStatement(String sinkName, String sourceSetterMethod, String readSource) {
         return sinkName
                 .concat(".")
                 .concat(sourceSetterMethod)
                 .concat("(")
-                .concat(sourceName)
+                .concat(readSource)
+                .concat(");");
+    }
+
+    /**
+     * 根据类型生成 source.readXX 代码, 这里的类型不包括数组, 集合和map
+     */
+    private static String readStatement(String sourceName, Class<?> type) {
+        ProtocolVO protocolVO = type.getAnnotation(ProtocolVO.class);
+        if (Objects.isNull(protocolVO)) {
+            //基础类型
+            if (Integer.class.equals(type) || Integer.TYPE.equals(type)) {
+                return readCommon("int", sourceName);
+            } else {
+                return readCommon(type.getSimpleName(), sourceName);
+            }
+        } else {
+            //vo
+            return readVO(type, sourceName);
+        }
+    }
+
+    /**
+     * 根据类型生成 (Cast)source.readXX 代码, 这里的类型不包括数组, 集合和map
+     */
+    private static String readStatementWithCast(String sourceName, Class<?> type) {
+        ProtocolVO protocolVO = type.getAnnotation(ProtocolVO.class);
+        if (Objects.isNull(protocolVO)) {
+            //基础类型
+            if (Integer.class.equals(type)) {
+                return ClassUtils.primitivePackage(Integer.TYPE, readCommon("int", sourceName));
+            } else if (Short.class.equals(type)) {
+                return ClassUtils.primitivePackage(Short.TYPE, readCommon(type.getSimpleName(), sourceName));
+            } else if (Byte.class.equals(type)) {
+                return ClassUtils.primitivePackage(Byte.TYPE, readCommon(type.getSimpleName(), sourceName));
+            } else if (Long.class.equals(type)) {
+                return ClassUtils.primitivePackage(Long.TYPE, readCommon(type.getSimpleName(), sourceName));
+            } else if (Float.class.equals(type)) {
+                return ClassUtils.primitivePackage(Float.TYPE, readCommon(type.getSimpleName(), sourceName));
+            } else if (Double.class.equals(type)) {
+                return ClassUtils.primitivePackage(Double.TYPE, readCommon(type.getSimpleName(), sourceName));
+            } else if (Character.class.equals(type)) {
+                return ClassUtils.primitivePackage(Character.TYPE, readCommon(type.getSimpleName(), sourceName));
+            } else {
+                return readCommon(type.getSimpleName(), sourceName);
+            }
+        } else {
+            //vo
+            return "(".concat(type.getName()).concat(")").concat(readVO(type, sourceName));
+        }
+    }
+
+    /**
+     * 生成 source.readXX 代码
+     */
+    private static String readCommon(String typeName, String sourceName) {
+        return sourceName
                 .concat(".read")
                 .concat(StringUtils.firstUpperCase(typeName))
-                .concat("()")
-                .concat(");");
+                .concat("()");
+    }
+
+    /**
+     * 生成 ProtocolCodecs.codec(?).readVO(?) 代码
+     */
+    private static String readVO(Class<?> type, String sourceName) {
+        return "(".concat(type.getName())
+                .concat(")")
+                .concat(ProtocolCodecs.class.getName())
+                .concat(".codec(")
+                .concat(type.getName())
+                .concat(".class).readVO(")
+                .concat(sourceName)
+                .concat(")");
+    }
+
+    /**
+     * 数组成员域set方法
+     */
+    private static void readArrayFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceSetterMethod) {
+        //数组item类型
+        Class<?> itemType = ClassUtils.getItemType(field);
+        if (isInited(itemType)) {
+            //初始化数组类型codec
+            init(itemType, false);
+        }
+
+        //大小为short
+        //size变量名
+        String sizeVar = field.getName().concat("Size");
+        prettyMethodStatement(sb,
+                "int ".concat(sizeVar)
+                        .concat(" = ")
+                        .concat(readStatement(sourceName, Short.class))
+                        .concat(";"));
+        //数组变量名
+        String arrVar = field.getName();
+        prettyMethodStatement(sb,
+                itemType.getName()
+                        .concat("[] ")
+                        .concat(arrVar)
+                        .concat(" = new ")
+                        .concat(itemType.getName())
+                        .concat("[")
+                        .concat(sizeVar)
+                        .concat("];"));
+        //for循环设置变量值
+        StringBuilder forSb = new StringBuilder();
+        prettyForHead(forSb, "for(int i = 0; i < ".concat(sizeVar).concat("; i++)"));
+        if (itemType.isPrimitive()) {
+            prettyForStatement(forSb,
+                    arrVar.concat("[i] = ")
+                            .concat(readStatement(sourceName, itemType))
+                            .concat(";"));
+        } else {
+            prettyForStatement(forSb,
+                    arrVar.concat("[i] = ")
+                            .concat(readStatementWithCast(sourceName, itemType))
+                            .concat(";"));
+        }
+
+        prettyForTail(forSb);
+        //for循环代码
+        sb.append(forSb.toString());
+        //set
+        prettyMethodStatement(sb, setFieldStatement(sinkName, sourceSetterMethod, arrVar));
+    }
+
+    /**
+     * 集合成员域set方法
+     */
+    private static void readCollectionFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceSetterMethod) {
+        //集合类型
+        Class<?> fieldType = field.getType();
+        //集合item类型
+        Class<?> itemType = ClassUtils.getItemType(field);
+        if (isInited(itemType)) {
+            //初始化集合
+            init(itemType, false);
+        }
+
+        //大小为short
+        //size变量名
+        String sizeVar = field.getName().concat("Size");
+        prettyMethodStatement(sb,
+                "int ".concat(sizeVar)
+                        .concat(" = ")
+                        .concat(readStatement(sourceName, Short.class))
+                        .concat(";"));
+
+        //集合变量名
+        String collectionVar = field.getName();
+        if (!Modifier.isAbstract(fieldType.getModifiers())) {
+            prettyMethodStatement(sb,
+                    fieldType.getName()
+                            .concat(" ")
+                            .concat(collectionVar)
+                            .concat(" = new ")
+                            .concat(fieldType.getName())
+                            .concat(";"));
+        } else if (List.class.isAssignableFrom(fieldType)) {
+            prettyMethodStatement(sb,
+                    fieldType.getName()
+                            .concat(" ")
+                            .concat(collectionVar)
+                            .concat(" = new ")
+                            .concat(ArrayList.class.getName())
+                            .concat("(")
+                            .concat(sizeVar)
+                            .concat(");"));
+        } else if (Set.class.isAssignableFrom(fieldType)) {
+            prettyMethodStatement(sb,
+                    fieldType.getName()
+                            .concat(" ")
+                            .concat(collectionVar)
+                            .concat(" = new ")
+                            .concat(HashSet.class.getName())
+                            .concat("(")
+                            .concat(sizeVar)
+                            .concat(");"));
+        } else if (Queue.class.isAssignableFrom(fieldType)) {
+            prettyMethodStatement(sb,
+                    fieldType.getName()
+                            .concat(" ")
+                            .concat(collectionVar)
+                            .concat(" = new ")
+                            .concat(LinkedList.class.getName())
+                            .concat("();"));
+        } else {
+            throw new UnsupportedOperationException();
+        }
+
+        //for循环设置变量值
+        StringBuilder forSb = new StringBuilder();
+        prettyForHead(forSb, "for(int i = 0; i < ".concat(sizeVar).concat("; i++)"));
+        prettyForStatement(forSb,
+                collectionVar.concat(".add(")
+                        .concat(readStatementWithCast(sourceName, itemType))
+                        .concat(");"));
+        prettyForTail(forSb);
+        //for循环代码
+        sb.append(forSb.toString());
+        //set
+        prettyMethodStatement(sb, setFieldStatement(sinkName, sourceSetterMethod, collectionVar));
+    }
+
+    private static void readMapFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceSetterMethod) {
+        //map类型
+        Class<?> fieldType = field.getType();
+        //map entry类型
+        Tuple<Class<?>, Class<?>> kvType = ClassUtils.getKVType(field);
+        Class<?> keyType = kvType.first();
+        Class<?> valueType = kvType.second();
+        if (isInited(keyType)) {
+            //初始化数组类型codec
+            init(keyType, false);
+        }
+
+        if (isInited(valueType)) {
+            //初始化数组类型codec
+            init(valueType, false);
+        }
+
+        //大小为short
+        //size变量名
+        String sizeVar = field.getName().concat("Size");
+        prettyMethodStatement(sb,
+                "int ".concat(sizeVar)
+                        .concat(" = ")
+                        .concat(readStatement(sourceName, Short.class))
+                        .concat(";"));
+        //集合变量名
+        String mapVar = field.getName();
+        if (!Modifier.isAbstract(fieldType.getModifiers())) {
+            prettyMethodStatement(sb,
+                    fieldType.getName()
+                            .concat(" ")
+                            .concat(mapVar)
+                            .concat(" = new ")
+                            .concat(fieldType.getName())
+                            .concat(";"));
+        } else {
+            prettyMethodStatement(sb,
+                    fieldType.getName()
+                            .concat(" ")
+                            .concat(mapVar)
+                            .concat(" = new ")
+                            .concat(HashMap.class.getName())
+                            .concat("(")
+                            .concat(sizeVar)
+                            .concat(");"));
+        }
+
+        //for循环设置变量值
+        StringBuilder forSb = new StringBuilder();
+        prettyForHead(forSb, "for(int i = 0; i < ".concat(sizeVar).concat("; i++)"));
+        prettyForStatement(forSb,
+                mapVar.concat(".put(")
+                        .concat(readStatementWithCast(sourceName, keyType))
+                        .concat(",")
+                        .concat(readStatementWithCast(sourceName, valueType))
+                        .concat(");"));
+        prettyForTail(forSb);
+        //for循环代码
+        sb.append(forSb.toString());
+        //set
+        prettyMethodStatement(sb, setFieldStatement(sinkName, sourceSetterMethod, mapVar));
     }
 
     /**
@@ -286,14 +527,14 @@ public class ProtocolCodecs {
         if (isProtocol) {
             String sinkName = "response";
             String sourceName = "protocol";
-            prettyStatement(writeMethodBody,
+            prettyMethodStatement(writeMethodBody,
                     target.getName()
                             .concat(" ")
                             .concat(sourceName)
                             .concat(" = (")
                             .concat(target.getName())
                             .concat(")$1;"));
-            prettyStatement(writeMethodBody,
+            prettyMethodStatement(writeMethodBody,
                     SocketResponseOprs.class.getName()
                             .concat(" ")
                             .concat(sinkName)
@@ -305,9 +546,9 @@ public class ProtocolCodecs {
                 addFieldWrite(writeMethodBody, sinkName, sourceName, target, field);
             }
 
-            prettyStatement(writeMethodBody, "return response;");
+            prettyMethodStatement(writeMethodBody, "return response;");
         } else {
-            prettyStatement(writeMethodBody, "throw new UnsupportedOperationException();");
+            prettyMethodStatement(writeMethodBody, "throw new UnsupportedOperationException();");
         }
         prettyMethodTail(writeMethodBody);
 
@@ -327,7 +568,7 @@ public class ProtocolCodecs {
         if (!isProtocol) {
             String sinkName = "$2";
             String sourceName = "msg";
-            prettyStatement(writeVOMethodBody,
+            prettyMethodStatement(writeVOMethodBody,
                     target.getName()
                             .concat(" ")
                             .concat(sourceName)
@@ -339,7 +580,7 @@ public class ProtocolCodecs {
                 addFieldWrite(writeVOMethodBody, sinkName, sourceName, target, field);
             }
         } else {
-            prettyStatement(writeVOMethodBody, "throw new UnsupportedOperationException();");
+            prettyMethodStatement(writeVOMethodBody, "throw new UnsupportedOperationException();");
         }
         prettyMethodTail(writeVOMethodBody);
 
@@ -351,82 +592,311 @@ public class ProtocolCodecs {
 
     /**
      * 每个成员域的编码方法
+     *
+     * @param sinkName   response bytes
+     * @param sourceName 协议
      */
     private static void addFieldWrite(StringBuilder sb, String sinkName, String sourceName, Class<?> target, Field field) {
-
         //getter
         Method getterMethod = ClassUtils.getterMethod(target, field);
 
         Class<?> fieldType = field.getType();
-        ProtocolVO protocolVO = fieldType.getAnnotation(ProtocolVO.class);
-        if (Objects.isNull(protocolVO)) {
-            //基础类型
-            if (String.class.equals(fieldType)) {
-                BigString bigString = field.getAnnotation(BigString.class);
-                if (bigString != null) {
-                    prettyStatement(sb,
-                            sinkName.concat(addFieldWriteMethod(BigString.class.getSimpleName(), sourceName, getterMethod.getName())));
-                } else {
-                    prettyStatement(sb,
-                            sinkName.concat(addFieldWriteMethod(String.class.getSimpleName(), sourceName, getterMethod.getName())));
-                }
-            } else if (Boolean.class.equals(fieldType) || Boolean.TYPE.equals(fieldType)) {
-                prettyStatement(sb,
-                        sinkName.concat(addFieldWriteMethod(Boolean.class.getSimpleName(), sourceName, getterMethod.getName())));
-            } else if (Byte.class.equals(fieldType) || Byte.TYPE.equals(fieldType)) {
-                prettyStatement(sb,
-                        sinkName.concat(addFieldWriteMethod(Byte.class.getSimpleName(), sourceName, getterMethod.getName())));
-            } else if (Short.class.equals(fieldType) || Short.TYPE.equals(fieldType)) {
-                prettyStatement(sb,
-                        sinkName.concat(addFieldWriteMethod(Short.class.getSimpleName(), sourceName, getterMethod.getName())));
-            } else if (Integer.class.equals(fieldType) || Integer.TYPE.equals(fieldType)) {
-                prettyStatement(sb,
-                        sinkName.concat(addFieldWriteMethod("int", sourceName, getterMethod.getName())));
-            } else if (Long.class.equals(fieldType) || Long.TYPE.equals(fieldType)) {
-                prettyStatement(sb,
-                        sinkName.concat(addFieldWriteMethod(Long.class.getSimpleName(), sourceName, getterMethod.getName())));
-            } else if (Float.class.equals(fieldType) || Float.TYPE.equals(fieldType)) {
-                prettyStatement(sb,
-                        sinkName.concat(addFieldWriteMethod(Float.class.getSimpleName(), sourceName, getterMethod.getName())));
-            } else if (Double.class.equals(fieldType) || Double.TYPE.equals(fieldType)) {
-                prettyStatement(sb,
-                        sinkName.concat(addFieldWriteMethod(Double.class.getSimpleName(), sourceName, getterMethod.getName())));
-            }
+        if (fieldType.isArray()) {
+            //数组类型
+            writeArrayFieldStatement(sb, field, sinkName, sourceName, getterMethod.getName());
+        } else if (Collection.class.isAssignableFrom(fieldType)) {
+            //集合类型
+            writeCollectionFieldStatement(sb, field, sinkName, sourceName, getterMethod.getName());
+        } else if (Map.class.isAssignableFrom(fieldType)) {
+            //map类型
+            writeMapFieldStatement(sb, field, sinkName, sourceName, getterMethod.getName());
         } else {
-            //vo
-            prettyStatement(sb,
-                    ProtocolCodecs.class.getName()
-                            .concat(".codec(")
-                            .concat(field.getType().getName())
-                            .concat(".class).writeVO(")
-                            .concat(sourceName)
-                            .concat(".")
-                            .concat(getterMethod.getName())
-                            .concat("(), ")
-                            .concat(sinkName)
-                            .concat(");"));
+            //其他类型
+            prettyMethodStatement(sb, writeFieldStatement(sinkName, sourceName, getterMethod.getName(), fieldType));
         }
     }
 
     /**
-     * 每个成员域的编码方法
+     * 生成 sinkName.writeXXX(sourceName.getXXX) 代码, 这里的类型不包括数组, 集合和map
      */
-    private static String addFieldWriteMethod(String typeName, String sourceName, String sourceGetterMethod) {
-        return ".write"
-                .concat(StringUtils.firstUpperCase(typeName))
-                .concat("(")
-                .concat(sourceName)
+    private static String writeFieldStatement(String sinkName, String sourceName, String sourceGetterMethod, Class<?> fieldType) {
+        String source = sourceName
                 .concat(".")
                 .concat(sourceGetterMethod)
-                .concat("());");
+                .concat("()");
+
+        ProtocolVO protocolVO = fieldType.getAnnotation(ProtocolVO.class);
+        if (Objects.isNull(protocolVO)) {
+            //基础类型
+            if (Integer.class.equals(fieldType) || Integer.TYPE.equals(fieldType)) {
+                return writeCommon(sinkName, "int", source);
+            } else {
+                return writeCommon(sinkName, fieldType.getSimpleName(), source);
+            }
+        } else {
+            //vo
+            return writeVO(sinkName, source, fieldType);
+        }
     }
 
+    /**
+     * 生成 sinkName.writeXXX 代码
+     */
+    private static String writeCommon(String sinkName, String typeName, String source) {
+        return sinkName.concat(".write")
+                .concat(StringUtils.firstUpperCase(typeName))
+                .concat("(")
+                .concat(source)
+                .concat(");");
+    }
+
+    /**
+     * 生成 sinkName.writeXXX 代码
+     */
+    private static String writeCommon(String sinkName, Class<?> type, String source) {
+        String typeName = type.getSimpleName();
+        if (Integer.class.equals(type)) {
+            typeName = "int";
+        }
+        return sinkName.concat(".write")
+                .concat(StringUtils.firstUpperCase(typeName))
+                .concat("(")
+                .concat(source)
+                .concat(");");
+    }
+
+    /**
+     * 生成 ProtocolCodecs.codec(?).writeVO(?) 代码
+     */
+    private static String writeVO(String sinkName, String source, Class<?> type) {
+        return ProtocolCodecs.class.getName()
+                .concat(".codec(")
+                .concat(type.getName())
+                .concat(".class).writeVO(")
+                .concat(source)
+                .concat(", ")
+                .concat(sinkName)
+                .concat(");");
+    }
+
+    /**
+     * 生成sourceName.getXXX方法, 处理拆箱和vo强转
+     */
+    private static String unpackageGetStatement(String source, Class<?> type) {
+
+        ProtocolVO protocolVO = type.getAnnotation(ProtocolVO.class);
+        if (Objects.isNull(protocolVO)) {
+            //基础类型
+            if (Integer.class.equals(type)) {
+                return ClassUtils.primitiveUnpackage(Integer.TYPE, source);
+            } else if (Short.class.equals(type)) {
+                return ClassUtils.primitiveUnpackage(Short.TYPE, source);
+            } else if (Byte.class.equals(type)) {
+                return ClassUtils.primitiveUnpackage(Byte.TYPE, source);
+            } else if (Long.class.equals(type)) {
+                return ClassUtils.primitiveUnpackage(Long.TYPE, source);
+            } else if (Float.class.equals(type)) {
+                return ClassUtils.primitiveUnpackage(Float.TYPE, source);
+            } else if (Double.class.equals(type)) {
+                return ClassUtils.primitiveUnpackage(Double.TYPE, source);
+            } else if (Character.class.equals(type)) {
+                return ClassUtils.primitiveUnpackage(Character.TYPE, source);
+            } else {
+                return source;
+            }
+        } else {
+            //vo
+            return "(".concat(type.getName()).concat(")").concat(source);
+        }
+    }
+
+    private static void writeArrayFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceGetterMethod) {
+        Class<?> fieldType = field.getType();
+        //数组item类型
+        Class<?> itemType = ClassUtils.getItemType(field);
+        if (isInited(itemType)) {
+            //初始化数组类型codec
+            init(itemType, false);
+        }
+
+        //大小为short
+        //size变量名
+        String sizeVar = field.getName().concat("Size");
+        prettyMethodStatement(sb,
+                "int ".concat(sizeVar)
+                        .concat(" = ")
+                        .concat(sourceName)
+                        .concat(".")
+                        .concat(sourceGetterMethod)
+                        .concat("().length;"));
+        prettyMethodStatement(sb, writeCommon(sinkName, Short.class.getSimpleName(), sizeVar));
+
+        //for循环设置变量值
+        StringBuilder forSb = new StringBuilder();
+        prettyForHead(forSb, "for(int i = 0; i < ".concat(sizeVar).concat("; i++)"));
+        //获取array item代码
+        String source = unpackageGetStatement(
+                sourceName
+                        .concat(".")
+                        .concat(sourceGetterMethod)
+                        .concat("()[i]"),
+                itemType);
+        if (itemType.getAnnotation(ProtocolVO.class) != null) {
+            prettyForStatement(forSb,
+                    writeVO(sinkName,
+                            source, itemType));
+        } else {
+            prettyForStatement(forSb,
+                    writeCommon(sinkName,
+                            itemType,
+                            source));
+        }
+        prettyForTail(forSb);
+        //for循环代码
+        sb.append(forSb.toString());
+    }
+
+    /**
+     * 集合成员域set方法
+     */
+    private static void writeCollectionFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceGetterMethod) {
+        //集合item类型
+        Class<?> itemType = ClassUtils.getItemType(field);
+        if (isInited(itemType)) {
+            //初始化集合
+            init(itemType, false);
+        }
+
+        //大小为short
+        //size变量名
+        String sizeVar = field.getName().concat("Size");
+        prettyMethodStatement(sb,
+                "int ".concat(sizeVar)
+                        .concat(" = ")
+                        .concat(sourceName)
+                        .concat(".")
+                        .concat(sourceGetterMethod)
+                        .concat("().size();"));
+        prettyMethodStatement(sb, writeCommon(sinkName, Short.class.getSimpleName(), sizeVar));
+
+        //iterator
+        String iteratorVar = field.getName().concat("Iterator");
+        prettyMethodStatement(sb,
+                Iterator.class.getName()
+                        .concat(" ")
+                        .concat(iteratorVar)
+                        .concat(" = ")
+                        .concat(sourceName)
+                        .concat(".")
+                        .concat(sourceGetterMethod)
+                        .concat("().iterator();"));
+
+        //for循环设置变量值
+        StringBuilder forSb = new StringBuilder();
+        prettyForHead(forSb, "while(".concat(iteratorVar).concat(".hasNext())"));
+        //获取集合 item代码
+        String source = unpackageGetStatement(iteratorVar.concat(".next()"), itemType);
+        if (itemType.getAnnotation(ProtocolVO.class) != null) {
+            prettyForStatement(forSb,
+                    writeVO(sinkName,
+                            source, itemType));
+        } else {
+            prettyForStatement(forSb,
+                    writeCommon(sinkName,
+                            itemType,
+                            source));
+        }
+        prettyForTail(forSb);
+        //for循环代码
+        sb.append(forSb.toString());
+    }
+
+    private static void writeMapFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceGetterMethod) {
+        //map entry类型
+        Tuple<Class<?>, Class<?>> kvType = ClassUtils.getKVType(field);
+        Class<?> keyType = kvType.first();
+        Class<?> valueType = kvType.second();
+        if (isInited(keyType)) {
+            //初始化数组类型codec
+            init(keyType, false);
+        }
+
+        if (isInited(valueType)) {
+            //初始化数组类型codec
+            init(valueType, false);
+        }
+
+        //大小为short
+        //size变量名
+        String sizeVar = field.getName().concat("Size");
+        prettyMethodStatement(sb,
+                "int ".concat(sizeVar)
+                        .concat(" = ")
+                        .concat(sourceName)
+                        .concat(".")
+                        .concat(sourceGetterMethod)
+                        .concat("().size();"));
+        prettyMethodStatement(sb, writeCommon(sinkName, Short.class.getSimpleName(), sizeVar));
+
+        //iterator
+        String iteratorVar = field.getName().concat("Iterator");
+        prettyMethodStatement(sb,
+                Iterator.class.getName()
+                        .concat(" ")
+                        .concat(iteratorVar)
+                        .concat(" = ")
+                        .concat(sourceName)
+                        .concat(".")
+                        .concat(sourceGetterMethod)
+                        .concat("().entrySet().iterator();"));
+
+        //for循环设置变量值
+        StringBuilder forSb = new StringBuilder();
+        prettyForHead(forSb, "while(".concat(iteratorVar).concat(".hasNext())"));
+        //获取map entry代码
+        String source = iteratorVar
+                .concat(".next()");
+        String entryName = "entry";
+        prettyForStatement(forSb,
+                Map.Entry.class.getName()
+                        .concat(" ")
+                        .concat(entryName)
+                        .concat(" = ")
+                        .concat(source)
+                        .concat(";"));
+        String keySource = unpackageGetStatement(entryName.concat(".getKey()"), keyType);
+        if (keyType.getAnnotation(ProtocolVO.class) != null) {
+            prettyForStatement(forSb,
+                    writeVO(sinkName,
+                            keySource, keyType));
+        } else {
+            prettyForStatement(forSb,
+                    writeCommon(sinkName,
+                            keyType,
+                            keySource));
+        }
+
+        String valueSource = unpackageGetStatement(entryName.concat(".getValue()"), valueType);
+        if (valueType.getAnnotation(ProtocolVO.class) != null) {
+            prettyForStatement(forSb,
+                    writeVO(sinkName,
+                            valueSource, valueType));
+        } else {
+            prettyForStatement(forSb,
+                    writeCommon(sinkName,
+                            valueType,
+                            valueSource));
+        }
+        prettyForTail(forSb);
+        //for循环代码
+        sb.append(forSb.toString());
+    }
     //------------------------------------------------------------------------------------------------------------------------------------
 
     /**
      * 优雅格式化方法体每行代码
      */
-    private static void prettyStatement(StringBuilder sb, String content) {
+    private static void prettyMethodStatement(StringBuilder sb, String content) {
         sb.append(" ".concat(content).concat(System.lineSeparator()));
     }
 
@@ -442,5 +912,26 @@ public class ProtocolCodecs {
      */
     private static void prettyMethodTail(StringBuilder sb) {
         sb.append("}".concat(System.lineSeparator()));
+    }
+
+    /**
+     * 优雅格式化循环体每行代码
+     */
+    private static void prettyForStatement(StringBuilder sb, String content) {
+        sb.append("  ".concat(content).concat(System.lineSeparator()));
+    }
+
+    /**
+     * 优雅格式化循环头
+     */
+    private static void prettyForHead(StringBuilder sb, String content) {
+        sb.append(" ".concat(content).concat("{").concat(System.lineSeparator()));
+    }
+
+    /**
+     * 优雅格式化循环头
+     */
+    private static void prettyForTail(StringBuilder sb) {
+        sb.append(" }".concat(System.lineSeparator()));
     }
 }
