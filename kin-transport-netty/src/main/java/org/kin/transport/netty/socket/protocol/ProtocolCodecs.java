@@ -241,7 +241,7 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 生成 sink.setXX(source.readXXX) 代码
+     * 生成 sinkName.setXX(readSource) 代码
      */
     private static String setFieldStatement(String sinkName, String sourceSetterMethod, String readSource) {
         return sinkName
@@ -253,7 +253,7 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 根据类型生成 source.readXX 代码, 这里的类型不包括数组, 集合和map
+     * 根据类型生成 sourceName.readXX() | ProtocolCodecs.codec(XXX.class).readVO(sourceName) 代码, 这里的类型不包括数组, 集合和map
      */
     private static String readStatement(String sourceName, Class<?> type) {
         ProtocolVO protocolVO = type.getAnnotation(ProtocolVO.class);
@@ -271,7 +271,7 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 根据类型生成 (Cast)source.readXX 代码, 这里的类型不包括数组, 集合和map
+     * 根据类型生成 (Cast)(sourceName.readXX() | ProtocolCodecs.codec(XXX.class).readVO(sourceName)) 代码, 这里的类型不包括数组, 集合和map
      */
     private static String readStatementWithCast(String sourceName, Class<?> type) {
         ProtocolVO protocolVO = type.getAnnotation(ProtocolVO.class);
@@ -301,7 +301,7 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 生成 source.readXX 代码
+     * 生成 sourceName.readXX() 代码
      */
     private static String readCommon(String typeName, String sourceName) {
         return sourceName
@@ -311,7 +311,7 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 生成 ProtocolCodecs.codec(?).readVO(?) 代码
+     * 生成 ProtocolCodecs.codec(XXX.class).readVO(sourceName) 代码
      */
     private static String readVO(Class<?> type, String sourceName) {
         return "(".concat(type.getName())
@@ -325,7 +325,7 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 数组成员域set方法
+     * read array
      */
     private static void readArrayFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceSetterMethod) {
         //数组item类型
@@ -377,7 +377,7 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 集合成员域set方法
+     * read collection
      */
     private static void readCollectionFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceSetterMethod) {
         //集合类型
@@ -454,6 +454,9 @@ public class ProtocolCodecs {
         prettyMethodStatement(sb, setFieldStatement(sinkName, sourceSetterMethod, collectionVar));
     }
 
+    /**
+     * read map
+     */
     private static void readMapFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceSetterMethod) {
         //map类型
         Class<?> fieldType = field.getType();
@@ -617,7 +620,7 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 生成 sinkName.writeXXX(sourceName.getXXX) 代码, 这里的类型不包括数组, 集合和map
+     * 生成 sinkName.writeXXX(sourceName.getXXX()) | ProtocolCodecs.codec(XXX.class).writeVO(source, sinkName) 代码, 这里的类型不包括数组, 集合和map
      */
     private static String writeFieldStatement(String sinkName, String sourceName, String sourceGetterMethod, Class<?> fieldType) {
         String source = sourceName
@@ -640,7 +643,7 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 生成 sinkName.writeXXX 代码
+     * 生成 sinkName.writeXXX(source) 代码
      */
     private static String writeCommon(String sinkName, String typeName, String source) {
         return sinkName.concat(".write")
@@ -651,7 +654,7 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 生成 sinkName.writeXXX 代码
+     * 生成 sinkName.writeXXX(source) 代码
      */
     private static String writeCommon(String sinkName, Class<?> type, String source) {
         String typeName = type.getSimpleName();
@@ -666,7 +669,7 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 生成 ProtocolCodecs.codec(?).writeVO(?) 代码
+     * 生成 ProtocolCodecs.codec(XXX.class).writeVO(source, sinkName) 代码
      */
     private static String writeVO(String sinkName, String source, Class<?> type) {
         return ProtocolCodecs.class.getName()
@@ -680,7 +683,8 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 生成sourceName.getXXX方法, 处理拆箱和vo强转
+     * 处理拆箱和vo强转
+     * 生成Integer.valueOf(source) | (XXX.class)source 代码
      */
     private static String unpackageGetStatement(String source, Class<?> type) {
 
@@ -710,6 +714,9 @@ public class ProtocolCodecs {
         }
     }
 
+    /**
+     * write array
+     */
     private static void writeArrayFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceGetterMethod) {
         Class<?> fieldType = field.getType();
         //数组item类型
@@ -757,7 +764,7 @@ public class ProtocolCodecs {
     }
 
     /**
-     * 集合成员域set方法
+     * write collection
      */
     private static void writeCollectionFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceGetterMethod) {
         //集合item类型
@@ -811,6 +818,9 @@ public class ProtocolCodecs {
         sb.append(forSb.toString());
     }
 
+    /**
+     * write map
+     */
     private static void writeMapFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceGetterMethod) {
         //map entry类型
         Tuple<Class<?>, Class<?>> kvType = ClassUtils.getKVType(field);
