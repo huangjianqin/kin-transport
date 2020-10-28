@@ -25,23 +25,35 @@ public class SocketTest {
         Client<SocketProtocol> client = null;
         try {
             InetSocketAddress address = new InetSocketAddress("0.0.0.0", 9000);
-            server = Transports.socket().server().protocolHandler(new SocketProtocolHandler() {
-                @Override
-                public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
-                    System.out.println(protocol);
-                    ctx.channel().writeAndFlush(Protocol1.of(2));
-                }
-            }).compress(CompressionType.SNAPPY).channelOption(ChannelOption.TCP_NODELAY, true).build().bind(address);
-
             client = Transports.socket().client().protocolHandler(new SocketProtocolHandler() {
                 @Override
                 public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                     System.out.println(protocol);
                 }
-            }).compress(CompressionType.FRAMED_LZ4).channelOption(ChannelOption.TCP_NODELAY, true).build().connect(address);
-            client.request(Protocol1.of(1));
+            }).compress(CompressionType.FRAMED_LZ4).channelOption(ChannelOption.TCP_NODELAY, true).build().withReconnect(address);
 
-            Thread.sleep(5000);
+            int count = 10;
+            int i = 0;
+            while (i++ < count) {
+                System.out.println(i + "---------------------------------------");
+                client.request(Protocol1.of(1));
+                if (i % 3 == 0) {
+                    if (Objects.isNull(server)) {
+                        server = Transports.socket().server().protocolHandler(new SocketProtocolHandler() {
+                            @Override
+                            public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
+                                System.out.println(protocol);
+                                ctx.channel().writeAndFlush(Protocol1.of(2));
+                            }
+                        }).compress(CompressionType.SNAPPY).channelOption(ChannelOption.TCP_NODELAY, true).build().bind(address);
+                    } else {
+                        server.close();
+                        server = null;
+                    }
+                }
+                System.out.println();
+                Thread.sleep(5000);
+            }
         } finally {
             if (Objects.nonNull(client)) {
                 client.close();

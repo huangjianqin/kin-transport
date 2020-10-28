@@ -1,7 +1,5 @@
 package org.kin.transport.netty;
 
-import java.net.InetSocketAddress;
-
 /**
  * connection 抽象
  *
@@ -9,11 +7,12 @@ import java.net.InetSocketAddress;
  * @date 2017/2/10
  */
 public abstract class AbstractConnection {
-    /** 连接地址 */
-    protected final InetSocketAddress address;
+    protected final AbstractTransportOption transportOption;
+    protected final ChannelHandlerInitializer channelHandlerInitializer;
 
-    public AbstractConnection(InetSocketAddress address) {
-        this.address = address;
+    public AbstractConnection(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+        this.transportOption = transportOption;
+        this.channelHandlerInitializer = channelHandlerInitializer;
     }
 
     /**
@@ -24,9 +23,7 @@ public abstract class AbstractConnection {
     /**
      * @return 绑定地址 or 远程服务器地址
      */
-    public String getAddress() {
-        return address.getHostName() + ":" + address.getPort();
-    }
+    public abstract String getAddress();
 
     /**
      * 检查连接是否有效

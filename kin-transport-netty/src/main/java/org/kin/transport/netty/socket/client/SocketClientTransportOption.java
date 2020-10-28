@@ -1,10 +1,7 @@
 package org.kin.transport.netty.socket.client;
 
 import io.netty.buffer.ByteBuf;
-import org.kin.transport.netty.AbstractTransportOption;
-import org.kin.transport.netty.ChannelHandlerInitializer;
-import org.kin.transport.netty.Client;
-import org.kin.transport.netty.TransportProtocolTransfer;
+import org.kin.transport.netty.*;
 import org.kin.transport.netty.socket.SocketHandlerInitializer;
 import org.kin.transport.netty.socket.SocketTransfer;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
@@ -24,8 +21,27 @@ public class SocketClientTransportOption extends AbstractTransportOption<ByteBuf
      */
     public Client<SocketProtocol> connect(InetSocketAddress address) {
         ChannelHandlerInitializer<ByteBuf, SocketProtocol, ByteBuf> channelHandlerInitializer = new SocketHandlerInitializer<>(this, false);
-        Client<SocketProtocol> client = new Client<>(address);
-        client.connect(this, channelHandlerInitializer);
+        Client<SocketProtocol> client = new Client<>(this, channelHandlerInitializer);
+        client.connect(address);
+        return client;
+    }
+
+    /**
+     * 构建支持自动重连的tcp client实例
+     */
+    public Client<SocketProtocol> withReconnect(InetSocketAddress address) {
+        ReconnectClient<SocketProtocol> client = new ReconnectClient<>(this, new ReconnectTransportOption<SocketProtocol>() {
+            @Override
+            public Client<SocketProtocol> reconnect(InetSocketAddress address) {
+                return connect(address);
+            }
+
+            @Override
+            public void wrapProtocolHandler(ProtocolHandler<SocketProtocol> protocolHandler) {
+                SocketClientTransportOption.super.protocolHandler = protocolHandler;
+            }
+        });
+        client.connect(address);
         return client;
     }
 

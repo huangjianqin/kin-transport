@@ -18,8 +18,8 @@ class HttpServerTransportOption
         extends AbstractTransportOption<FullHttpRequest, ServletTransportEntity, FullHttpResponse, HttpServerTransportOption> {
     final Server bind(InetSocketAddress address) {
         HttpServerHandlerInitializer httpServerHandlerInitializer = new HttpServerHandlerInitializer(this);
-        Server server = new Server(address);
-        server.bind(this, httpServerHandlerInitializer);
+        Server server = new Server(this, httpServerHandlerInitializer);
+        server.bind(address);
         return server;
     }
 

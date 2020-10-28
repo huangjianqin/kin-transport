@@ -17,8 +17,8 @@ class HttpClientTransportOption
         extends AbstractTransportOption<FullHttpResponse, HttpEntity, FullHttpRequest, HttpClientTransportOption> {
     public final HttpClient connect(InetSocketAddress address) {
         HttpClientHandlerInitializer httpClientHandlerInitializer = new HttpClientHandlerInitializer(this);
-        HttpClient client = new HttpClient(address);
-        client.connect(this, httpClientHandlerInitializer);
+        HttpClient client = new HttpClient(this, httpClientHandlerInitializer);
+        client.connect(address);
         return client;
     }
 

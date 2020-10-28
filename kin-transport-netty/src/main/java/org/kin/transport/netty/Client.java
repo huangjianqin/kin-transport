@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * client
- * 阻塞连接远程服务器
+ * (超时)阻塞连接远程服务器
  *
  * @author huangjianqin
  * @date 2019/5/30
@@ -29,16 +29,22 @@ import java.util.concurrent.TimeUnit;
 public class Client<MSG> extends ClientConnection {
     protected static final Logger log = LoggerFactory.getLogger(Client.class);
 
-    protected EventLoopGroup group;
+    protected volatile EventLoopGroup group;
     protected volatile Channel channel;
     protected volatile boolean isStopped;
 
-    public Client(InetSocketAddress address) {
-        super(address);
+    public Client(AbstractTransportOption<?, ?, ?, ?> transportOption, ChannelHandlerInitializer<?, ?, ?> channelHandlerInitializer) {
+        super(transportOption, channelHandlerInitializer);
     }
 
     @Override
-    public void connect(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+    public void connect(InetSocketAddress address) {
+        if (isStopped()) {
+            return;
+        }
+        if (isActive()) {
+            return;
+        }
         log.info("client({}) connecting...", address);
 
         Map<ChannelOption, Object> channelOptions = transportOption.getChannelOptions();
@@ -104,53 +110,84 @@ public class Client<MSG> extends ClientConnection {
             }
         } catch (InterruptedException e) {
 
+        } catch (Exception e) {
+            log.error("", e);
+
         }
     }
 
     @Override
     public void close() {
-        if (isStopped) {
+        if (isStopped()) {
             return;
         }
+        String addressStr = getAddress();
         isStopped = true;
         if (channel != null) {
             channel.close();
         }
         group.shutdownGracefully();
-        log.info("client({}) closed", address);
+        group = null;
+        channel = null;
+        log.info("client({}) closed", addressStr);
     }
 
     @Override
     public boolean isActive() {
-        return !isStopped && channel != null && channel.isActive();
+        return !isStopped() && channel != null && channel.isActive();
+    }
+
+    /**
+     * @return connect address
+     */
+    @Override
+    public String getAddress() {
+        if (Objects.isNull(channel)) {
+            return "unknown";
+        }
+
+        InetSocketAddress address = (InetSocketAddress) channel.remoteAddress();
+        if (Objects.isNull(address)) {
+            return "unknown";
+        }
+        return address.getHostName() + ":" + address.getPort();
     }
 
     /**
      * 请求消息
      */
-    public void request(MSG msg) {
-        request(msg, new ChannelFutureListener[0]);
+    public boolean request(MSG msg) {
+        return request(msg, new ChannelFutureListener[0]);
     }
 
     /**
      * 请求消息
      */
-    public void request(MSG msg, ChannelFutureListener... listeners) {
+    public boolean request(MSG msg, ChannelFutureListener... listeners) {
         if (isActive() && Objects.nonNull(msg)) {
             ChannelFuture channelFuture = channel.writeAndFlush(msg);
             if (CollectionUtils.isNonEmpty(listeners)) {
                 channelFuture.addListeners(listeners);
             }
+            return true;
         }
+
+        return false;
     }
 
+    /**
+     * @return channel local address
+     */
     public String getLocalAddress() {
         if (channel != null) {
             return channel.localAddress().toString();
         }
-        return "";
+        return null;
     }
 
+    /**
+     * @return client是否stopped
+     */
     public boolean isStopped() {
         return isStopped;
     }

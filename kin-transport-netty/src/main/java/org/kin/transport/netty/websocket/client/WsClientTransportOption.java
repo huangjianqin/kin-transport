@@ -5,9 +5,9 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
+import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.NetUtils;
-import org.kin.transport.netty.Client;
-import org.kin.transport.netty.TransportProtocolTransfer;
+import org.kin.transport.netty.*;
 import org.kin.transport.netty.websocket.AbstractWsTransportOption;
 import org.kin.transport.netty.websocket.WsConstants;
 import org.kin.transport.netty.websocket.client.handler.WsClientHandler;
@@ -16,6 +16,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * websocket client 传输配置
@@ -24,19 +25,39 @@ import java.util.Objects;
  * @date 2020/8/27
  */
 public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
-        extends AbstractWsTransportOption<MSG, INOUT, WsClientTransportOption<MSG, INOUT>> {
+        extends AbstractWsTransportOption<MSG, INOUT, WsClientTransportOption<MSG, INOUT>>
+        implements LoggerOprs {
+    /** 握手等待时间(毫秒), 支持重连时, 最好设置, 不然会一直阻塞 */
+    private long handshakeTimeout;
+
     /**
      * 构建websocket client实例
      */
     public final Client<MSG> connect(InetSocketAddress address) {
-        String prefix = isSsl() ? WsConstants.SSL_WS_PREFIX : WsConstants.WS_PREFIX;
-        return connect(prefix.concat(":/").concat(address.toString()).concat(getHandshakeUrl()));
+        return connect(address, false);
     }
 
     /**
      * 构建websocket client实例
      */
     public final Client<MSG> connect(String url) {
+        return connect(url);
+    }
+
+    /**
+     * 构建websocket client实例
+     *
+     * @param reconnect 重连标识
+     */
+    private final Client<MSG> connect(InetSocketAddress address, boolean reconnect) {
+        String prefix = isSsl() ? WsConstants.SSL_WS_PREFIX : WsConstants.WS_PREFIX;
+        return connect(prefix.concat(":/").concat(address.toString()).concat(getHandshakeUrl()), reconnect);
+    }
+
+    /**
+     * 构建websocket client实例
+     */
+    private final Client<MSG> connect(String url, boolean reconnect) {
         URI uri;
         try {
             uri = new URI(url);
@@ -76,20 +97,51 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
         WsClientHandler wsClientHandler = new WsClientHandler(handshaker);
 
         WsClientHandlerInitializer<MSG, INOUT> handlerInitializer = new WsClientHandlerInitializer<>(this, wsClientHandler);
-        Client<MSG> client = new Client<>(new InetSocketAddress(host, port));
-        client.connect(this, handlerInitializer);
+        Client<MSG> client = new Client<>(this, handlerInitializer);
+        client.connect(new InetSocketAddress(host, port));
 
         try {
             //阻塞等待是否握手成功
-            wsClientHandler.handshakeFuture().sync();
+            wsClientHandler.handshakeFuture().await(handshakeTimeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
 
+        } catch (Exception e) {
+            if (reconnect) {
+                log().error("", e);
+            } else {
+                //不是重连才报错
+                throw new RuntimeException(e);
+            }
         }
 
-        if (!wsClientHandler.handshakeFuture().isDone()) {
+        if (!wsClientHandler.handshakeFuture().isDone() && !reconnect) {
+            //不是重连才报错
             throw new RuntimeException(wsClientHandler.handshakeFuture().cause());
         }
 
+        return client;
+    }
+
+    /**
+     * 构建支持自动重连的websocket client实例
+     */
+    public final Client<MSG> withReconnect(InetSocketAddress address) {
+        if (handshakeTimeout <= 0) {
+            //支持重连时, 没有设置, 默认2s握手超时
+            handshakeTimeout = 2000;
+        }
+        ReconnectClient<MSG> client = new ReconnectClient<>(this, new ReconnectTransportOption<MSG>() {
+            @Override
+            public Client<MSG> reconnect(InetSocketAddress address) {
+                return connect(address, true);
+            }
+
+            @Override
+            public void wrapProtocolHandler(ProtocolHandler<MSG> protocolHandler) {
+                WsClientTransportOption.super.protocolHandler = protocolHandler;
+            }
+        });
+        client.connect(address);
         return client;
     }
 
@@ -113,6 +165,11 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
             extends WsTransportOptionBuilder<MSG, INOUT, WsClientTransportOption<MSG, INOUT>> {
         public WsClientTransportOptionBuilder() {
             super(new WsClientTransportOption<>());
+        }
+
+        public WsClientTransportOptionBuilder<MSG, INOUT> handshakeTimeout(long handshakeTimeout) {
+            transportOption.handshakeTimeout = handshakeTimeout;
+            return this;
         }
     }
 }

@@ -24,8 +24,8 @@ public class UdpClientTransportOption extends AbstractTransportOption<DatagramPa
     public UdpClient connect(InetSocketAddress address) {
         ChannelHandlerInitializer<DatagramPacket, UdpProtocolDetails, DatagramPacket> channelHandlerInitializer =
                 new UdpChannelHandlerInitializer<>(this);
-        UdpClient client = new UdpClient(address);
-        client.connect(this, channelHandlerInitializer);
+        UdpClient client = new UdpClient(this, channelHandlerInitializer);
+        client.connect(address);
         return client;
     }
 

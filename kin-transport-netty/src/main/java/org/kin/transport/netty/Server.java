@@ -36,12 +36,16 @@ public class Server extends ServerConnection {
     /** selector */
     private volatile Channel selector;
 
-    public Server(InetSocketAddress address) {
-        super(address);
+    public Server(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+        super(transportOption, channelHandlerInitializer);
     }
 
+
     @Override
-    public void bind(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+    public void bind(InetSocketAddress address) {
+        if (isActive()) {
+            return;
+        }
         log.info("server({}) connection binding...", address);
 
         Map<ChannelOption, Object> serverOptions = transportOption.getServerOptions();
@@ -97,7 +101,7 @@ public class Server extends ServerConnection {
         });
 
         //绑定
-        ChannelFuture cf = bootstrap.bind(super.address);
+        ChannelFuture cf = bootstrap.bind(address);
         cf.addListener((ChannelFuture channelFuture) -> {
             if (channelFuture.isSuccess()) {
                 log.info("server connection binded: {}", address);
@@ -130,6 +134,8 @@ public class Server extends ServerConnection {
             return;
         }
 
+        String addressStr = getAddress();
+
         this.selector.close();
         this.workerGroup.shutdownGracefully();
         this.bossGroup.shutdownGracefully();
@@ -139,12 +145,18 @@ public class Server extends ServerConnection {
         this.workerGroup = null;
         this.bossGroup = null;
 
-        log.info("server connection closed");
+        log.info("server connection({}) closed", addressStr);
+    }
+
+    @Override
+    public String getAddress() {
+        InetSocketAddress address = (InetSocketAddress) selector.localAddress();
+        return address.getHostName() + ":" + address.getPort();
     }
 
     @Override
     public boolean isActive() {
-        return selector.isActive();
+        return Objects.nonNull(selector) && selector.isActive();
     }
 
     @Override

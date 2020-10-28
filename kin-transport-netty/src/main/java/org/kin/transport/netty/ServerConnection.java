@@ -9,8 +9,8 @@ import java.net.InetSocketAddress;
  * @date 2020/8/20
  */
 public abstract class ServerConnection extends AbstractConnection {
-    public ServerConnection(InetSocketAddress address) {
-        super(address);
+    public ServerConnection(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+        super(transportOption, channelHandlerInitializer);
     }
 
     /**
@@ -20,5 +20,5 @@ public abstract class ServerConnection extends AbstractConnection {
      * @param channelHandlerInitializer netty channel handler 初始化
      * @throws Exception 异常
      */
-    public abstract void bind(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer);
+    public abstract void bind(InetSocketAddress address);
 }

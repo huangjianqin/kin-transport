@@ -32,12 +32,12 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
     /** selector */
     private volatile Channel selector;
 
-    public UdpServer(InetSocketAddress address) {
-        super(address);
+    public UdpServer(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+        super(transportOption, channelHandlerInitializer);
     }
 
     @Override
-    public void bind(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+    public void bind(InetSocketAddress address) {
         log().info("server({}) connection binding...", address);
 
         Map<ChannelOption, Object> serverOptions = transportOption.getServerOptions();
@@ -96,10 +96,15 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
             latch.countDown();
         });
 
+        long connectTimeout = transportOption.getConnectTimeout();
         try {
-            boolean success = latch.await(transportOption.getConnectTimeout(), TimeUnit.MILLISECONDS);
-            if (!success) {
-                throw new ServerBindTimeoutException(address.toString());
+            if (connectTimeout > 0) {
+                boolean success = latch.await(connectTimeout, TimeUnit.MILLISECONDS);
+                if (!success) {
+                    throw new ServerBindTimeoutException(address.toString());
+                }
+            } else {
+                latch.await();
             }
         } catch (InterruptedException e) {
 
@@ -123,6 +128,12 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
         this.workerGroup = null;
 
         log().info("server connection closed");
+    }
+
+    @Override
+    public String getAddress() {
+        InetSocketAddress address = (InetSocketAddress) selector.localAddress();
+        return address.getHostName() + ":" + address.getPort();
     }
 
     @Override

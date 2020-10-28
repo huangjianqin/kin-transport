@@ -9,8 +9,8 @@ import java.net.InetSocketAddress;
  * @date 2020/8/20
  */
 public abstract class ClientConnection extends AbstractConnection {
-    public ClientConnection(InetSocketAddress address) {
-        super(address);
+    public ClientConnection(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+        super(transportOption, channelHandlerInitializer);
     }
 
     /**
@@ -19,6 +19,5 @@ public abstract class ClientConnection extends AbstractConnection {
      * @param transportOption           client transport配置
      * @param channelHandlerInitializer netty channel handler 初始化
      */
-    public abstract void connect(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer);
-
+    public abstract void connect(InetSocketAddress address);
 }

@@ -116,6 +116,10 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
         return connectTimeout;
     }
 
+    void setProtocolHandler(ProtocolHandler<MSG> protocolHandler) {
+        this.protocolHandler = protocolHandler;
+    }
+
     //------------------------------------------------------builder------------------------------------------------------
     public static class TransportOptionBuilder<IN, MSG, OUT, O extends AbstractTransportOption<IN, MSG, OUT, O>> {
         /** target */

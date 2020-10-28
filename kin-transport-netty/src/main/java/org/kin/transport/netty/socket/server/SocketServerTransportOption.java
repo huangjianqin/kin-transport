@@ -24,8 +24,8 @@ public class SocketServerTransportOption extends AbstractTransportOption<ByteBuf
      */
     public Server bind(InetSocketAddress address) {
         ChannelHandlerInitializer<ByteBuf, SocketProtocol, ByteBuf> channelHandlerInitializer = new SocketHandlerInitializer<>(this, true);
-        Server server = new Server(address);
-        server.bind(this, channelHandlerInitializer);
+        Server server = new Server(this, channelHandlerInitializer);
+        server.bind(address);
         return server;
     }
 

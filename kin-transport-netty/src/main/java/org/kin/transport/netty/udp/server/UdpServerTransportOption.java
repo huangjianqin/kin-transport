@@ -24,8 +24,8 @@ public class UdpServerTransportOption extends AbstractTransportOption<DatagramPa
     public UdpServer bind(InetSocketAddress address) {
         ChannelHandlerInitializer<DatagramPacket, UdpProtocolDetails, DatagramPacket>
                 channelHandlerInitializer = new UdpChannelHandlerInitializer<>(this);
-        UdpServer server = new UdpServer(address);
-        server.bind(this, channelHandlerInitializer);
+        UdpServer server = new UdpServer(this, channelHandlerInitializer);
+        server.bind(address);
         return server;
     }
 

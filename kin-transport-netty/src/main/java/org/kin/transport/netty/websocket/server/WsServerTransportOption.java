@@ -21,8 +21,8 @@ public class WsServerTransportOption<MSG, INOUT extends WebSocketFrame>
      */
     public final Server bind(InetSocketAddress address) {
         WsServerHandlerInitializer<MSG, INOUT> handlerInitializer = new WsServerHandlerInitializer<>(this);
-        Server server = new Server(address);
-        server.bind(this, handlerInitializer);
+        Server server = new Server(this, handlerInitializer);
+        server.bind(address);
         return server;
     }
 

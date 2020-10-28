@@ -3,10 +3,11 @@ package org.kin.transport.netty.http.client;
 import io.netty.channel.ChannelHandlerContext;
 import org.kin.framework.concurrent.lock.OneLock;
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.transport.netty.AbstractTransportOption;
+import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.ProtocolHandler;
 
-import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -29,8 +30,8 @@ class HttpClient extends Client<HttpEntity> {
      */
     private static final Map<String, Queue<HttpCallFuture>> CHANNEL_ID_2_CALLS = new ConcurrentHashMap<>();
 
-    HttpClient(InetSocketAddress address) {
-        super(address);
+    public HttpClient(AbstractTransportOption<?, ?, ?, ?> transportOption, ChannelHandlerInitializer<?, ?, ?> channelHandlerInitializer) {
+        super(transportOption, channelHandlerInitializer);
     }
 
     //-------------------------------------------------------------------------------------------------------------

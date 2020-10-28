@@ -38,7 +38,6 @@ public class WebsocketTest {
                     .channelOption(ChannelOption.TCP_NODELAY, true)
                     .build()
                     .bind(address);
-
             client = Transports
                     .websocket()
                     .binaryClient(SocketProtocol.class)
@@ -50,10 +49,36 @@ public class WebsocketTest {
                     })
                     .channelOption(ChannelOption.TCP_NODELAY, true)
                     .build()
-                    .connect(address);
-            client.request(Protocol1.of(1));
+                    .withReconnect(address);
 
-            Thread.sleep(5000);
+            int count = 10;
+            int i = 0;
+            while (i++ < count) {
+                System.out.println(i + "---------------------------------------");
+                client.request(Protocol1.of(1));
+                if (i % 3 == 0) {
+                    if (Objects.isNull(server)) {
+                        server = Transports
+                                .websocket()
+                                .binaryServer(SocketProtocol.class)
+                                .protocolHandler(new SocketProtocolHandler() {
+                                    @Override
+                                    public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
+                                        System.out.println(protocol);
+                                        ctx.channel().writeAndFlush(Protocol1.of(2));
+                                    }
+                                })
+                                .channelOption(ChannelOption.TCP_NODELAY, true)
+                                .build()
+                                .bind(address);
+                    } else {
+                        server.close();
+                        server = null;
+                    }
+                }
+                System.out.println();
+                Thread.sleep(5000);
+            }
         } finally {
             if (Objects.nonNull(client)) {
                 client.close();

@@ -29,14 +29,16 @@ import java.util.concurrent.TimeUnit;
  * @date 2020/8/27
  */
 public class UdpClient extends Client<SocketProtocol> {
-    public UdpClient(InetSocketAddress address) {
-        super(address);
+    private volatile InetSocketAddress address;
+
+    public UdpClient(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+        super(transportOption, channelHandlerInitializer);
     }
 
     @Override
-    public void connect(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
+    public void connect(InetSocketAddress address) {
         log.info("client({}) connecting...", address);
-
+        this.address = address;
         Map<ChannelOption, Object> channelOptions = transportOption.getChannelOptions();
 
         Preconditions.checkArgument(channelOptions != null);
@@ -87,13 +89,21 @@ public class UdpClient extends Client<SocketProtocol> {
                 latch.countDown();
             }
         });
+
+        long connectTimeout = transportOption.getConnectTimeout();
         try {
-            boolean success = latch.await(transportOption.getConnectTimeout(), TimeUnit.MILLISECONDS);
-            if (!success) {
-                throw new ClientConnectTimeoutException(address.toString());
+            if (connectTimeout > 0) {
+                boolean success = latch.await(connectTimeout, TimeUnit.MILLISECONDS);
+                if (!success) {
+                    throw new ClientConnectTimeoutException(address.toString());
+                }
+            } else {
+                latch.await();
             }
         } catch (InterruptedException e) {
 
+        } catch (Exception e) {
+            log.error("", e);
         }
     }
 
@@ -101,14 +111,17 @@ public class UdpClient extends Client<SocketProtocol> {
      * 请求消息
      */
     @Override
-    public void request(SocketProtocol protocol, ChannelFutureListener... listeners) {
+    public boolean request(SocketProtocol protocol, ChannelFutureListener... listeners) {
         if (isActive() && Objects.nonNull(protocol)) {
             ChannelFuture channelFuture =
                     channel.writeAndFlush(UdpProtocolDetails.senderWrapper(protocol, address));
             if (CollectionUtils.isNonEmpty(listeners)) {
                 channelFuture.addListeners(listeners);
             }
+            return true;
         }
+
+        return false;
     }
 
     @Override
