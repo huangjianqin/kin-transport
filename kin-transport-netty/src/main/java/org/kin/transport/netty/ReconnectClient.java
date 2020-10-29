@@ -44,11 +44,24 @@ public class ReconnectClient<MSG> extends Client<MSG> implements LoggerOprs {
     /** 重连future */
     private volatile Future<?> reconnectFuture;
     /** 重连成功后补发, 断开链接时发的消息, 最好缓存200个消息, 超过了size但还未重连成功直接报错 */
-    private LinkedBlockingQueue<MSG> queue = new LinkedBlockingQueue<>(500);
+    private LinkedBlockingQueue<MSG> queue;
 
-    public ReconnectClient(AbstractTransportOption<?, ?, ?, ?> transportOption, ReconnectTransportOption<MSG> reconnectTransportOption) {
+    public ReconnectClient(AbstractTransportOption<?, ?, ?, ?> transportOption,
+                           ReconnectTransportOption<MSG> reconnectTransportOption) {
+        this(transportOption, reconnectTransportOption, true);
+    }
+
+    /**
+     * @param cacheMessage 是否缓存断开链接时发送的消息
+     */
+    public ReconnectClient(AbstractTransportOption<?, ?, ?, ?> transportOption,
+                           ReconnectTransportOption<MSG> reconnectTransportOption,
+                           boolean cacheMessage) {
         super(transportOption, null);
         this.reconnectTransportOption = reconnectTransportOption;
+        if (cacheMessage) {
+            queue = new LinkedBlockingQueue<>(200);
+        }
     }
 
     @Override
@@ -115,10 +128,12 @@ public class ReconnectClient<MSG> extends Client<MSG> implements LoggerOprs {
                 protocolHandler.channelActive(ctx);
 
                 //补发断开链接时发的消息
-                List<MSG> pendingMsgs = new ArrayList<>(queue.size());
-                queue.drainTo(pendingMsgs);
-                for (MSG pendingMsg : pendingMsgs) {
-                    request(pendingMsg);
+                if (Objects.nonNull(queue)) {
+                    List<MSG> pendingMsgs = new ArrayList<>(queue.size());
+                    queue.drainTo(pendingMsgs);
+                    for (MSG pendingMsg : pendingMsgs) {
+                        request(pendingMsg);
+                    }
                 }
             }
 
@@ -190,7 +205,7 @@ public class ReconnectClient<MSG> extends Client<MSG> implements LoggerOprs {
     @Override
     public boolean request(MSG msg) {
         return request(msg, (ChannelFuture channelFuture) -> {
-            if (!channelFuture.isSuccess()) {
+            if (!channelFuture.isSuccess() && Objects.nonNull(queue)) {
                 //发送失败, 则缓存消息
                 queue.add(msg);
             }
@@ -200,14 +215,16 @@ public class ReconnectClient<MSG> extends Client<MSG> implements LoggerOprs {
     @Override
     public boolean request(MSG msg, ChannelFutureListener... listeners) {
         if (Objects.nonNull(client)) {
-            if (!client.request(msg, listeners)) {
+            if (!client.request(msg, listeners) && Objects.nonNull(queue)) {
                 //发送失败, 则缓存消息
                 queue.add(msg);
             }
             return true;
         } else {
-            //链接还未建立, 则缓存消息
-            queue.add(msg);
+            if (Objects.nonNull(queue)) {
+                //链接还未建立, 则缓存消息
+                queue.add(msg);
+            }
         }
 
         return false;

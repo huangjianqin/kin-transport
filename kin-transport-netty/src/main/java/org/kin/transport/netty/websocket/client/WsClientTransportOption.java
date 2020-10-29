@@ -126,6 +126,15 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
      * 构建支持自动重连的websocket client实例
      */
     public final Client<MSG> withReconnect(InetSocketAddress address) {
+        return withReconnect(address, true);
+    }
+
+    /**
+     * 构建支持自动重连的websocket client实例
+     *
+     * @param cacheMessage 是否缓存断开链接时发送的消息
+     */
+    public final Client<MSG> withReconnect(InetSocketAddress address, boolean cacheMessage) {
         if (handshakeTimeout <= 0) {
             //支持重连时, 没有设置, 默认2s握手超时
             handshakeTimeout = 2000;
@@ -140,7 +149,7 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
             public void wrapProtocolHandler(ProtocolHandler<MSG> protocolHandler) {
                 WsClientTransportOption.super.protocolHandler = protocolHandler;
             }
-        });
+        }, cacheMessage);
         client.connect(address);
         return client;
     }
