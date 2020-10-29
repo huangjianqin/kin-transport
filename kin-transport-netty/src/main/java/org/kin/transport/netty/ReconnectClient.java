@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020/10/28
  */
-public class ReconnectClient<MSG> extends Client<MSG> implements LoggerOprs {
+public final class ReconnectClient<MSG> extends Client<MSG> implements LoggerOprs {
     /** 重连线程池 */
     public static final ExecutionContext RECONNECT_EXECUTORS =
             ExecutionContext.cache("client-reconnect",
@@ -244,5 +244,30 @@ public class ReconnectClient<MSG> extends Client<MSG> implements LoggerOprs {
             return client.isStopped();
         }
         return true;
+    }
+
+    /**
+     * 以transport配置和当前连接的remote address作为唯一校验
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ReconnectClient<?> that = (ReconnectClient<?>) o;
+        //校验transport配置是否一致
+        if (!transportOption.equals(that.transportOption)) {
+            return false;
+        }
+        //校验remote address是否一致
+        return Objects.equals(address, that.address);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(transportOption, address);
     }
 }
