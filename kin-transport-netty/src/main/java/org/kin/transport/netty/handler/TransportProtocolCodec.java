@@ -23,6 +23,7 @@ public class TransportProtocolCodec<IN, MSG, OUT> extends MessageToMessageCodec<
 
     @Override
     protected void encode(ChannelHandlerContext ctx, MSG in, List<Object> out) throws Exception {
+        //todo 可以考虑MSG是一个列表返回, 进而减少一丢丢CPU消耗, 比如说write out 10个包, 那就要走10次netty handler 链, 如果是列表, 则仅仅需要一次
         out.addAll(transfer.encode(ctx, in));
     }
 
