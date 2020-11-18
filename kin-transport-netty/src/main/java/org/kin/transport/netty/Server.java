@@ -16,7 +16,6 @@ import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -61,8 +60,6 @@ public class Server extends ServerConnection {
         //默认2倍cpu
         this.workerGroup = new NioEventLoopGroup();
 
-        CountDownLatch latch = new CountDownLatch(1);
-
         //配置bootstrap
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(this.bossGroup, this.workerGroup).channel(NioServerSocketChannel.class);
@@ -102,29 +99,24 @@ public class Server extends ServerConnection {
 
         //绑定
         ChannelFuture cf = bootstrap.bind(address);
-        cf.addListener((ChannelFuture channelFuture) -> {
-            if (channelFuture.isSuccess()) {
-                log.info("server connection binded: {}", address);
-                selector = channelFuture.channel();
-            }
-            latch.countDown();
-        });
 
         long connectTimeout = transportOption.getConnectTimeout();
         try {
             if (connectTimeout > 0) {
-                boolean success = latch.await(connectTimeout, TimeUnit.MILLISECONDS);
+                boolean success = cf.await(connectTimeout, TimeUnit.MILLISECONDS);
                 if (!success) {
                     throw new ServerBindTimeoutException(address.toString());
                 }
             } else {
-                latch.await();
+                cf.await();
             }
         } catch (InterruptedException e) {
 
         }
-        if (selector == null) {
-            throw new RuntimeException("server connection bind fail: " + address);
+
+        if (cf.isSuccess()) {
+            log.info("server connection binded: {}", address);
+            selector = cf.channel();
         }
     }
 

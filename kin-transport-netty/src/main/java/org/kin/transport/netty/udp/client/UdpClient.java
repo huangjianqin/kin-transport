@@ -19,7 +19,6 @@ import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -46,7 +45,6 @@ public class UdpClient extends Client<SocketProtocol> {
 
         group = new NioEventLoopGroup();
 
-        CountDownLatch latch = new CountDownLatch(1);
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(group).channel(NioDatagramChannel.class);
 
@@ -79,31 +77,26 @@ public class UdpClient extends Client<SocketProtocol> {
             }
         });
         ChannelFuture cf = bootstrap.bind(0);
-        cf.addListener((ChannelFuture channelFuture) -> {
-            if (channelFuture.isSuccess()) {
-                log.info("connect to remote server success: {}", address);
-                channel = channelFuture.channel();
-                latch.countDown();
-            } else {
-                log.error("connect to remote server fail: {}", address);
-                latch.countDown();
-            }
-        });
 
         long connectTimeout = transportOption.getConnectTimeout();
         try {
             if (connectTimeout > 0) {
-                boolean success = latch.await(connectTimeout, TimeUnit.MILLISECONDS);
+                boolean success = cf.await(connectTimeout, TimeUnit.MILLISECONDS);
                 if (!success) {
                     throw new ClientConnectTimeoutException(address.toString());
                 }
             } else {
-                latch.await();
+                cf.await();
             }
-        } catch (InterruptedException e) {
-
         } catch (Exception e) {
             log.error("", e);
+        }
+
+        if (cf.isSuccess()) {
+            log.info("connect to remote server success: {}", address);
+            channel = cf.channel();
+        } else {
+            log.error("connect to remote server fail: {}", address);
         }
     }
 
