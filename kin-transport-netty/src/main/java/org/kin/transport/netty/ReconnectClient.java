@@ -6,6 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.SysUtils;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 public final class ReconnectClient<MSG> extends Client<MSG> implements LoggerOprs {
     /** 重连线程池 */
     public static final ExecutionContext RECONNECT_EXECUTORS =
-            ExecutionContext.cache("client-reconnect",
+            ExecutionContext.elastic(0, SysUtils.CPU_NUM, "client-reconnect",
                     2, "client-reconnect-scheduler");
 
     static {

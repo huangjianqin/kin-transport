@@ -2,6 +2,7 @@ package org.kin.transport.netty.http.client;
 
 import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.SysUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,13 +15,14 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * http请求封装
+ * todo 请求异步化
  *
  * @author huangjianqin
  * @date 2020/9/2
  */
 public final class HttpCall implements LoggerOprs {
     /** 异步执行http call线程池 */
-    private static ExecutionContext executionContext = ExecutionContext.cache("kin-http-call");
+    private static ExecutionContext executionContext = ExecutionContext.elastic(SysUtils.CPU_NUM, SysUtils.CPU_NUM * 10, "kin-http-call");
     /** key -> http请求 value -> future */
     private static Map<HttpCall, Future<?>> futures = new ConcurrentHashMap<>();
 
