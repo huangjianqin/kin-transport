@@ -12,6 +12,7 @@ import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
+import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.ProtocolHandler;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.HttpUrl;
@@ -31,7 +32,7 @@ import java.util.concurrent.ExecutionException;
  * @date 2020/9/10
  */
 class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> implements LoggerOprs {
-    private static final ExecutionContext EXECUTION_CONTEXT = ExecutionContext.cache("kin-http-servet");
+    private static final ExecutionContext EXECUTION_CONTEXT = ExecutionContext.elastic(SysUtils.CPU_NUM, SysUtils.CPU_NUM * 10, "kin-http-servlet");
     /** 每个channel存储一个handler, 一个channel的请求按顺序处理, 前后互不影响 */
     private static final AttributeKey<ChannelServletRequestHandler> CHANNEL_SERVLET_REQUEST_HANDLER_KEY =
             AttributeKey.newInstance("ChannelServletRequestHandler");

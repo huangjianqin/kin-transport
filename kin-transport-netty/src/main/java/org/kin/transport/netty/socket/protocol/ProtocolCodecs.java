@@ -7,6 +7,7 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import org.kin.framework.collection.Tuple;
+import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
 import org.reflections.Reflections;
@@ -30,7 +31,7 @@ import java.util.*;
 public class ProtocolCodecs {
     private static final Logger log = LoggerFactory.getLogger(ProtocolCodecs.class);
     /** javassist class pool */
-    private static final ClassPool POOL = ClassPool.getDefault();
+    private static final ClassPool POOL = ProxyEnhanceUtils.getPool();
 
     static {
         POOL.importPackage("org.kin");
