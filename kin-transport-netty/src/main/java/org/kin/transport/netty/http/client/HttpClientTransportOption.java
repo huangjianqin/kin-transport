@@ -37,18 +37,19 @@ class HttpClientTransportOption
         return new HttpClientTransportOptionBuilder();
     }
 
-    static class HttpClientTransportOptionBuilder extends TransportOptionBuilder<FullHttpResponse, HttpEntity, FullHttpRequest, HttpClientTransportOption> {
+    static class HttpClientTransportOptionBuilder
+            extends TransportOptionBuilder<FullHttpResponse, HttpEntity, FullHttpRequest, HttpClientTransportOption, HttpClientTransportOptionBuilder> {
         public HttpClientTransportOptionBuilder() {
             super(new HttpClientTransportOption());
         }
 
         @Override
-        public TransportOptionBuilder<FullHttpResponse, HttpEntity, FullHttpRequest, HttpClientTransportOption> compress(CompressionType compressionType) {
+        public HttpClientTransportOptionBuilder compress(CompressionType compressionType) {
             throw new UnsupportedOperationException("http compression set through http hearders");
         }
 
         @Override
-        public TransportOptionBuilder<FullHttpResponse, HttpEntity, FullHttpRequest, HttpClientTransportOption> uncompress() {
+        public HttpClientTransportOptionBuilder uncompress() {
             throw new UnsupportedOperationException("http compression set through http hearders");
         }
     }

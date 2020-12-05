@@ -34,15 +34,16 @@ public abstract class AbstractWsTransportOption<MSG, INOUT extends WebSocketFram
 
 
     //------------------------------------------------------builder------------------------------------------------------
-    public static class WsTransportOptionBuilder<MSG, INOUT extends WebSocketFrame, O extends AbstractWsTransportOption<MSG, INOUT, O>>
-            extends TransportOptionBuilder<INOUT, MSG, INOUT, O> {
+    public static class WsTransportOptionBuilder<MSG, INOUT extends WebSocketFrame, O extends AbstractWsTransportOption<MSG, INOUT, O>, B extends WsTransportOptionBuilder<MSG, INOUT, O, B>>
+            extends TransportOptionBuilder<INOUT, MSG, INOUT, O, B> {
         public WsTransportOptionBuilder(O transportOption) {
             super(transportOption);
         }
 
-        public WsTransportOptionBuilder<MSG, INOUT, O> handshakeUrl(String handshakeUrl) {
+        @SuppressWarnings("unchecked")
+        public B handshakeUrl(String handshakeUrl) {
             transportOption.handshakeUrl = handshakeUrl;
-            return this;
+            return (B) this;
         }
     }
 }

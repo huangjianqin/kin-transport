@@ -121,7 +121,7 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
     }
 
     //------------------------------------------------------builder------------------------------------------------------
-    public static class TransportOptionBuilder<IN, MSG, OUT, O extends AbstractTransportOption<IN, MSG, OUT, O>> {
+    public static class TransportOptionBuilder<IN, MSG, OUT, O extends AbstractTransportOption<IN, MSG, OUT, O>, B extends TransportOptionBuilder<IN, MSG, OUT, O, B>> {
         /** target */
         protected final O transportOption;
 
@@ -136,81 +136,96 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
             return transportOption;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> serverOptions(Map<ChannelOption, Object> channelOptions) {
+        @SuppressWarnings("unchecked")
+        public B serverOptions(Map<ChannelOption, Object> channelOptions) {
             transportOption.serverOptions.putAll(channelOptions);
-            return this;
+            return (B) this;
         }
 
-        public <E> TransportOptionBuilder<IN, MSG, OUT, O> serverOption(ChannelOption<E> channelOption, E value) {
+        @SuppressWarnings("unchecked")
+        public <E> B serverOption(ChannelOption<E> channelOption, E value) {
             transportOption.serverOptions.put(channelOption, value);
-            return this;
+            return (B) this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> channelOptions(Map<ChannelOption, Object> channelOptions) {
+        @SuppressWarnings("unchecked")
+        public B channelOptions(Map<ChannelOption, Object> channelOptions) {
             transportOption.channelOptions.putAll(channelOptions);
-            return this;
+            return (B) this;
         }
 
-        public <E> TransportOptionBuilder<IN, MSG, OUT, O> channelOption(ChannelOption<E> channelOption, E value) {
+        @SuppressWarnings("unchecked")
+        public <E> B channelOption(ChannelOption<E> channelOption, E value) {
             transportOption.channelOptions.put(channelOption, value);
-            return this;
+            return (B) this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> protocolHandler(ProtocolHandler<MSG> protocolHandler) {
+        @SuppressWarnings("unchecked")
+        public B protocolHandler(ProtocolHandler<MSG> protocolHandler) {
             transportOption.protocolHandler = protocolHandler;
-            return this;
+            return (B) this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> transportProtocolTransfer(TransportProtocolTransfer<IN, MSG, OUT> transfer) {
+        @SuppressWarnings("unchecked")
+        public B transportProtocolTransfer(TransportProtocolTransfer<IN, MSG, OUT> transfer) {
             transportOption.transportProtocolTransfer = transfer;
-            return this;
+            return (B) this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> compress(CompressionType compressionType) {
+        @SuppressWarnings("unchecked")
+        public B compress(CompressionType compressionType) {
             transportOption.compressionType = compressionType;
-            return this;
+            return (B) this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> uncompress() {
+        @SuppressWarnings("unchecked")
+        public B uncompress() {
             transportOption.compressionType = CompressionType.NONE;
-            return this;
+            return (B) this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> readIdleTime(long readIdleTime, TimeUnit unit) {
+        @SuppressWarnings("unchecked")
+        public B readIdleTime(long readIdleTime, TimeUnit unit) {
             transportOption.readIdleTime = (int) unit.toSeconds(readIdleTime);
-            return this;
+            return (B) this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> writeIdleTime(long writeIdleTime, TimeUnit unit) {
+        @SuppressWarnings("unchecked")
+        public B writeIdleTime(long writeIdleTime, TimeUnit unit) {
             transportOption.writeIdleTime = (int) unit.toSeconds(writeIdleTime);
-            return this;
+            return (B) this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> readWriteIdleTime(long readWriteIdleTime, TimeUnit unit) {
+        @SuppressWarnings("unchecked")
+        public B readWriteIdleTime(long readWriteIdleTime, TimeUnit unit) {
             transportOption.readWriteIdleTime = (int) unit.toSeconds(readWriteIdleTime);
-            return this;
+            return (B) this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> ssl(String certFilePath, String certKeyFilePath) {
+        @SuppressWarnings("unchecked")
+        public B ssl(String certFilePath, String certKeyFilePath) {
             transportOption.ssl = true;
             transportOption.certFilePath = certFilePath;
             transportOption.certKeyFilePath = certKeyFilePath;
-            return this;
+            return (B) this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> readTimeout(long readTimeout, TimeUnit unit) {
+        @SuppressWarnings("unchecked")
+        public B readTimeout(long readTimeout, TimeUnit unit) {
             transportOption.readTimeout = (int) unit.toSeconds(readTimeout);
-            return this;
+            return (B) this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> writeTimeout(long writeTimeout, TimeUnit unit) {
+        @SuppressWarnings("unchecked")
+        public B writeTimeout(long writeTimeout, TimeUnit unit) {
             transportOption.writeTimeout = (int) unit.toSeconds(writeTimeout);
-            return this;
+            return (B) this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> connectTimeout(long connectTimeout, TimeUnit unit) {
+        @SuppressWarnings("unchecked")
+        public B connectTimeout(long connectTimeout, TimeUnit unit) {
             transportOption.connectTimeout = unit.toMillis(connectTimeout);
-            return this;
+            return (B) this;
         }
     }
 }

@@ -171,7 +171,7 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
     }
 
     public static class WsClientTransportOptionBuilder<MSG, INOUT extends WebSocketFrame>
-            extends WsTransportOptionBuilder<MSG, INOUT, WsClientTransportOption<MSG, INOUT>> {
+            extends WsTransportOptionBuilder<MSG, INOUT, WsClientTransportOption<MSG, INOUT>, WsClientTransportOptionBuilder<MSG, INOUT>> {
         public WsClientTransportOptionBuilder() {
             super(new WsClientTransportOption<>());
         }

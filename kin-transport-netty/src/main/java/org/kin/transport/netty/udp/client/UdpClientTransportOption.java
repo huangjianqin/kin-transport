@@ -44,7 +44,8 @@ public class UdpClientTransportOption extends AbstractTransportOption<DatagramPa
         return new UdpClientTransportOptionBuilder();
     }
 
-    public static class UdpClientTransportOptionBuilder extends TransportOptionBuilder<DatagramPacket, UdpProtocolDetails, DatagramPacket, UdpClientTransportOption> {
+    public static class UdpClientTransportOptionBuilder
+            extends TransportOptionBuilder<DatagramPacket, UdpProtocolDetails, DatagramPacket, UdpClientTransportOption, UdpClientTransportOptionBuilder> {
         public UdpClientTransportOptionBuilder() {
             super(new UdpClientTransportOption());
         }

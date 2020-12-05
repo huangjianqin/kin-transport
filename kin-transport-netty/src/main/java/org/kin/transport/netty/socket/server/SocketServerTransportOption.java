@@ -44,7 +44,8 @@ public class SocketServerTransportOption extends AbstractTransportOption<ByteBuf
         return new SocketServerTransportOptionBuilder();
     }
 
-    public static class SocketServerTransportOptionBuilder extends TransportOptionBuilder<ByteBuf, SocketProtocol, ByteBuf, SocketServerTransportOption> {
+    public static class SocketServerTransportOptionBuilder
+            extends TransportOptionBuilder<ByteBuf, SocketProtocol, ByteBuf, SocketServerTransportOption, SocketServerTransportOptionBuilder> {
         public SocketServerTransportOptionBuilder() {
             super(new SocketServerTransportOption());
         }

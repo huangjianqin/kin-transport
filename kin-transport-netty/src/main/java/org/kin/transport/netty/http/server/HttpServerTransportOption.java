@@ -38,18 +38,19 @@ class HttpServerTransportOption
         return new HttpServerTransportOptionBuilder();
     }
 
-    static class HttpServerTransportOptionBuilder extends TransportOptionBuilder<FullHttpRequest, ServletTransportEntity, FullHttpResponse, HttpServerTransportOption> {
+    static class HttpServerTransportOptionBuilder
+            extends TransportOptionBuilder<FullHttpRequest, ServletTransportEntity, FullHttpResponse, HttpServerTransportOption, HttpServerTransportOptionBuilder> {
         public HttpServerTransportOptionBuilder() {
             super(new HttpServerTransportOption());
         }
 
         @Override
-        public TransportOptionBuilder<FullHttpRequest, ServletTransportEntity, FullHttpResponse, HttpServerTransportOption> compress(CompressionType compressionType) {
+        public HttpServerTransportOptionBuilder compress(CompressionType compressionType) {
             throw new UnsupportedOperationException("http compression set through http hearders");
         }
 
         @Override
-        public TransportOptionBuilder<FullHttpRequest, ServletTransportEntity, FullHttpResponse, HttpServerTransportOption> uncompress() {
+        public HttpServerTransportOptionBuilder uncompress() {
             throw new UnsupportedOperationException("http compression set through http hearders");
         }
     }

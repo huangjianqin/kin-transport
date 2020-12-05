@@ -43,7 +43,7 @@ public class WsServerTransportOption<MSG, INOUT extends WebSocketFrame>
     }
 
     public static class WsServerTransportOptionBuilder<MSG, INOUT extends WebSocketFrame>
-            extends WsTransportOptionBuilder<MSG, INOUT, WsServerTransportOption<MSG, INOUT>> {
+            extends WsTransportOptionBuilder<MSG, INOUT, WsServerTransportOption<MSG, INOUT>, WsServerTransportOptionBuilder<MSG, INOUT>> {
         public WsServerTransportOptionBuilder() {
             super(new WsServerTransportOption<>());
         }
