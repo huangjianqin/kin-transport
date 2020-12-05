@@ -53,7 +53,7 @@ public abstract class SessionBaseSocketProtocolHandler<S extends AbstractSession
         Channel channel = ctx.channel();
         Attribute<S> attr = channel.attr(SESSION_KEY);
         if (Objects.nonNull(attr)) {
-            attr.remove();
+            attr.set(null);
         }
     }
 }

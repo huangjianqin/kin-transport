@@ -191,17 +191,9 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
             return this;
         }
 
-        public TransportOptionBuilder<IN, MSG, OUT, O> ssl() {
+        public TransportOptionBuilder<IN, MSG, OUT, O> ssl(String certFilePath, String certKeyFilePath) {
             transportOption.ssl = true;
-            return this;
-        }
-
-        public TransportOptionBuilder<IN, MSG, OUT, O> certFile(String certFilePath) {
             transportOption.certFilePath = certFilePath;
-            return this;
-        }
-
-        public TransportOptionBuilder<IN, MSG, OUT, O> certKeyFile(String certKeyFilePath) {
             transportOption.certKeyFilePath = certKeyFilePath;
             return this;
         }
