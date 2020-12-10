@@ -11,6 +11,7 @@ import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.ClassUtils;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.ProtocolHandler;
@@ -146,7 +147,7 @@ class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> 
                 });
                 matchedFilters.add(filter);
             } catch (ExecutionException e) {
-                throw new RuntimeException(e);
+                ExceptionUtils.throwExt(e);
             }
         }
 
@@ -175,7 +176,7 @@ class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> 
                     return instance;
                 });
             } catch (ExecutionException e) {
-                throw new RuntimeException(e);
+                ExceptionUtils.throwExt(e);
             }
         }
 

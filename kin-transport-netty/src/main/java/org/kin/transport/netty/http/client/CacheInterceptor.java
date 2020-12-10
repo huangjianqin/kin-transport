@@ -6,6 +6,7 @@ import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoPool;
 import com.jakewharton.disklrucache.DiskLruCache;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.MediaTypeWrapper;
 import org.objenesis.strategy.StdInstantiatorStrategy;
@@ -105,10 +106,11 @@ class CacheInterceptor implements Interceptor, LoggerOprs {
             snapshot.close();
             return httpResponseCache;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            ExceptionUtils.throwExt(e);
         } finally {
             KRYO_POOL.release(kryo);
         }
+        throw new IllegalStateException("encounter unknown error");
     }
 
     /**
@@ -124,7 +126,7 @@ class CacheInterceptor implements Interceptor, LoggerOprs {
             output.close();
             edit.commit();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            ExceptionUtils.throwExt(e);
         } finally {
             KRYO_POOL.release(kryo);
         }

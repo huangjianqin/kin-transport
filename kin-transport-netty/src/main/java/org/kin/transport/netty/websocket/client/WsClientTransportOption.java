@@ -6,6 +6,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.NetUtils;
 import org.kin.transport.netty.*;
 import org.kin.transport.netty.websocket.AbstractWsTransportOption;
@@ -110,13 +111,13 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
                 log().error("", e);
             } else {
                 //不是重连才报错
-                throw new RuntimeException(e);
+                ExceptionUtils.throwExt(e);
             }
         }
 
         if (!wsClientHandler.handshakeFuture().isDone() && !reconnect) {
             //不是重连才报错
-            throw new RuntimeException(wsClientHandler.handshakeFuture().cause());
+            ExceptionUtils.throwExt(wsClientHandler.handshakeFuture().cause());
         }
 
         return client;

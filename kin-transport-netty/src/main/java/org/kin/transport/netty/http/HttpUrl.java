@@ -1,6 +1,7 @@
 package org.kin.transport.netty.http;
 
 import io.netty.handler.codec.http.HttpVersion;
+import org.kin.framework.utils.ExceptionUtils;
 
 import java.net.*;
 
@@ -46,8 +47,10 @@ public final class HttpUrl {
         try {
             return new URL(url);
         } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+            ExceptionUtils.throwExt(e);
         }
+
+        throw new IllegalStateException("encounter unknown error");
     }
 
     /**
@@ -57,8 +60,10 @@ public final class HttpUrl {
         try {
             return new URI(url);
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            ExceptionUtils.throwExt(e);
         }
+
+        throw new IllegalStateException("encounter unknown error");
     }
 
     /**

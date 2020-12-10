@@ -1,5 +1,6 @@
 package org.kin.transport.netty.http.server;
 
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 
 import java.security.NoSuchAlgorithmException;
@@ -69,7 +70,7 @@ public final class DefaultSessionIdGenerator implements SessionIdGenerator {
             SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
             secureRandom.nextBytes(bytes);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            ExceptionUtils.throwExt(e);
         }
     }
 }

@@ -3,6 +3,7 @@ package org.kin.transport.netty.http.server;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 
 import java.util.Objects;
@@ -51,8 +52,9 @@ public final class DefaultSessionManager implements HttpSessionManager {
             String finalSessionId = sessionId;
             return cache.get(sessionId, () -> new HttpSession(finalSessionId, this));
         } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+            ExceptionUtils.throwExt(e);
         }
+        throw new IllegalStateException("encounter unknown error");
     }
 
     @Override

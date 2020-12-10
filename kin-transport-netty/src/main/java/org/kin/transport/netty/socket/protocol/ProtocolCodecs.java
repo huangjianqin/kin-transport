@@ -9,6 +9,7 @@ import javassist.CtMethod;
 import org.kin.framework.collection.Tuple;
 import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
@@ -155,7 +156,7 @@ public class ProtocolCodecs {
 
             log.debug("##########################".concat(System.lineSeparator()));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            ExceptionUtils.throwExt(e);
         }
     }
 

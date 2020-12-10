@@ -2,6 +2,7 @@ package org.kin.transport.netty.http.client;
 
 import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.SysUtils;
 
 import java.util.ArrayList;
@@ -93,8 +94,10 @@ public final class HttpCall implements LoggerOprs {
             //TODO http request 描述
             throw new HttpCallTimeoutException(httpRequest.toString());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            ExceptionUtils.throwExt(e);
         }
+
+        throw new IllegalStateException("encounter unknown error");
     }
 
     /**

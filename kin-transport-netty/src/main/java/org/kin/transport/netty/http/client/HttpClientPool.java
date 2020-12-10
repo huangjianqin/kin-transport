@@ -5,6 +5,7 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.kin.framework.utils.ExceptionUtils;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -37,8 +38,10 @@ final class HttpClientPool {
                 return pools.get(address).borrowObject();
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            ExceptionUtils.throwExt(e);
         }
+
+        throw new IllegalStateException("encounter unknown error");
     }
 
     /**

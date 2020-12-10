@@ -1,5 +1,7 @@
 package org.kin.transport.netty.http.client;
 
+import org.kin.framework.utils.ExceptionUtils;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -51,11 +53,11 @@ public final class HttpInterceptorChain {
         int nextIndex = this.index + 1;
         HttpInterceptorChain nextChain = new HttpInterceptorChain(this.interceptors, this.httpCall, httpClient, nextIndex);
         Interceptor interceptor = interceptors.get(index);
-        HttpResponse httpResponse;
+        HttpResponse httpResponse = null;
         try {
             httpResponse = interceptor.intercept(nextChain);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            ExceptionUtils.throwExt(e);
         }
         if (Objects.nonNull(httpResponse)) {
             if (Objects.isNull(httpResponse.responseBody())) {

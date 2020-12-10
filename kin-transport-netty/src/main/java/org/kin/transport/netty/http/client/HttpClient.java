@@ -77,7 +77,7 @@ class HttpClient extends Client<HttpEntity> {
             HttpResponse response = (HttpResponse) protocol;
             Queue<HttpCallFuture> callFutures = CHANNEL_ID_2_CALLS.get(channelId);
             if (CollectionUtils.isEmpty(callFutures)) {
-                throw new RuntimeException("empty call");
+                throw new IllegalArgumentException("empty call");
             }
             HttpCallFuture callFuture = callFutures.poll();
             callFuture.done(response);

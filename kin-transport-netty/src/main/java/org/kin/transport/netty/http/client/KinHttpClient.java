@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.jakewharton.disklrucache.DiskLruCache;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.Closeable;
+import org.kin.framework.utils.ExceptionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,7 +81,7 @@ public final class KinHttpClient implements Closeable {
             try {
                 cache.close();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                ExceptionUtils.throwExt(e);
             }
         }
     }
@@ -206,7 +207,7 @@ public final class KinHttpClient implements Closeable {
                 try {
                     kinHttpClient.cache = DiskLruCache.open(cacheDir, 1, 1, maxSize);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    ExceptionUtils.throwExt(e);
                 }
             }
             return this;

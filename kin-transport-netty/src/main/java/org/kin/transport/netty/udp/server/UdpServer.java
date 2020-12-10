@@ -110,7 +110,7 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
 
         }
         if (selector == null) {
-            throw new RuntimeException("server connection bind fail: " + address);
+            throw new IllegalStateException("server connection bind fail: " + address);
         }
     }
 
