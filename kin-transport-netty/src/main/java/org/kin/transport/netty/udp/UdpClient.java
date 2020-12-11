@@ -77,10 +77,10 @@ public class UdpClient extends Client<SocketProtocol> {
         });
         ChannelFuture cf = bootstrap.bind(0);
 
-        long connectTimeout = transportOption.getConnectTimeout();
+        long createTimeout = transportOption.getCreateTimeout();
         try {
-            if (connectTimeout > 0) {
-                boolean success = cf.await(connectTimeout, TimeUnit.MILLISECONDS);
+            if (createTimeout > 0) {
+                boolean success = cf.await(createTimeout, TimeUnit.MILLISECONDS);
                 if (!success) {
                     throw new ClientConnectTimeoutException(address.toString());
                 }

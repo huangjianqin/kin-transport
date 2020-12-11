@@ -86,10 +86,10 @@ public class Client<MSG> extends ClientConnection {
         });
         ChannelFuture cf = bootstrap.connect(address);
 
-        long connectTimeout = transportOption.getConnectTimeout();
+        long createTimeout = transportOption.getCreateTimeout();
         try {
-            if (connectTimeout > 0) {
-                boolean success = cf.await(transportOption.getConnectTimeout(), TimeUnit.MILLISECONDS);
+            if (createTimeout > 0) {
+                boolean success = cf.await(createTimeout, TimeUnit.MILLISECONDS);
                 if (!success) {
                     throw new ClientConnectTimeoutException(address.toString());
                 }

@@ -40,11 +40,11 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
     public void bind(InetSocketAddress address) {
         log().info("server({}) connection binding...", address);
 
-        Map<ChannelOption, Object> serverOptions = transportOption.getServerOptions();
+        Map<ChannelOption, Object> selectorOptions = transportOption.getSelectorOptions();
         Map<ChannelOption, Object> channelOptions = transportOption.getChannelOptions();
 
         //校验
-        Preconditions.checkArgument(serverOptions != null);
+        Preconditions.checkArgument(selectorOptions != null);
         Preconditions.checkArgument(channelOptions != null);
         Preconditions.checkArgument(channelHandlerInitializer != null);
 
@@ -57,7 +57,7 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(this.workerGroup).channel(NioDatagramChannel.class);
 
-        for (Map.Entry<ChannelOption, Object> entry : serverOptions.entrySet()) {
+        for (Map.Entry<ChannelOption, Object> entry : selectorOptions.entrySet()) {
             bootstrap.option(entry.getKey(), entry.getValue());
         }
 
@@ -96,10 +96,10 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
             latch.countDown();
         });
 
-        long connectTimeout = transportOption.getConnectTimeout();
+        long createTimeout = transportOption.getCreateTimeout();
         try {
-            if (connectTimeout > 0) {
-                boolean success = latch.await(connectTimeout, TimeUnit.MILLISECONDS);
+            if (createTimeout > 0) {
+                boolean success = latch.await(createTimeout, TimeUnit.MILLISECONDS);
                 if (!success) {
                     throw new ServerBindTimeoutException(address.toString());
                 }

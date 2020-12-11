@@ -47,11 +47,11 @@ public class Server extends ServerConnection {
         }
         log.info("server({}) connection binding...", address);
 
-        Map<ChannelOption, Object> serverOptions = transportOption.getServerOptions();
+        Map<ChannelOption, Object> selectorOptions = transportOption.getSelectorOptions();
         Map<ChannelOption, Object> channelOptions = transportOption.getChannelOptions();
 
         //校验
-        Preconditions.checkArgument(serverOptions != null);
+        Preconditions.checkArgument(selectorOptions != null);
         Preconditions.checkArgument(channelOptions != null);
         Preconditions.checkArgument(channelHandlerInitializer != null);
 
@@ -64,7 +64,7 @@ public class Server extends ServerConnection {
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(this.bossGroup, this.workerGroup).channel(NioServerSocketChannel.class);
 
-        for (Map.Entry<ChannelOption, Object> entry : serverOptions.entrySet()) {
+        for (Map.Entry<ChannelOption, Object> entry : selectorOptions.entrySet()) {
             bootstrap.option(entry.getKey(), entry.getValue());
         }
 
@@ -100,10 +100,10 @@ public class Server extends ServerConnection {
         //绑定
         ChannelFuture cf = bootstrap.bind(address);
 
-        long connectTimeout = transportOption.getConnectTimeout();
+        long createTimeout = transportOption.getCreateTimeout();
         try {
-            if (connectTimeout > 0) {
-                boolean success = cf.await(connectTimeout, TimeUnit.MILLISECONDS);
+            if (createTimeout > 0) {
+                boolean success = cf.await(createTimeout, TimeUnit.MILLISECONDS);
                 if (!success) {
                     throw new ServerBindTimeoutException(address.toString());
                 }

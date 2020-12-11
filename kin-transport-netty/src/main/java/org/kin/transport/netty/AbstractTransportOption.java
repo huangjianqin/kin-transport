@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTransportOption<IN, MSG, OUT, O>> {
     /** server/selector channel 配置 */
-    protected Map<ChannelOption, Object> serverOptions = new HashMap<>();
+    protected Map<ChannelOption, Object> selectorOptions = new HashMap<>();
     /** channel 配置 */
     protected Map<ChannelOption, Object> channelOptions = new HashMap<>();
 
@@ -40,12 +40,12 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
     protected int readTimeout;
     /** 写超时(秒) */
     protected int writeTimeout;
-    /** 连接超时(毫秒) */
-    protected long connectTimeout;
+    /** 绑定端口 | 连接 超时(毫秒) */
+    protected long createTimeout;
 
     //getter
-    public Map<ChannelOption, Object> getServerOptions() {
-        return serverOptions;
+    public Map<ChannelOption, Object> getSelectorOptions() {
+        return selectorOptions;
     }
 
     public Map<ChannelOption, Object> getChannelOptions() {
@@ -112,8 +112,8 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
         return writeTimeout;
     }
 
-    public long getConnectTimeout() {
-        return connectTimeout;
+    public long getCreateTimeout() {
+        return createTimeout;
     }
 
     void setProtocolHandler(ProtocolHandler<MSG> protocolHandler) {
@@ -159,14 +159,14 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
         @SuppressWarnings("unchecked")
         public B serverOptions(Map<ChannelOption, Object> channelOptions) {
             checkState();
-            transportOption.serverOptions.putAll(channelOptions);
+            transportOption.selectorOptions.putAll(channelOptions);
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public <E> B serverOption(ChannelOption<E> channelOption, E value) {
             checkState();
-            transportOption.serverOptions.put(channelOption, value);
+            transportOption.selectorOptions.put(channelOption, value);
             return (B) this;
         }
 
@@ -257,9 +257,9 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
         }
 
         @SuppressWarnings("unchecked")
-        public B connectTimeout(long connectTimeout, TimeUnit unit) {
+        public B createTimeout(long connectTimeout, TimeUnit unit) {
             checkState();
-            transportOption.connectTimeout = unit.toMillis(connectTimeout);
+            transportOption.createTimeout = unit.toMillis(connectTimeout);
             return (B) this;
         }
     }
