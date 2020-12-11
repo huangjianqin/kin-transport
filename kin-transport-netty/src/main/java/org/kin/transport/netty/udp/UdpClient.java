@@ -1,4 +1,4 @@
-package org.kin.transport.netty.udp.client;
+package org.kin.transport.netty.udp;
 
 import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
@@ -13,7 +13,6 @@ import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.ClientConnectTimeoutException;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
-import org.kin.transport.netty.udp.UdpProtocolDetails;
 
 import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;

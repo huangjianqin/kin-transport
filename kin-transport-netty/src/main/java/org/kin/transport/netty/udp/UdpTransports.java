@@ -1,8 +1,5 @@
 package org.kin.transport.netty.udp;
 
-import org.kin.transport.netty.udp.client.UdpClientTransportOption;
-import org.kin.transport.netty.udp.server.UdpServerTransportOption;
-
 /**
  * udp transports
  *
@@ -13,12 +10,12 @@ public class UdpTransports {
     public static final UdpTransports INSTANCE = new UdpTransports();
 
     /** server配置 */
-    public final UdpServerTransportOption.UdpServerTransportOptionBuilder server() {
-        return UdpServerTransportOption.builder();
+    public final UdpTransportOption.UdpServerTransportOptionBuilder server() {
+        return UdpTransportOption.server();
     }
 
     /** client配置 */
-    public final UdpClientTransportOption.UdpClientTransportOptionBuilder client() {
-        return UdpClientTransportOption.builder();
+    public final UdpTransportOption.UdpServerTransportOptionBuilder client() {
+        return UdpTransportOption.client();
     }
 }

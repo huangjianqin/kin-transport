@@ -1,4 +1,4 @@
-package org.kin.transport.netty.udp.server;
+package org.kin.transport.netty.udp;
 
 import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
