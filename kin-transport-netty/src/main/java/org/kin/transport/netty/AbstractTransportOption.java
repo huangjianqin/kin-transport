@@ -41,7 +41,7 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
     /** 写超时(秒) */
     protected int writeTimeout;
     /** 绑定端口 | 连接 超时(毫秒) */
-    protected long createTimeout;
+    protected long awaitTimeout;
 
     //getter
     public Map<ChannelOption, Object> getSelectorOptions() {
@@ -112,8 +112,8 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
         return writeTimeout;
     }
 
-    public long getCreateTimeout() {
-        return createTimeout;
+    public long getAwaitTimeout() {
+        return awaitTimeout;
     }
 
     void setProtocolHandler(ProtocolHandler<MSG> protocolHandler) {
@@ -257,9 +257,9 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
         }
 
         @SuppressWarnings("unchecked")
-        public B createTimeout(long connectTimeout, TimeUnit unit) {
+        public B awaitTimeout(long connectTimeout, TimeUnit unit) {
             checkState();
-            transportOption.createTimeout = unit.toMillis(connectTimeout);
+            transportOption.awaitTimeout = unit.toMillis(connectTimeout);
             return (B) this;
         }
     }

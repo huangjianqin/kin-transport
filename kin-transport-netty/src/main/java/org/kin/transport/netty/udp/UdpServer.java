@@ -96,10 +96,10 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
             latch.countDown();
         });
 
-        long createTimeout = transportOption.getCreateTimeout();
+        long awaitTimeout = transportOption.getAwaitTimeout();
         try {
-            if (createTimeout > 0) {
-                boolean success = latch.await(createTimeout, TimeUnit.MILLISECONDS);
+            if (awaitTimeout > 0) {
+                boolean success = latch.await(awaitTimeout, TimeUnit.MILLISECONDS);
                 if (!success) {
                     throw new ServerBindTimeoutException(address.toString());
                 }

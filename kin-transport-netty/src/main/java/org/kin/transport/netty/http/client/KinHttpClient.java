@@ -43,7 +43,7 @@ public final class KinHttpClient implements Closeable {
         HttpClientTransportOption transportOption = HttpClientTransportOption.builder()
                 .readTimeout(readTimeout, TimeUnit.MILLISECONDS)
                 .writeTimeout(writeTimeout, TimeUnit.MILLISECONDS)
-                .createTimeout(connectTimeout, TimeUnit.MILLISECONDS)
+                .awaitTimeout(connectTimeout, TimeUnit.MILLISECONDS)
                 .channelOption(ChannelOption.SO_KEEPALIVE, true)
                 .protocolHandler(HttpClient.HttpClientProtocolHandler.INSTANCE)
                 .build();
