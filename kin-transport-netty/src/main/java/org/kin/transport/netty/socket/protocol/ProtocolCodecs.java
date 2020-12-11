@@ -52,6 +52,10 @@ public class ProtocolCodecs {
         return Objects.nonNull(protocolCodecs.getIfPresent(target));
     }
 
+    /**
+     * 获取某协议codec
+     */
+    @SuppressWarnings("unchecked")
     public static <P> ProtocolCodec<P> codec(Class<P> target) {
         return (ProtocolCodec<P>) protocolCodecs.getIfPresent(target);
     }
@@ -110,12 +114,12 @@ public class ProtocolCodecs {
             //检查setter getter方式
             Method getterMethod = ClassUtils.getterMethod(target, field);
             if (getterMethod == null) {
-                throw new ProtocolException(String.format("%s class field '%s' doesn't have getter method", target.getName(), field.getName()));
+                throw new ProtocolException(String.format("%s class field '%s' doesn't have getter method", target.getCanonicalName(), field.getName()));
             }
 
             Method setterMethod = ClassUtils.setterMethod(target, field);
             if (setterMethod == null) {
-                throw new ProtocolException(String.format("%s class field '%s' doesn't have setter method", target.getName(), field.getName()));
+                throw new ProtocolException(String.format("%s class field '%s' doesn't have setter method", target.getCanonicalName(), field.getName()));
             }
 
             //检查是否是protocol vo
@@ -131,9 +135,9 @@ public class ProtocolCodecs {
 
         //codec类生成
         try {
-            String codecCtClassName = target.getName().concat("Codec");
+            String codecCtClassName = target.getCanonicalName().concat("Codec");
             CtClass codecCtClass = POOL.makeClass(codecCtClassName);
-            codecCtClass.addInterface(POOL.getCtClass(ProtocolCodec.class.getName()));
+            codecCtClass.addInterface(POOL.getCtClass(ProtocolCodec.class.getCanonicalName()));
 
             log.debug(System.lineSeparator());
             log.debug("#############".concat(codecCtClassName).concat("#############").concat(System.lineSeparator()));
@@ -168,11 +172,11 @@ public class ProtocolCodecs {
         if (isProtocol) {
             String sinkName = "protocol";
             prettyMethodStatement(readMethodBody,
-                    target.getName()
+                    target.getCanonicalName()
                             .concat(" ")
                             .concat(sinkName)
                             .concat(" = (")
-                            .concat(target.getName())
+                            .concat(target.getCanonicalName())
                             .concat(")")
                             .concat("$2;"));
 
@@ -197,17 +201,17 @@ public class ProtocolCodecs {
         if (!isProtocol) {
             String sinkName = "msg";
             prettyMethodStatement(readVOMethodBody,
-                    target.getName()
+                    target.getCanonicalName()
                             .concat(" ")
                             .concat(sinkName)
                             .concat(" = new ")
-                            .concat(target.getName())
+                            .concat(target.getCanonicalName())
                             .concat("();"));
 
             for (Field field : validField) {
                 addFieldRead(readVOMethodBody, sinkName, "$1", target, field);
             }
-            prettyMethodStatement(readVOMethodBody, "return msg;");
+            prettyMethodStatement(readVOMethodBody, "return " + sinkName + ";");
         } else {
             prettyMethodStatement(readVOMethodBody, "throw new UnsupportedOperationException();");
         }
@@ -299,7 +303,7 @@ public class ProtocolCodecs {
             }
         } else {
             //vo
-            return "(".concat(type.getName()).concat(")").concat(readVO(type, sourceName));
+            return "(".concat(type.getCanonicalName()).concat(")").concat(readVO(type, sourceName));
         }
     }
 
@@ -317,11 +321,11 @@ public class ProtocolCodecs {
      * 生成 ProtocolCodecs.codec(XXX.class).readVO(sourceName) 代码
      */
     private static String readVO(Class<?> type, String sourceName) {
-        return "(".concat(type.getName())
+        return "(".concat(type.getCanonicalName())
                 .concat(")")
-                .concat(ProtocolCodecs.class.getName())
+                .concat(ProtocolCodecs.class.getCanonicalName())
                 .concat(".codec(")
-                .concat(type.getName())
+                .concat(type.getCanonicalName())
                 .concat(".class).readVO(")
                 .concat(sourceName)
                 .concat(")");
@@ -349,11 +353,11 @@ public class ProtocolCodecs {
         //数组变量名
         String arrVar = field.getName();
         prettyMethodStatement(sb,
-                itemType.getName()
+                itemType.getCanonicalName()
                         .concat("[] ")
                         .concat(arrVar)
                         .concat(" = new ")
-                        .concat(itemType.getName())
+                        .concat(itemType.getCanonicalName())
                         .concat("[")
                         .concat(sizeVar)
                         .concat("];"));
@@ -405,39 +409,39 @@ public class ProtocolCodecs {
         String collectionVar = field.getName();
         if (!Modifier.isAbstract(fieldType.getModifiers())) {
             prettyMethodStatement(sb,
-                    fieldType.getName()
+                    fieldType.getCanonicalName()
                             .concat(" ")
                             .concat(collectionVar)
                             .concat(" = new ")
-                            .concat(fieldType.getName())
+                            .concat(fieldType.getCanonicalName())
                             .concat(";"));
         } else if (List.class.isAssignableFrom(fieldType)) {
             prettyMethodStatement(sb,
-                    fieldType.getName()
+                    fieldType.getCanonicalName()
                             .concat(" ")
                             .concat(collectionVar)
                             .concat(" = new ")
-                            .concat(ArrayList.class.getName())
+                            .concat(ArrayList.class.getCanonicalName())
                             .concat("(")
                             .concat(sizeVar)
                             .concat(");"));
         } else if (Set.class.isAssignableFrom(fieldType)) {
             prettyMethodStatement(sb,
-                    fieldType.getName()
+                    fieldType.getCanonicalName()
                             .concat(" ")
                             .concat(collectionVar)
                             .concat(" = new ")
-                            .concat(HashSet.class.getName())
+                            .concat(HashSet.class.getCanonicalName())
                             .concat("(")
                             .concat(sizeVar)
                             .concat(");"));
         } else if (Queue.class.isAssignableFrom(fieldType)) {
             prettyMethodStatement(sb,
-                    fieldType.getName()
+                    fieldType.getCanonicalName()
                             .concat(" ")
                             .concat(collectionVar)
                             .concat(" = new ")
-                            .concat(LinkedList.class.getName())
+                            .concat(LinkedList.class.getCanonicalName())
                             .concat("();"));
         } else {
             throw new UnsupportedOperationException();
@@ -489,19 +493,19 @@ public class ProtocolCodecs {
         String mapVar = field.getName();
         if (!Modifier.isAbstract(fieldType.getModifiers())) {
             prettyMethodStatement(sb,
-                    fieldType.getName()
+                    fieldType.getCanonicalName()
                             .concat(" ")
                             .concat(mapVar)
                             .concat(" = new ")
-                            .concat(fieldType.getName())
+                            .concat(fieldType.getCanonicalName())
                             .concat(";"));
         } else {
             prettyMethodStatement(sb,
-                    fieldType.getName()
+                    fieldType.getCanonicalName()
                             .concat(" ")
                             .concat(mapVar)
                             .concat(" = new ")
-                            .concat(HashMap.class.getName())
+                            .concat(HashMap.class.getCanonicalName())
                             .concat("(")
                             .concat(sizeVar)
                             .concat(");"));
@@ -533,25 +537,27 @@ public class ProtocolCodecs {
             String sinkName = "response";
             String sourceName = "protocol";
             prettyMethodStatement(writeMethodBody,
-                    target.getName()
+                    target.getCanonicalName()
                             .concat(" ")
                             .concat(sourceName)
                             .concat(" = (")
-                            .concat(target.getName())
+                            .concat(target.getCanonicalName())
                             .concat(")$1;"));
             prettyMethodStatement(writeMethodBody,
-                    SocketResponseOprs.class.getName()
+                    SocketResponseOprs.class.getCanonicalName()
                             .concat(" ")
                             .concat(sinkName)
                             .concat(" = new ")
-                            .concat(SocketProtocolByteBuf.class.getName())
-                            .concat("(protocol.getProtocolId());"));
+                            .concat(SocketProtocolByteBuf.class.getCanonicalName())
+                            .concat("(")
+                            .concat(sourceName)
+                            .concat(".getProtocolId());"));
 
             for (Field field : validField) {
                 addFieldWrite(writeMethodBody, sinkName, sourceName, target, field);
             }
 
-            prettyMethodStatement(writeMethodBody, "return response;");
+            prettyMethodStatement(writeMethodBody, "return " + sinkName + ";");
         } else {
             prettyMethodStatement(writeMethodBody, "throw new UnsupportedOperationException();");
         }
@@ -571,11 +577,11 @@ public class ProtocolCodecs {
             String sinkName = "$2";
             String sourceName = "msg";
             prettyMethodStatement(writeVOMethodBody,
-                    target.getName()
+                    target.getCanonicalName()
                             .concat(" ")
                             .concat(sourceName)
                             .concat(" = (")
-                            .concat(target.getName())
+                            .concat(target.getCanonicalName())
                             .concat(")$1;"));
 
             for (Field field : validField) {
@@ -669,9 +675,9 @@ public class ProtocolCodecs {
      * 生成 ProtocolCodecs.codec(XXX.class).writeVO(source, sinkName) 代码
      */
     private static String writeVO(String sinkName, String source, Class<?> type) {
-        return ProtocolCodecs.class.getName()
+        return ProtocolCodecs.class.getCanonicalName()
                 .concat(".codec(")
-                .concat(type.getName())
+                .concat(type.getCanonicalName())
                 .concat(".class).writeVO(")
                 .concat(source)
                 .concat(", ")
@@ -707,7 +713,7 @@ public class ProtocolCodecs {
             }
         } else {
             //vo
-            return "(".concat(type.getName()).concat(")").concat(source);
+            return "(".concat(type.getCanonicalName()).concat(")").concat(source);
         }
     }
 
@@ -786,7 +792,7 @@ public class ProtocolCodecs {
         //iterator
         String iteratorVar = field.getName().concat("Iterator");
         prettyMethodStatement(sb,
-                Iterator.class.getName()
+                Iterator.class.getCanonicalName()
                         .concat(" ")
                         .concat(iteratorVar)
                         .concat(" = ")
@@ -848,7 +854,7 @@ public class ProtocolCodecs {
         //iterator
         String iteratorVar = field.getName().concat("Iterator");
         prettyMethodStatement(sb,
-                Iterator.class.getName()
+                Iterator.class.getCanonicalName()
                         .concat(" ")
                         .concat(iteratorVar)
                         .concat(" = ")
@@ -865,7 +871,7 @@ public class ProtocolCodecs {
                 .concat(".next()");
         String entryName = "entry";
         prettyForStatement(forSb,
-                Map.Entry.class.getName()
+                Map.Entry.class.getCanonicalName()
                         .concat(" ")
                         .concat(entryName)
                         .concat(" = ")
@@ -906,21 +912,6 @@ public class ProtocolCodecs {
     private static void prettyMethodStatement(StringBuilder sb, String content) {
         sb.append(" ".concat(content).concat(System.lineSeparator()));
     }
-
-    /**
-     * 优雅格式化方法头
-     */
-    private static void prettyMethodHead(StringBuilder sb, String content) {
-        sb.append(content.concat("{").concat(System.lineSeparator()));
-    }
-
-    /**
-     * 优雅格式化方法头
-     */
-    private static void prettyMethodTail(StringBuilder sb) {
-        sb.append("}".concat(System.lineSeparator()));
-    }
-
     /**
      * 优雅格式化循环体每行代码
      */

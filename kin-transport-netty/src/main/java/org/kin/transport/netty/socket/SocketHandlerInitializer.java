@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.MessageToByteEncoder;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
-import org.kin.transport.netty.socket.handler.SocketFrameCodec;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 import java.util.ArrayList;

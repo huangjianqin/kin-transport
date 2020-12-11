@@ -1,4 +1,4 @@
-package org.kin.transport.netty.socket.handler;
+package org.kin.transport.netty.socket;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
