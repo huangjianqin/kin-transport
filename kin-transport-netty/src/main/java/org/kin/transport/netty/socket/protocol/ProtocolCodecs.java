@@ -5,7 +5,6 @@ import com.google.common.cache.CacheBuilder;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
-import javassist.CtMethod;
 import org.kin.framework.collection.Tuple;
 import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
@@ -166,7 +165,6 @@ public class ProtocolCodecs {
     private static void addReadMethod(CtClass codecCtClass, Class<?> target, List<Field> validField, boolean isProtocol) throws NoSuchMethodException, CannotCompileException {
         Method readMethod = ProtocolCodec.class.getMethod("read", SocketRequestOprs.class, SocketProtocol.class);
         StringBuilder readMethodBody = new StringBuilder();
-        prettyMethodHead(readMethodBody, ClassUtils.generateMethodDeclaration(readMethod));
         if (isProtocol) {
             String sinkName = "protocol";
             prettyMethodStatement(readMethodBody,
@@ -184,12 +182,10 @@ public class ProtocolCodecs {
         } else {
             prettyMethodStatement(readMethodBody, "throw new UnsupportedOperationException();");
         }
-        prettyMethodTail(readMethodBody);
 
         log.debug(readMethodBody.toString());
 
-        CtMethod readCtMethod = CtMethod.make(readMethodBody.toString(), codecCtClass);
-        codecCtClass.addMethod(readCtMethod);
+        ProxyEnhanceUtils.makeCtPublicFinalMethod(POOL, readMethod, readMethodBody.toString(), codecCtClass);
     }
 
     /**
@@ -198,7 +194,6 @@ public class ProtocolCodecs {
     private static void addReadVOMethod(CtClass codecCtClass, Class<?> target, List<Field> validField, boolean isProtocol) throws NoSuchMethodException, CannotCompileException {
         Method readVOMethod = ProtocolCodec.class.getMethod("readVO", SocketRequestOprs.class);
         StringBuilder readVOMethodBody = new StringBuilder();
-        prettyMethodHead(readVOMethodBody, ClassUtils.generateMethodDeclaration(readVOMethod));
         if (!isProtocol) {
             String sinkName = "msg";
             prettyMethodStatement(readVOMethodBody,
@@ -216,12 +211,10 @@ public class ProtocolCodecs {
         } else {
             prettyMethodStatement(readVOMethodBody, "throw new UnsupportedOperationException();");
         }
-        prettyMethodTail(readVOMethodBody);
 
         log.debug(readVOMethodBody.toString());
 
-        CtMethod readCtMethod = CtMethod.make(readVOMethodBody.toString(), codecCtClass);
-        codecCtClass.addMethod(readCtMethod);
+        ProxyEnhanceUtils.makeCtPublicFinalMethod(POOL, readVOMethod, readVOMethodBody.toString(), codecCtClass);
     }
 
     /**
@@ -536,7 +529,6 @@ public class ProtocolCodecs {
     private static void addWriteMethod(CtClass codecCtClass, Class<?> target, List<Field> validField, boolean isProtocol) throws NoSuchMethodException, CannotCompileException {
         Method writeMethod = ProtocolCodec.class.getMethod("write", SocketProtocol.class);
         StringBuilder writeMethodBody = new StringBuilder();
-        prettyMethodHead(writeMethodBody, ClassUtils.generateMethodDeclaration(writeMethod));
         if (isProtocol) {
             String sinkName = "response";
             String sourceName = "protocol";
@@ -563,12 +555,10 @@ public class ProtocolCodecs {
         } else {
             prettyMethodStatement(writeMethodBody, "throw new UnsupportedOperationException();");
         }
-        prettyMethodTail(writeMethodBody);
 
         log.debug(writeMethodBody.toString());
 
-        CtMethod writeCtMethod = CtMethod.make(writeMethodBody.toString(), codecCtClass);
-        codecCtClass.addMethod(writeCtMethod);
+        ProxyEnhanceUtils.makeCtPublicFinalMethod(POOL, writeMethod, writeMethodBody.toString(), codecCtClass);
     }
 
     /**
@@ -577,7 +567,6 @@ public class ProtocolCodecs {
     private static void addWriteVOMethod(CtClass codecCtClass, Class<?> target, List<Field> validField, boolean isProtocol) throws NoSuchMethodException, CannotCompileException {
         Method writeVOMethod = ProtocolCodec.class.getMethod("writeVO", Object.class, SocketResponseOprs.class);
         StringBuilder writeVOMethodBody = new StringBuilder();
-        prettyMethodHead(writeVOMethodBody, ClassUtils.generateMethodDeclaration(writeVOMethod));
         if (!isProtocol) {
             String sinkName = "$2";
             String sourceName = "msg";
@@ -595,12 +584,10 @@ public class ProtocolCodecs {
         } else {
             prettyMethodStatement(writeVOMethodBody, "throw new UnsupportedOperationException();");
         }
-        prettyMethodTail(writeVOMethodBody);
 
         log.debug(writeVOMethodBody.toString());
 
-        CtMethod writeCtMethod = CtMethod.make(writeVOMethodBody.toString(), codecCtClass);
-        codecCtClass.addMethod(writeCtMethod);
+        ProxyEnhanceUtils.makeCtPublicFinalMethod(POOL, writeVOMethod, writeVOMethodBody.toString(), codecCtClass);
     }
 
     /**
