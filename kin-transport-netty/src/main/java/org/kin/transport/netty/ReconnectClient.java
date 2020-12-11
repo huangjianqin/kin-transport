@@ -61,6 +61,7 @@ public final class ReconnectClient<MSG> extends Client<MSG> implements LoggerOpr
         super(transportOption, null);
         this.reconnectTransportOption = reconnectTransportOption;
         if (cacheMessage) {
+            //目前暂定缓存协议数量200, 200以后拒绝
             queue = new LinkedBlockingQueue<>(200);
         }
     }

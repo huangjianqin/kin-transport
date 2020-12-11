@@ -131,79 +131,111 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
             this.transportOption = transportOption;
         }
 
+        /**
+         * 暴露transport options
+         */
         public O build() {
+            checkState();
             exported = true;
             return transportOption;
         }
 
+        /**
+         * 配置是否使用过(绑定过端口或者连接过远程服务器), 则配置内容不能再修改
+         */
+        public boolean isExported() {
+            return exported;
+        }
+
+        /**
+         * 检查是否exported
+         */
+        protected void checkState() {
+            if (exported) {
+                throw new IllegalStateException("transport options is exported!!! can not change");
+            }
+        }
+
         @SuppressWarnings("unchecked")
         public B serverOptions(Map<ChannelOption, Object> channelOptions) {
+            checkState();
             transportOption.serverOptions.putAll(channelOptions);
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public <E> B serverOption(ChannelOption<E> channelOption, E value) {
+            checkState();
             transportOption.serverOptions.put(channelOption, value);
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public B channelOptions(Map<ChannelOption, Object> channelOptions) {
+            checkState();
             transportOption.channelOptions.putAll(channelOptions);
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public <E> B channelOption(ChannelOption<E> channelOption, E value) {
+            checkState();
             transportOption.channelOptions.put(channelOption, value);
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public B protocolHandler(ProtocolHandler<MSG> protocolHandler) {
+            checkState();
             transportOption.protocolHandler = protocolHandler;
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public B transportProtocolTransfer(TransportProtocolTransfer<IN, MSG, OUT> transfer) {
+            checkState();
             transportOption.transportProtocolTransfer = transfer;
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public B compress(CompressionType compressionType) {
+            checkState();
             transportOption.compressionType = compressionType;
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public B uncompress() {
+            checkState();
             transportOption.compressionType = CompressionType.NONE;
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public B readIdleTime(long readIdleTime, TimeUnit unit) {
+            checkState();
             transportOption.readIdleTime = (int) unit.toSeconds(readIdleTime);
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public B writeIdleTime(long writeIdleTime, TimeUnit unit) {
+            checkState();
             transportOption.writeIdleTime = (int) unit.toSeconds(writeIdleTime);
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public B readWriteIdleTime(long readWriteIdleTime, TimeUnit unit) {
+            checkState();
             transportOption.readWriteIdleTime = (int) unit.toSeconds(readWriteIdleTime);
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public B ssl(String certFilePath, String certKeyFilePath) {
+            checkState();
             transportOption.ssl = true;
             transportOption.certFilePath = certFilePath;
             transportOption.certKeyFilePath = certKeyFilePath;
@@ -212,18 +244,21 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
 
         @SuppressWarnings("unchecked")
         public B readTimeout(long readTimeout, TimeUnit unit) {
+            checkState();
             transportOption.readTimeout = (int) unit.toSeconds(readTimeout);
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public B writeTimeout(long writeTimeout, TimeUnit unit) {
+            checkState();
             transportOption.writeTimeout = (int) unit.toSeconds(writeTimeout);
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
         public B connectTimeout(long connectTimeout, TimeUnit unit) {
+            checkState();
             transportOption.connectTimeout = unit.toMillis(connectTimeout);
             return (B) this;
         }

@@ -11,11 +11,11 @@ public class UdpTransports {
 
     /** server配置 */
     public final UdpTransportOption.UdpServerTransportOptionBuilder server() {
-        return UdpTransportOption.server();
+        return new UdpTransportOption.UdpServerTransportOptionBuilder();
     }
 
     /** client配置 */
-    public final UdpTransportOption.UdpServerTransportOptionBuilder client() {
-        return UdpTransportOption.client();
+    public final UdpTransportOption.UdpClientTransportOptionBuilder client() {
+        return new UdpTransportOption.UdpClientTransportOptionBuilder();
     }
 }

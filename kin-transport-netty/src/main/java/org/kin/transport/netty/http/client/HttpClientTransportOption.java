@@ -3,6 +3,7 @@ package org.kin.transport.netty.http.client;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import org.kin.transport.netty.AbstractTransportOption;
+import org.kin.transport.netty.ClientOptionOprs;
 import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.TransportProtocolTransfer;
 
@@ -38,7 +39,8 @@ class HttpClientTransportOption
     }
 
     static class HttpClientTransportOptionBuilder
-            extends TransportOptionBuilder<FullHttpResponse, HttpEntity, FullHttpRequest, HttpClientTransportOption, HttpClientTransportOptionBuilder> {
+            extends TransportOptionBuilder<FullHttpResponse, HttpEntity, FullHttpRequest, HttpClientTransportOption, HttpClientTransportOptionBuilder>
+            implements ClientOptionOprs<HttpClient> {
         public HttpClientTransportOptionBuilder() {
             super(new HttpClientTransportOption());
         }
@@ -51,6 +53,11 @@ class HttpClientTransportOption
         @Override
         public HttpClientTransportOptionBuilder uncompress() {
             throw new UnsupportedOperationException("http compression set through http hearders");
+        }
+
+        @Override
+        public HttpClient connect(InetSocketAddress address) {
+            return build().connect(address);
         }
     }
 }

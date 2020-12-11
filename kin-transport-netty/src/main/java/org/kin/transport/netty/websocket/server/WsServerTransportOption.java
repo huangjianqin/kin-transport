@@ -2,6 +2,7 @@ package org.kin.transport.netty.websocket.server;
 
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.kin.transport.netty.Server;
+import org.kin.transport.netty.ServerOptionOprs;
 import org.kin.transport.netty.TransportProtocolTransfer;
 import org.kin.transport.netty.websocket.AbstractWsTransportOption;
 
@@ -15,10 +16,12 @@ import java.util.Objects;
  * @date 2020/8/27
  */
 public class WsServerTransportOption<MSG, INOUT extends WebSocketFrame>
-        extends AbstractWsTransportOption<MSG, INOUT, WsServerTransportOption<MSG, INOUT>> {
+        extends AbstractWsTransportOption<MSG, INOUT, WsServerTransportOption<MSG, INOUT>>
+        implements ServerOptionOprs<Server> {
     /**
      * 构建websocket server
      */
+    @Override
     public final Server bind(InetSocketAddress address) {
         WsServerHandlerInitializer<MSG, INOUT> handlerInitializer = new WsServerHandlerInitializer<>(this);
         Server server = new Server(this, handlerInitializer);
@@ -43,9 +46,15 @@ public class WsServerTransportOption<MSG, INOUT extends WebSocketFrame>
     }
 
     public static class WsServerTransportOptionBuilder<MSG, INOUT extends WebSocketFrame>
-            extends WsTransportOptionBuilder<MSG, INOUT, WsServerTransportOption<MSG, INOUT>, WsServerTransportOptionBuilder<MSG, INOUT>> {
+            extends WsTransportOptionBuilder<MSG, INOUT, WsServerTransportOption<MSG, INOUT>, WsServerTransportOptionBuilder<MSG, INOUT>>
+            implements ServerOptionOprs<Server> {
         public WsServerTransportOptionBuilder() {
             super(new WsServerTransportOption<>());
+        }
+
+        @Override
+        public Server bind(InetSocketAddress address) {
+            return build().bind(address);
         }
     }
 }

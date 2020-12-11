@@ -57,41 +57,45 @@ public final class KinHttpServer {
     }
 
     public static class KinHttpServerBuilder {
-        private KinHttpServer kinHttpServer;
+        private final KinHttpServer kinHttpServer;
 
         public KinHttpServerBuilder(String appName) {
+            checkState();
             this.kinHttpServer = new KinHttpServer(appName);
         }
 
         public KinHttpServerBuilder mappingServlet(String url, Class<? extends Servlet> servletClass) {
-            if (!kinHttpServer.isExport) {
-                kinHttpServer.servletConfigs.add(new ServletConfig(url, servletClass));
-            }
+            checkState();
+            kinHttpServer.servletConfigs.add(new ServletConfig(url, servletClass));
             return this;
         }
 
         public KinHttpServerBuilder mappingFilter(String url, Class<? extends Filter> filterClass) {
-            if (!kinHttpServer.isExport) {
-                kinHttpServer.filterConfigs.add(new FilterConfig(url, filterClass));
-            }
+            checkState();
+            kinHttpServer.filterConfigs.add(new FilterConfig(url, filterClass));
             return this;
         }
 
         public KinHttpServerBuilder sessionManager(Class<? extends HttpSessionManager> sessionManagerClass) {
-            if (!kinHttpServer.isExport) {
-                kinHttpServer.sessionManagerClass = sessionManagerClass;
-            }
+            checkState();
+            kinHttpServer.sessionManagerClass = sessionManagerClass;
             return this;
         }
 
-        public void bind(InetSocketAddress address) {
+        /**
+         * 检查是否exported
+         */
+        private void checkState() {
             if (kinHttpServer.isExport) {
-                return;
+                throw new IllegalStateException("http server has bind!!! can not change");
             }
+        }
+
+        public void bind(InetSocketAddress address) {
+            checkState();
             kinHttpServer.isExport = true;
             HttpServerTransportOption.builder()
                     .protocolHandler(new HttpServerProtocolHandler(kinHttpServer))
-                    .build()
                     .bind(address);
         }
     }

@@ -30,7 +30,7 @@ public class SocketTest {
                 public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                     System.out.println(protocol);
                 }
-            }).compress(CompressionType.FRAMED_LZ4).channelOption(ChannelOption.TCP_NODELAY, true).build().withReconnect(address);
+            }).compress(CompressionType.FRAMED_LZ4).channelOption(ChannelOption.TCP_NODELAY, true).withReconnect(address);
 
             int count = 10;
             int i = 0;
@@ -45,7 +45,7 @@ public class SocketTest {
                                 System.out.println(protocol);
                                 ctx.channel().writeAndFlush(Protocol1.of(2));
                             }
-                        }).compress(CompressionType.SNAPPY).channelOption(ChannelOption.TCP_NODELAY, true).build().bind(address);
+                        }).compress(CompressionType.SNAPPY).channelOption(ChannelOption.TCP_NODELAY, true).bind(address);
                     } else {
                         server.close();
                         server = null;

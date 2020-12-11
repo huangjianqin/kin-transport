@@ -1,9 +1,7 @@
 package org.kin.transport.netty.udp;
 
 import io.netty.channel.socket.DatagramPacket;
-import org.kin.transport.netty.AbstractTransportOption;
-import org.kin.transport.netty.ChannelHandlerInitializer;
-import org.kin.transport.netty.TransportProtocolTransfer;
+import org.kin.transport.netty.*;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -14,7 +12,8 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020/9/1
  */
-public class UdpTransportOption extends AbstractTransportOption<DatagramPacket, UdpProtocolDetails, DatagramPacket, UdpTransportOption> {
+public class UdpTransportOption extends AbstractTransportOption<DatagramPacket, UdpProtocolDetails, DatagramPacket, UdpTransportOption>
+        implements ServerOptionOprs<UdpServer>, ClientOptionOprs<UdpClient> {
     /** 标识tcp server还是tcp client */
     private final boolean serverElseClient;
 
@@ -25,6 +24,7 @@ public class UdpTransportOption extends AbstractTransportOption<DatagramPacket, 
     /**
      * 构建udp server实例
      */
+    @Override
     public UdpServer bind(InetSocketAddress address) {
         if (!serverElseClient) {
             throw new UnsupportedOperationException("this is a tpc client transport options");
@@ -39,6 +39,7 @@ public class UdpTransportOption extends AbstractTransportOption<DatagramPacket, 
     /**
      * 构建udp client实例
      */
+    @Override
     public UdpClient connect(InetSocketAddress address) {
         if (serverElseClient) {
             throw new UnsupportedOperationException("this is a tpc server transport options");
@@ -62,23 +63,42 @@ public class UdpTransportOption extends AbstractTransportOption<DatagramPacket, 
     //------------------------------------------------------builder------------------------------------------------------
 
     /**
-     * udp server配置
+     * 通用builder
      */
-    public static UdpServerTransportOptionBuilder server() {
-        return new UdpServerTransportOptionBuilder(true);
+    private static class UdpTransportOptionBuilder<B extends UdpTransportOptionBuilder<B>>
+            extends TransportOptionBuilder<DatagramPacket, UdpProtocolDetails, DatagramPacket, UdpTransportOption, B> {
+        private UdpTransportOptionBuilder(boolean serverElseClient) {
+            super(new UdpTransportOption(serverElseClient));
+        }
     }
 
     /**
-     * udp client配置
+     * server builder
      */
-    public static UdpServerTransportOptionBuilder client() {
-        return new UdpServerTransportOptionBuilder(false);
+    public static class UdpServerTransportOptionBuilder extends UdpTransportOptionBuilder<UdpServerTransportOptionBuilder> implements ServerOptionOprs<UdpServer> {
+
+        public UdpServerTransportOptionBuilder() {
+            super(true);
+        }
+
+        @Override
+        public UdpServer bind(InetSocketAddress address) {
+            return build().bind(address);
+        }
     }
 
-    public static class UdpServerTransportOptionBuilder
-            extends TransportOptionBuilder<DatagramPacket, UdpProtocolDetails, DatagramPacket, UdpTransportOption, UdpServerTransportOptionBuilder> {
-        public UdpServerTransportOptionBuilder(boolean serverElseClient) {
-            super(new UdpTransportOption(serverElseClient));
+    /**
+     * client builder
+     */
+    public static class UdpClientTransportOptionBuilder extends UdpTransportOptionBuilder<UdpClientTransportOptionBuilder> implements ClientOptionOprs<UdpClient> {
+
+        public UdpClientTransportOptionBuilder() {
+            super(false);
+        }
+
+        @Override
+        public UdpClient connect(InetSocketAddress address) {
+            return build().connect(address);
         }
     }
 }

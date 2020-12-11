@@ -10,12 +10,12 @@ public class SocketTransports {
     public static final SocketTransports INSTANCE = new SocketTransports();
 
     /** server配置 */
-    public final SocketTransportOption.SocketTransportOptionBuilder server() {
-        return SocketTransportOption.server();
+    public final SocketTransportOption.SocketServerTransportOptionBuilder server() {
+        return new SocketTransportOption.SocketServerTransportOptionBuilder();
     }
 
     /** client配置 */
-    public final SocketTransportOption.SocketTransportOptionBuilder client() {
-        return SocketTransportOption.client();
+    public final SocketTransportOption.SocketClientTransportOptionBuilder client() {
+        return new SocketTransportOption.SocketClientTransportOptionBuilder();
     }
 }

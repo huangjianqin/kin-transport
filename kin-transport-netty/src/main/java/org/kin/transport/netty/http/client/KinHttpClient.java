@@ -125,71 +125,72 @@ public final class KinHttpClient implements Closeable {
         private KinHttpClient kinHttpClient = new KinHttpClient();
         private volatile boolean exported;
 
-        public KinHttpClient build() {
+        /**
+         * 检查是否exported
+         */
+        private void checkState() {
+            if (exported) {
+                throw new IllegalStateException("http client has build!!! can not change");
+            }
+        }
+
+        public KinHttpClient connect() {
+            checkState();
             exported = true;
             return kinHttpClient;
         }
 
         public KinHttpClientBuilder retryTimes(int retryTimes) {
-            if (!exported) {
-                kinHttpClient.retryTimes = retryTimes;
-            }
+            checkState();
+            kinHttpClient.retryTimes = retryTimes;
             return this;
         }
 
         public KinHttpClientBuilder connectTimeout(long connectTimeout, TimeUnit unit) {
-            if (!exported) {
-                kinHttpClient.connectTimeout = unit.toMillis(connectTimeout);
-            }
+            checkState();
+            kinHttpClient.connectTimeout = unit.toMillis(connectTimeout);
             return this;
         }
 
         public KinHttpClientBuilder callTimeout(long callTimeout, TimeUnit unit) {
-            if (!exported) {
-                kinHttpClient.callTimeout = unit.toMillis(callTimeout);
-            }
+            checkState();
+            kinHttpClient.callTimeout = unit.toMillis(callTimeout);
             return this;
         }
 
         public KinHttpClientBuilder readTimeout(long readTimeout, TimeUnit unit) {
-            if (!exported) {
-                kinHttpClient.readTimeout = unit.toMillis(readTimeout);
-            }
+            checkState();
+            kinHttpClient.readTimeout = unit.toMillis(readTimeout);
             return this;
         }
 
         public KinHttpClientBuilder writeTimeout(long writeTimeout, TimeUnit unit) {
-            if (!exported) {
-                kinHttpClient.writeTimeout = unit.toMillis(writeTimeout);
-            }
+            checkState();
+            kinHttpClient.writeTimeout = unit.toMillis(writeTimeout);
             return this;
         }
 
         public KinHttpClientBuilder addInterceptor(Interceptor interceptor) {
-            if (!exported) {
-                kinHttpClient.interceptors.add(interceptor);
-            }
+            checkState();
+            kinHttpClient.interceptors.add(interceptor);
             return this;
         }
 
         public KinHttpClientBuilder addInterceptors(Collection<Interceptor> interceptors) {
-            if (!exported) {
-                kinHttpClient.interceptors.addAll(interceptors);
-            }
+            checkState();
+            kinHttpClient.interceptors.addAll(interceptors);
             return this;
         }
 
         public KinHttpClientBuilder removeInterceptor(Interceptor interceptor) {
-            if (!exported) {
-                kinHttpClient.interceptors.remove(interceptor);
-            }
+            checkState();
+            kinHttpClient.interceptors.remove(interceptor);
             return this;
         }
 
         public KinHttpClientBuilder removeInterceptors(Collection<Interceptor> interceptors) {
-            if (!exported) {
-                kinHttpClient.interceptors.removeAll(interceptors);
-            }
+            checkState();
+            kinHttpClient.interceptors.removeAll(interceptors);
             return this;
         }
 
@@ -198,17 +199,16 @@ public final class KinHttpClient implements Closeable {
         }
 
         public KinHttpClientBuilder cacheDir(File cacheDir, int maxSize) {
-            if (!exported) {
-                Preconditions.checkArgument(Objects.isNull(kinHttpClient.cache), "cache has been set");
-                Preconditions.checkArgument(Objects.nonNull(cacheDir) && cacheDir.isDirectory(),
-                        "cache dir path must be a directory");
-                //1个app版本
-                //1个key对应1个value
-                try {
-                    kinHttpClient.cache = DiskLruCache.open(cacheDir, 1, 1, maxSize);
-                } catch (IOException e) {
-                    ExceptionUtils.throwExt(e);
-                }
+            checkState();
+            Preconditions.checkArgument(Objects.isNull(kinHttpClient.cache), "cache has been set");
+            Preconditions.checkArgument(Objects.nonNull(cacheDir) && cacheDir.isDirectory(),
+                    "cache dir path must be a directory");
+            //1个app版本
+            //1个key对应1个value
+            try {
+                kinHttpClient.cache = DiskLruCache.open(cacheDir, 1, 1, maxSize);
+            } catch (IOException e) {
+                ExceptionUtils.throwExt(e);
             }
             return this;
         }

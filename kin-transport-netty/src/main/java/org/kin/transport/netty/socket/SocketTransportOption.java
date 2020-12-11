@@ -12,7 +12,8 @@ import java.net.InetSocketAddress;
  * @author huangjianqin
  * @date 2019-09-13
  */
-public class SocketTransportOption extends AbstractTransportOption<ByteBuf, SocketProtocol, ByteBuf, SocketTransportOption> {
+public class SocketTransportOption extends AbstractTransportOption<ByteBuf, SocketProtocol, ByteBuf, SocketTransportOption>
+        implements ServerOptionOprs<Server>, ClientOptionOprs<Client<SocketProtocol>> {
     /** 标识tcp server还是tcp client */
     private final boolean serverElseClient;
     /** 协议帧最大长度, 默认4M */
@@ -25,6 +26,7 @@ public class SocketTransportOption extends AbstractTransportOption<ByteBuf, Sock
     /**
      * 构建tcp server实例
      */
+    @Override
     public Server bind(InetSocketAddress address) {
         if (!serverElseClient) {
             throw new UnsupportedOperationException("this is a tpc client transport options");
@@ -37,6 +39,7 @@ public class SocketTransportOption extends AbstractTransportOption<ByteBuf, Sock
     /**
      * 构建tcp client实例
      */
+    @Override
     public Client<SocketProtocol> connect(InetSocketAddress address) {
         if (serverElseClient) {
             throw new UnsupportedOperationException("this is a tpc server transport options");
@@ -50,6 +53,7 @@ public class SocketTransportOption extends AbstractTransportOption<ByteBuf, Sock
     /**
      * 构建支持自动重连的tcp client实例
      */
+    @Override
     public Client<SocketProtocol> withReconnect(InetSocketAddress address) {
         return withReconnect(address, true);
     }
@@ -59,6 +63,7 @@ public class SocketTransportOption extends AbstractTransportOption<ByteBuf, Sock
      *
      * @param cacheMessage 是否缓存断开链接时发送的消息
      */
+    @Override
     public Client<SocketProtocol> withReconnect(InetSocketAddress address, boolean cacheMessage) {
         if (serverElseClient) {
             throw new UnsupportedOperationException("this is a tpc server transport options");
@@ -87,30 +92,59 @@ public class SocketTransportOption extends AbstractTransportOption<ByteBuf, Sock
     //------------------------------------------------------builder------------------------------------------------------
 
     /**
-     * tcp server配置
+     * 通用builder
      */
-    public static SocketTransportOptionBuilder server() {
-        return new SocketTransportOptionBuilder(true);
-    }
-
-    /**
-     * tcp client配置
-     */
-    public static SocketTransportOptionBuilder client() {
-        return new SocketTransportOptionBuilder(false);
-    }
-
-    public static class SocketTransportOptionBuilder
-            extends TransportOptionBuilder<ByteBuf, SocketProtocol, ByteBuf, SocketTransportOption, SocketTransportOptionBuilder> {
+    private static class SocketTransportOptionBuilder<B extends SocketTransportOptionBuilder<B>>
+            extends TransportOptionBuilder<ByteBuf, SocketProtocol, ByteBuf, SocketTransportOption, B> {
         private SocketTransportOptionBuilder(boolean serverElseClient) {
             super(new SocketTransportOption(serverElseClient));
             //默认
             transportProtocolTransfer(new SocketTransfer(serverElseClient));
         }
 
-        public SocketTransportOptionBuilder maxFrameSize(int maxFrameSize) {
+        @SuppressWarnings("unchecked")
+        public B maxFrameSize(int maxFrameSize) {
+            checkState();
             transportOption.maxFrameSize = maxFrameSize;
-            return this;
+            return (B) this;
+        }
+    }
+
+    /**
+     * server builder
+     */
+    public static class SocketServerTransportOptionBuilder extends SocketTransportOptionBuilder<SocketServerTransportOptionBuilder> implements ServerOptionOprs<Server> {
+        public SocketServerTransportOptionBuilder() {
+            super(true);
+        }
+
+        @Override
+        public Server bind(InetSocketAddress address) {
+            return build().bind(address);
+        }
+    }
+
+    /**
+     * client builder
+     */
+    public static class SocketClientTransportOptionBuilder extends SocketTransportOptionBuilder<SocketClientTransportOptionBuilder> implements ClientOptionOprs<Client<SocketProtocol>> {
+        public SocketClientTransportOptionBuilder() {
+            super(false);
+        }
+
+        @Override
+        public Client<SocketProtocol> connect(InetSocketAddress address) {
+            return build().connect(address);
+        }
+
+        @Override
+        public Client<SocketProtocol> withReconnect(InetSocketAddress address) {
+            return withReconnect(address, true);
+        }
+
+        @Override
+        public Client<SocketProtocol> withReconnect(InetSocketAddress address, boolean cacheMessage) {
+            return build().withReconnect(address, cacheMessage);
         }
     }
 }
