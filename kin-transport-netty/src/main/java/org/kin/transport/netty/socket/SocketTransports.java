@@ -1,8 +1,5 @@
 package org.kin.transport.netty.socket;
 
-import org.kin.transport.netty.socket.client.SocketClientTransportOption;
-import org.kin.transport.netty.socket.server.SocketServerTransportOption;
-
 /**
  * tcp transports
  *
@@ -13,12 +10,12 @@ public class SocketTransports {
     public static final SocketTransports INSTANCE = new SocketTransports();
 
     /** server配置 */
-    public final SocketServerTransportOption.SocketServerTransportOptionBuilder server() {
-        return SocketServerTransportOption.builder();
+    public final SocketTransportOption.SocketTransportOptionBuilder server() {
+        return SocketTransportOption.server();
     }
 
     /** client配置 */
-    public final SocketClientTransportOption.SocketClientTransportOptionBuilder client() {
-        return SocketClientTransportOption.builder();
+    public final SocketTransportOption.SocketTransportOptionBuilder client() {
+        return SocketTransportOption.client();
     }
 }
