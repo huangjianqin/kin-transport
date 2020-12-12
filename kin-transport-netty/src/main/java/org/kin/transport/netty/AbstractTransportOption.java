@@ -157,14 +157,14 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
         }
 
         @SuppressWarnings("unchecked")
-        public B serverOptions(Map<ChannelOption, Object> channelOptions) {
+        public B selectorOptions(Map<ChannelOption, Object> channelOptions) {
             checkState();
             transportOption.selectorOptions.putAll(channelOptions);
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
-        public <E> B serverOption(ChannelOption<E> channelOption, E value) {
+        public <E> B selectorOption(ChannelOption<E> channelOption, E value) {
             checkState();
             transportOption.selectorOptions.put(channelOption, value);
             return (B) this;
