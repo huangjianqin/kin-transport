@@ -5,7 +5,6 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.utils.SysUtils;
@@ -62,7 +61,7 @@ public class Server extends ServerConnection {
 
         //配置bootstrap
         ServerBootstrap bootstrap = new ServerBootstrap();
-        bootstrap.group(this.bossGroup, this.workerGroup).channel(NioServerSocketChannel.class);
+        bootstrap.group(this.bossGroup, this.workerGroup).channel(NettyUtils.getServerChannelClass());
 
         for (Map.Entry<ChannelOption, Object> entry : selectorOptions.entrySet()) {
             bootstrap.option(entry.getKey(), entry.getValue());
