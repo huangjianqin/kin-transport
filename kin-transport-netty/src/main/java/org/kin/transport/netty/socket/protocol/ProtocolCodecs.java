@@ -137,7 +137,7 @@ public class ProtocolCodecs {
         try {
             String codecCtClassName = target.getCanonicalName().concat("Codec");
             CtClass codecCtClass = POOL.makeClass(codecCtClassName);
-            codecCtClass.addInterface(POOL.getCtClass(ProtocolCodec.class.getCanonicalName()));
+            codecCtClass.addInterface(POOL.getCtClass(ProtocolCodec.class.getName()));
 
             log.debug(System.lineSeparator());
             log.debug("#############".concat(codecCtClassName).concat("#############").concat(System.lineSeparator()));
