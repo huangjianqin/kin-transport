@@ -6,7 +6,7 @@ import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import org.kin.framework.collection.Tuple;
-import org.kin.framework.proxy.ProxyEnhanceUtils;
+import org.kin.framework.proxy.Javassists;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
@@ -31,7 +31,7 @@ import java.util.*;
 public class ProtocolCodecs {
     private static final Logger log = LoggerFactory.getLogger(ProtocolCodecs.class);
     /** javassist class pool */
-    private static final ClassPool POOL = ProxyEnhanceUtils.getPool();
+    private static final ClassPool POOL = Javassists.getPool();
 
     static {
         POOL.importPackage("org.kin");
@@ -189,7 +189,7 @@ public class ProtocolCodecs {
 
         log.debug(readMethodBody.toString());
 
-        ProxyEnhanceUtils.makeCtPublicFinalMethod(POOL, readMethod, readMethodBody.toString(), codecCtClass);
+        Javassists.makeCtPublicFinalMethod(POOL, readMethod, readMethodBody.toString(), codecCtClass);
     }
 
     /**
@@ -218,7 +218,7 @@ public class ProtocolCodecs {
 
         log.debug(readVOMethodBody.toString());
 
-        ProxyEnhanceUtils.makeCtPublicFinalMethod(POOL, readVOMethod, readVOMethodBody.toString(), codecCtClass);
+        Javassists.makeCtPublicFinalMethod(POOL, readVOMethod, readVOMethodBody.toString(), codecCtClass);
     }
 
     /**
@@ -564,7 +564,7 @@ public class ProtocolCodecs {
 
         log.debug(writeMethodBody.toString());
 
-        ProxyEnhanceUtils.makeCtPublicFinalMethod(POOL, writeMethod, writeMethodBody.toString(), codecCtClass);
+        Javassists.makeCtPublicFinalMethod(POOL, writeMethod, writeMethodBody.toString(), codecCtClass);
     }
 
     /**
@@ -593,7 +593,7 @@ public class ProtocolCodecs {
 
         log.debug(writeVOMethodBody.toString());
 
-        ProxyEnhanceUtils.makeCtPublicFinalMethod(POOL, writeVOMethod, writeVOMethodBody.toString(), codecCtClass);
+        Javassists.makeCtPublicFinalMethod(POOL, writeVOMethod, writeVOMethodBody.toString(), codecCtClass);
     }
 
     /**
