@@ -9,7 +9,7 @@ import io.netty.channel.ChannelHandlerContext;
  * @date 2019/5/30
  */
 public abstract class ProtocolHandler<MSG> {
-    public static ProtocolHandler DO_NOTHING = new ProtocolHandler() {
+    public static final ProtocolHandler DO_NOTHING = new ProtocolHandler() {
         @Override
         public void handle(ChannelHandlerContext ctx, Object protocol) {
             //do nothing
@@ -94,6 +94,6 @@ public abstract class ProtocolHandler<MSG> {
      *
      * @param ctx channel上下文
      */
-    public void writeIdel(ChannelHandlerContext ctx) {
+    public void writeIdle(ChannelHandlerContext ctx) {
     }
 }
