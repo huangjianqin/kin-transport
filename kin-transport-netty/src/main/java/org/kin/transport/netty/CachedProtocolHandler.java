@@ -6,6 +6,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -28,21 +30,27 @@ public abstract class CachedProtocolHandler<MSG> extends ProtocolHandler<MSG> {
         this.cacheTtl = cacheTtl;
         this.ttlTimeUnit = ttlTimeUnit;
 
-        Preconditions.checkArgument(cacheTtl > 0, "channel message ttl must be greater than 0");
+        if (cacheTtl > 0) {
+            Preconditions.checkNotNull(ttlTimeUnit, "cache ttl time unit must be not null");
+        }
     }
 
     @Override
     public final void handle(ChannelHandlerContext ctx, MSG protocol) {
-        Channel channel = ctx.channel();
-        Attribute<LinkedList<MSG>> attribute = channel.attr(queueAttrKey);
-        LinkedList<MSG> queue = attribute.get();
-        if (Objects.isNull(queue)) {
-            queue = new LinkedList<>();
-            attribute.set(queue);
-            channel.eventLoop().schedule(() -> batchHandle(ctx), cacheTtl, ttlTimeUnit);
+        if (cacheTtl > 0) {
+            Channel channel = ctx.channel();
+            Attribute<LinkedList<MSG>> attribute = channel.attr(queueAttrKey);
+            LinkedList<MSG> queue = attribute.get();
+            if (Objects.isNull(queue)) {
+                queue = new LinkedList<>();
+                attribute.set(queue);
+                channel.eventLoop().schedule(() -> batchHandle(ctx), cacheTtl, ttlTimeUnit);
+            }
+            //缓存channel消息
+            queue.add(protocol);
+        } else {
+            batchHandle(ctx, Collections.singleton(protocol));
         }
-        //缓存channel消息
-        queue.add(protocol);
     }
 
     /**
@@ -65,5 +73,5 @@ public abstract class CachedProtocolHandler<MSG> extends ProtocolHandler<MSG> {
      * @param ctx       channel上下文
      * @param protocols 缓存的协议
      */
-    protected abstract void batchHandle(ChannelHandlerContext ctx, LinkedList<MSG> protocols);
+    protected abstract void batchHandle(ChannelHandlerContext ctx, Collection<MSG> protocols);
 }

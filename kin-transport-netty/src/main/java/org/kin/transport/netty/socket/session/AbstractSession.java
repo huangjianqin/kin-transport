@@ -34,7 +34,7 @@ public abstract class AbstractSession {
     /** session closed原因 */
     private SessionCloseCause sessionCloseCause;
     /** 标识是否正调度flush */
-    private AtomicBoolean flushChannelScheduleTag = new AtomicBoolean(false);
+    private AtomicBoolean flushScheduleFlag = new AtomicBoolean(false);
 
     public AbstractSession(Channel channel, boolean isFlush) {
         this.channel = channel;
@@ -61,25 +61,24 @@ public abstract class AbstractSession {
     /**
      * write out
      */
-    public void sendProtocol(SocketProtocol protocol) {
-        if (Objects.nonNull(protocol)) {
-            write(protocol);
-        }
+    public void write(SocketProtocol protocol) {
+        write(protocol, 0, null);
     }
 
     /**
      * write out
+     *
+     * @param time     调度flush的时间
+     * @param timeUnit 调度flush的时间单位
      */
-    protected final void write(SocketProtocol protocol) {
-        if (isActive()) {
-            if (protocol != null) {
-                if (isFlush) {
-                    channel.writeAndFlush(protocol);
-                } else {
-                    channel.write(protocol);
-                    if (flushChannelScheduleTag.compareAndSet(false, true)) {
-                        scheduleFlush();
-                    }
+    public final void write(SocketProtocol protocol, int time, TimeUnit timeUnit) {
+        if (isActive() && Objects.nonNull(protocol)) {
+            if (time > 0) {
+                channel.writeAndFlush(protocol);
+            } else {
+                channel.write(protocol);
+                if (flushScheduleFlag.compareAndSet(false, true)) {
+                    scheduleFlush(time, timeUnit);
                 }
             }
         }
@@ -88,12 +87,12 @@ public abstract class AbstractSession {
     /**
      * 调度flush
      */
-    private void scheduleFlush() {
+    private void scheduleFlush(int time, TimeUnit timeUnit) {
         channel.eventLoop().schedule(() -> {
-            if (flushChannelScheduleTag.compareAndSet(true, false)) {
+            if (flushScheduleFlag.compareAndSet(true, false)) {
                 channel.flush();
             }
-        }, 50, TimeUnit.MILLISECONDS);
+        }, 10, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -105,6 +104,7 @@ public abstract class AbstractSession {
             writeFuture.addListener((ChannelFuture channelFuture) -> close(cause, ip));
             channel.eventLoop().schedule(() -> {
                 if (!writeFuture.isDone()) {
+                    //300ms没能write out, 则主动close
                     close(cause, ip);
                 }
             }, 300, TimeUnit.MILLISECONDS);
@@ -129,27 +129,28 @@ public abstract class AbstractSession {
     /**
      * session是否有效
      */
-    public boolean isActive() {
+    public final boolean isActive() {
         return channel != null && channel.isActive();
     }
 
-    public Channel getChannel() {
+    //getter
+    public final Channel getChannel() {
         return channel;
     }
 
-    public String getIp() {
+    public final String getIp() {
         return ip;
     }
 
-    public long getIpHashCode() {
+    public final long getIpHashCode() {
         return ipHashCode;
     }
 
-    public boolean isClosed() {
+    public final boolean isClosed() {
         return isClosed;
     }
 
-    public SessionCloseCause getSessionCloseCause() {
+    public final SessionCloseCause getSessionCloseCause() {
         return sessionCloseCause;
     }
 

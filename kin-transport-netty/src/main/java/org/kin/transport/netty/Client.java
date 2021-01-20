@@ -16,6 +16,7 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * client
@@ -30,6 +31,7 @@ public class Client<MSG> extends ClientConnection {
     protected volatile EventLoopGroup group;
     protected volatile Channel channel;
     protected volatile boolean isStopped;
+    private AtomicBoolean flushScheduleFlag = new AtomicBoolean(false);
 
     public Client(AbstractTransportOption<?, ?, ?, ?> transportOption, ChannelHandlerInitializer<?, ?, ?> channelHandlerInitializer) {
         super(transportOption, channelHandlerInitializer);
@@ -145,25 +147,71 @@ public class Client<MSG> extends ClientConnection {
     }
 
     /**
-     * 请求消息
+     * 发送消息
      */
-    public boolean request(MSG msg) {
-        return request(msg, new ChannelFutureListener[0]);
+    public boolean sendAndFlush(MSG msg) {
+        return sendAndFlush(msg, new ChannelFutureListener[0]);
     }
 
     /**
-     * 请求消息
+     * 发送消息
      */
-    public boolean request(MSG msg, ChannelFutureListener... listeners) {
-        if (isActive() && Objects.nonNull(msg)) {
-            ChannelFuture channelFuture = channel.writeAndFlush(msg);
-            if (CollectionUtils.isNonEmpty(listeners)) {
-                channelFuture.addListeners(listeners);
-            }
-            return true;
+    public boolean sendAndFlush(MSG msg, ChannelFutureListener... listeners) {
+        if (!isActive() || !Objects.nonNull(msg)) {
+            return false;
         }
 
-        return false;
+        ChannelFuture channelFuture = channel.writeAndFlush(msg);
+        if (CollectionUtils.isNonEmpty(listeners)) {
+            channelFuture.addListeners(listeners);
+        }
+        return true;
+    }
+
+    /**
+     * 发送消息, 仅仅将消息推进socket buff
+     */
+    public boolean sendWithoutFlush(MSG msg) {
+        return sendWithoutFlush(msg, new ChannelFutureListener[0]);
+    }
+
+    /**
+     * 发送消息, 仅仅将消息推进socket buff
+     */
+    public boolean sendWithoutFlush(MSG msg, ChannelFutureListener... listeners) {
+        return sendAndScheduleFlush(msg, 0, null, listeners);
+    }
+
+    /**
+     * 发送消息, 将消息推进socket buff, 并调度flush
+     */
+    public boolean sendAndScheduleFlush(MSG msg, int time, TimeUnit timeUnit) {
+        return sendAndScheduleFlush(msg, time, timeUnit, new ChannelFutureListener[0]);
+    }
+
+    /**
+     * 发送消息, 将消息推进socket buff, 并调度flush
+     */
+    public boolean sendAndScheduleFlush(MSG msg, int time, TimeUnit timeUnit, ChannelFutureListener... listeners) {
+        if (!isActive() || !Objects.nonNull(msg)) {
+            return false;
+        }
+
+        ChannelFuture channelFuture = channel.write(msg);
+        if (CollectionUtils.isNonEmpty(listeners)) {
+            channelFuture.addListeners(listeners);
+        }
+        if (time > 0) {
+            //schedule flush
+            if (flushScheduleFlag.compareAndSet(false, true)) {
+                channel.eventLoop().schedule(() -> {
+                    if (flushScheduleFlag.compareAndSet(true, false)) {
+                        channel.flush();
+                    }
+                }, time, timeUnit);
+            }
+        }
+        return true;
     }
 
     /**

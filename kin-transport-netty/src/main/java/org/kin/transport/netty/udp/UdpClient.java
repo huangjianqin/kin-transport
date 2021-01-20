@@ -7,7 +7,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import org.kin.framework.utils.CollectionUtils;
 import org.kin.transport.netty.AbstractTransportOption;
 import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.Client;
@@ -26,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020/8/27
  */
-public class UdpClient extends Client<SocketProtocol> {
+public final class UdpClient extends Client<UdpProtocolDetails> {
     private volatile InetSocketAddress address;
 
     public UdpClient(AbstractTransportOption transportOption, ChannelHandlerInitializer channelHandlerInitializer) {
@@ -100,20 +99,24 @@ public class UdpClient extends Client<SocketProtocol> {
     }
 
     /**
-     * 请求消息
+     * 发送消息
      */
-    @Override
-    public boolean request(SocketProtocol protocol, ChannelFutureListener... listeners) {
-        if (isActive() && Objects.nonNull(protocol)) {
-            ChannelFuture channelFuture =
-                    channel.writeAndFlush(UdpProtocolDetails.senderWrapper(protocol, address));
-            if (CollectionUtils.isNonEmpty(listeners)) {
-                channelFuture.addListeners(listeners);
-            }
-            return true;
-        }
+    public boolean sendAndFlush(SocketProtocol protocol, ChannelFutureListener... listeners) {
+        return sendAndFlush(UdpProtocolDetails.senderWrapper(protocol, address), listeners);
+    }
 
-        return false;
+    /**
+     * 发送消息, 仅仅将消息推进socket buff
+     */
+    public boolean sendWithoutFlush(SocketProtocol protocol, ChannelFutureListener... listeners) {
+        return sendWithoutFlush(UdpProtocolDetails.senderWrapper(protocol, address), listeners);
+    }
+
+    /**
+     * 发送消息, 将消息推进socket buff, 并调度flush
+     */
+    public boolean sendAndScheduleFlush(SocketProtocol protocol, int time, TimeUnit timeUnit, ChannelFutureListener... listeners) {
+        return sendAndScheduleFlush(UdpProtocolDetails.senderWrapper(protocol, address), time, timeUnit, listeners);
     }
 
     @Override

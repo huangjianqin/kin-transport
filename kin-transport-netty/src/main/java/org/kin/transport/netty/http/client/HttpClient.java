@@ -38,7 +38,7 @@ class HttpClient extends Client<HttpEntity> {
     Future<HttpResponse> request(HttpCall httpCall) {
         CountDownLatch latch = new CountDownLatch(1);
         HttpCallFuture httpCallFuture = new HttpCallFuture(httpCall);
-        super.request(httpCall.getRequest(), future -> {
+        super.sendAndFlush(httpCall.getRequest(), future -> {
             if (future.isSuccess()) {
                 //成功write
                 String channelId = future.channel().id().asLongText();

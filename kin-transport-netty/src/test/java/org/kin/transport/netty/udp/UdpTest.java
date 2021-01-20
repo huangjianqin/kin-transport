@@ -35,7 +35,7 @@ public class UdpTest {
                     System.out.println(details.getProtocol());
                 }
             }).channelOption(ChannelOption.TCP_NODELAY, true).build().connect(address);
-            client.request(Protocol1.of(1));
+            client.sendAndFlush(Protocol1.of(1));
 
             Thread.sleep(5000);
         } finally {

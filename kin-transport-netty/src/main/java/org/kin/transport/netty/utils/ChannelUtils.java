@@ -38,7 +38,7 @@ public class ChannelUtils {
             if (event.state() == IdleState.READER_IDLE) {
                 protocolHandler.readIdle(ctx);
             } else if (event.state() == IdleState.WRITER_IDLE) {
-                protocolHandler.writeIdel(ctx);
+                protocolHandler.writeIdle(ctx);
             } else {
                 //All IDLE
                 protocolHandler.readWriteIdle(ctx);

@@ -134,7 +134,7 @@ public final class ReconnectClient<MSG> extends Client<MSG> implements LoggerOpr
                     List<MSG> pendingMsgs = new ArrayList<>(queue.size());
                     queue.drainTo(pendingMsgs);
                     for (MSG pendingMsg : pendingMsgs) {
-                        request(pendingMsg);
+                        sendAndFlush(pendingMsg);
                     }
                 }
             }
@@ -174,8 +174,8 @@ public final class ReconnectClient<MSG> extends Client<MSG> implements LoggerOpr
             }
 
             @Override
-            public void writeIdel(ChannelHandlerContext ctx) {
-                protocolHandler.writeIdel(ctx);
+            public void writeIdle(ChannelHandlerContext ctx) {
+                protocolHandler.writeIdle(ctx);
             }
         };
     }
@@ -205,8 +205,8 @@ public final class ReconnectClient<MSG> extends Client<MSG> implements LoggerOpr
     }
 
     @Override
-    public boolean request(MSG msg) {
-        return request(msg, (ChannelFuture channelFuture) -> {
+    public boolean sendAndFlush(MSG msg) {
+        return sendAndFlush(msg, (ChannelFuture channelFuture) -> {
             if (!channelFuture.isSuccess() && Objects.nonNull(queue)) {
                 //发送失败, 则缓存消息
                 queue.add(msg);
@@ -215,9 +215,52 @@ public final class ReconnectClient<MSG> extends Client<MSG> implements LoggerOpr
     }
 
     @Override
-    public boolean request(MSG msg, ChannelFutureListener... listeners) {
+    public boolean sendAndFlush(MSG msg, ChannelFutureListener... listeners) {
         if (Objects.nonNull(client)) {
-            if (!client.request(msg, listeners) && Objects.nonNull(queue)) {
+            if (!client.sendAndFlush(msg, listeners) && Objects.nonNull(queue)) {
+                //发送失败, 则缓存消息
+                queue.add(msg);
+            }
+            return true;
+        } else {
+            if (Objects.nonNull(queue)) {
+                //链接还未建立, 则缓存消息
+                queue.add(msg);
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean sendWithoutFlush(MSG msg) {
+        return sendWithoutFlush(msg, (ChannelFuture channelFuture) -> {
+            if (!channelFuture.isSuccess() && Objects.nonNull(queue)) {
+                //发送失败, 则缓存消息
+                queue.add(msg);
+            }
+        });
+    }
+
+    @Override
+    public boolean sendWithoutFlush(MSG msg, ChannelFutureListener... listeners) {
+        return sendAndScheduleFlush(msg, 0, null, listeners);
+    }
+
+    @Override
+    public boolean sendAndScheduleFlush(MSG msg, int time, TimeUnit timeUnit) {
+        return sendAndScheduleFlush(msg, time, timeUnit, (ChannelFuture channelFuture) -> {
+            if (!channelFuture.isSuccess() && Objects.nonNull(queue)) {
+                //发送失败, 则缓存消息
+                queue.add(msg);
+            }
+        });
+    }
+
+    @Override
+    public boolean sendAndScheduleFlush(MSG msg, int time, TimeUnit timeUnit, ChannelFutureListener... listeners) {
+        if (Objects.nonNull(client)) {
+            if (!client.sendAndScheduleFlush(msg, time, timeUnit, listeners) && Objects.nonNull(queue)) {
                 //发送失败, 则缓存消息
                 queue.add(msg);
             }

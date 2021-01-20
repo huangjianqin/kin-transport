@@ -36,7 +36,7 @@ public class SocketTest {
             int i = 0;
             while (i++ < count) {
                 System.out.println(i + "---------------------------------------");
-                client.request(Protocol1.of(1));
+                client.sendAndFlush(Protocol1.of(1));
                 if (i % 3 == 0) {
                     if (Objects.isNull(server)) {
                         server = Transports.socket().server().protocolHandler(new SocketProtocolHandler() {
