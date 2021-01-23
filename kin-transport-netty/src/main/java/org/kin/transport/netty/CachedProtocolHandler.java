@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class CachedProtocolHandler<MSG> extends ProtocolHandler<MSG> {
     /** 缓存channel消息队列的attribute key */
-    private final AttributeKey<LinkedList<MSG>> queueAttrKey = AttributeKey.newInstance("kinrpc-message-queue$".concat(getClass().getSimpleName()));
+    private final AttributeKey<LinkedList<MSG>> queueAttrKey = AttributeKey.newInstance("kin-message-queue$".concat(getClass().getSimpleName()));
     /** 缓存存活时间 */
     private final int cacheTtl;
     /** 缓存存活时间单位 */
