@@ -14,11 +14,7 @@ public abstract class ServerConnection extends AbstractConnection {
     }
 
     /**
-     * 绑定
-     *
-     * @param transportOption           server transport配置
-     * @param channelHandlerInitializer netty channel handler 初始化
-     * @throws Exception 异常
+     * 绑定端口
      */
     public abstract void bind(InetSocketAddress address);
 }
