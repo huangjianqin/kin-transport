@@ -2,12 +2,14 @@ package org.kin.transport.netty.http.server;
 
 import org.kin.framework.proxy.ProxyInvoker;
 import org.kin.framework.utils.ClassUtils;
-import org.kin.framework.utils.JSON;
 import org.kin.framework.utils.StringUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author huangjianqin
@@ -59,14 +61,9 @@ class MappingAnnoServlet extends AbstractServlet {
             } else {
                 String attrName = paramConfig.attrName;
                 if (StringUtils.isNotBlank(attrName)) {
-                    Object attrValue = request.getParams().get(attrName);
+                    Object attrValue = request.getObjParam(attrName, type);
                     if (Objects.nonNull(attrValue)) {
-                        if (attrValue instanceof Map) {
-                            //结构化数据, 需先转成json, 再反序列化
-                            params.add(JSON.read(JSON.write(attrValue), type));
-                        } else {
-                            params.add(JSON.read(attrValue.toString(), type));
-                        }
+                        params.add(attrValue);
                     } else {
                         //找不到属性值
                         if (paramConfig.require) {
