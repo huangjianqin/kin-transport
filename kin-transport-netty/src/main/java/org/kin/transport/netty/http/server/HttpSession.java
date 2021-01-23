@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public final class HttpSession {
     /** cookies 中保存的session id key */
-    public static final String SESSION_ID = "_kinId";
+    public static final String SESSION_ID = "_kin_session_id";
 
     /** session id */
     private final String sessionId;

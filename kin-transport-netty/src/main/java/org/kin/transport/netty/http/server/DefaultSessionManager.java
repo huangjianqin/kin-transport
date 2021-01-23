@@ -20,24 +20,34 @@ public final class DefaultSessionManager implements HttpSessionManager {
     /**
      * session 缓存, 读写空闲30min后移除
      */
-    private final Cache<String, HttpSession> cache = CacheBuilder
-            .newBuilder()
-            .expireAfterAccess(HttpServerConstants.SESSION_EXPIRE_TIME, TimeUnit.MILLISECONDS)
-            .removalListener((RemovalNotification<String, HttpSession> notification) -> {
-                //设置无效标识
-                notification.getValue().setValid(false);
-            })
-            .build();
+    private final Cache<String, HttpSession> cache;
     /** session id 生成器 */
     private final SessionIdGenerator sessionIdGenerator;
 
     public DefaultSessionManager() {
         //session id长度为20
         //默认使用tomcat的session id生成方法
-        this(new DefaultSessionIdGenerator(HttpServerConstants.SESSION_ID_LEN));
+        this(HttpServerConstants.SESSION_EXPIRE_TIME, new DefaultSessionIdGenerator(HttpServerConstants.SESSION_ID_LEN));
     }
 
-    public DefaultSessionManager(SessionIdGenerator sessionIdGenerator) {
+    public DefaultSessionManager(long sessionExpireTime) {
+        //session id长度为20
+        //默认使用tomcat的session id生成方法
+        this(sessionExpireTime, new DefaultSessionIdGenerator(HttpServerConstants.SESSION_ID_LEN));
+    }
+
+    /**
+     * @param sessionExpireTime session默认过期时间
+     */
+    public DefaultSessionManager(long sessionExpireTime, SessionIdGenerator sessionIdGenerator) {
+        this.cache = CacheBuilder
+                .newBuilder()
+                .expireAfterAccess(sessionExpireTime, TimeUnit.MILLISECONDS)
+                .removalListener((RemovalNotification<String, HttpSession> session) -> {
+                    //设置无效标识
+                    session.getValue().setValid(false);
+                })
+                .build();
         this.sessionIdGenerator = sessionIdGenerator;
     }
 

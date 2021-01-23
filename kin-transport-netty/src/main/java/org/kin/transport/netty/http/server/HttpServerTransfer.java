@@ -29,8 +29,8 @@ import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
  */
 class HttpServerTransfer
         implements TransportProtocolTransfer<FullHttpRequest, ServletTransportEntity, FullHttpResponse>, LoggerOprs {
-    /** response内容大小, 如果大于10m, 则采用chunked write, 否则直接write full response todo 测试1k */
-    private static final int CONTENT_SIZE_LIMIT = 1024 * 1;
+    /** response内容大小, 如果大于4k, 则采用chunked write, 否则直接write full response */
+    private static final int CONTENT_SIZE_LIMIT = 4 * 1024;
     /** cookie 解码 */
     private final ServerCookieDecoder cookieDecoder = ServerCookieDecoder.STRICT;
     /** cookie 编码 */

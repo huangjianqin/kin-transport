@@ -6,6 +6,7 @@ package org.kin.transport.netty.http.server;
  * @author huangjianqin
  * @date 2020/9/10
  */
+@FunctionalInterface
 public interface Filter {
     /**
      * 初始化

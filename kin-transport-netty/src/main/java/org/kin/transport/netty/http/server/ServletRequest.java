@@ -63,7 +63,7 @@ public final class ServletRequest implements ServletTransportEntity {
         Map<String, Object> params = new HashMap<>();
         QueryStringDecoder decoder = new QueryStringDecoder(url.uri());
         for (Map.Entry<String, List<String>> entry : decoder.parameters().entrySet()) {
-            // entry.getValue()是一个List, 只取第一个元素
+            //entry.getValue()是一个List, 只取第一个元素
             params.put(entry.getKey(), entry.getValue().get(0));
         }
 

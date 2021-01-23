@@ -3,6 +3,7 @@ package org.kin.transport.netty.http.server;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.JSON;
 import org.kin.framework.utils.StringUtils;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.MediaType;
@@ -17,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * 提供给开发者实现的抽象类
@@ -45,7 +45,7 @@ public abstract class AbstractServlet implements Servlet, LoggerOprs {
                 doPut(request, response);
                 response.setStatusCode(ServletResponse.SC_OK);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             response.setStatusCode(ServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.setResponseBody(MediaType.PLAIN_TEXT.toResponseBody(e.getMessage(), StandardCharsets.UTF_8));
             log().error("", e);
@@ -55,6 +55,7 @@ public abstract class AbstractServlet implements Servlet, LoggerOprs {
     /**
      * 处理servlet处理方法的返回值
      */
+    @SuppressWarnings("unchecked")
     private void handleReturn(Object returnObj, ServletRequest request, ServletResponse response) {
         if (returnObj instanceof String) {
             String content = (String) returnObj;
@@ -122,12 +123,8 @@ public abstract class AbstractServlet implements Servlet, LoggerOprs {
                 //没有资源, 则直接当成字符串返回
                 response.setResponseBody(MediaType.PLAIN_TEXT.toResponseBody(returnObj.toString(), StandardCharsets.UTF_8));
             }
-        } else if (returnObj instanceof Map) {
-            Map<String, Object> respContent =
-                    ((Map<Object, Object>) returnObj).entrySet()
-                            .stream()
-                            .collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue()));
-            response.setResponseBody(MediaType.JSON.toResponseBody(respContent, StandardCharsets.UTF_8));
+        } else {
+            response.setResponseBody(MediaType.JSON.toResponseBody(JSON.write(returnObj), StandardCharsets.UTF_8));
         }
 
         response.setStatusCode(ServletResponse.SC_OK);
@@ -138,26 +135,26 @@ public abstract class AbstractServlet implements Servlet, LoggerOprs {
     /**
      * 处理get请求
      */
-    protected Object doGet(ServletRequest request, ServletResponse response) {
+    protected Object doGet(ServletRequest request, ServletResponse response) throws Throwable {
         return null;
     }
 
     /**
      * 处理post请求
      */
-    protected Object doPost(ServletRequest request, ServletResponse response) {
+    protected Object doPost(ServletRequest request, ServletResponse response) throws Throwable {
         return null;
     }
 
     /**
      * 处理delete请求
      */
-    protected void doDelete(ServletRequest request, ServletResponse response) {
+    protected void doDelete(ServletRequest request, ServletResponse response) throws Throwable {
     }
 
     /**
      * 处理put请求
      */
-    protected void doPut(ServletRequest request, ServletResponse response) {
+    protected void doPut(ServletRequest request, ServletResponse response) throws Throwable {
     }
 }

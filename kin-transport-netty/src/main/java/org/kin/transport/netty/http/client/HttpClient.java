@@ -1,5 +1,6 @@
 package org.kin.transport.netty.http.client;
 
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import org.kin.framework.concurrent.lock.OneLock;
 import org.kin.framework.utils.CollectionUtils;
@@ -54,6 +55,16 @@ class HttpClient extends Client<HttpEntity> {
             httpCallFuture.done(null);
         }
         return httpCallFuture;
+    }
+
+    @Override
+    public boolean sendWithoutFlush(HttpEntity httpEntity, ChannelFutureListener... listeners) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean sendAndScheduleFlush(HttpEntity httpEntity, int time, TimeUnit timeUnit, ChannelFutureListener... listeners) {
+        throw new UnsupportedOperationException();
     }
 
     //-------------------------------------------------------------------------------------------------------------

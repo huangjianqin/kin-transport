@@ -78,4 +78,12 @@ public final class HttpUrl {
     public HttpVersion getVersion() {
         return version;
     }
+
+    @Override
+    public String toString() {
+        return "HttpUrl{" +
+                "url='" + url + '\'' +
+                ", version=" + version +
+                '}';
+    }
 }
