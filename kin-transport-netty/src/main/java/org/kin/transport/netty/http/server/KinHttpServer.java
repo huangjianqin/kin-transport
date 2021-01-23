@@ -73,7 +73,6 @@ public final class KinHttpServer {
         private final Set<String> mappedFilterUrls = new HashSet<>();
 
         public KinHttpServerBuilder(String appName) {
-            checkState();
             this.kinHttpServer = new KinHttpServer(appName);
         }
 
@@ -120,7 +119,7 @@ public final class KinHttpServer {
          * @see DeleteMapping
          * @see PutMapping
          */
-        public KinHttpServerBuilder mappingServlet(String url, Object controllerInst) {
+        public KinHttpServerBuilder mappingServlet(Object controllerInst) {
             Class<?> controllerClass = controllerInst.getClass();
             if (!controllerClass.isAnnotationPresent(Controller.class)) {
                 throw new IllegalArgumentException("target instance doesn't annotate with org.kin.transport.netty.http.server.Controller");
@@ -148,28 +147,28 @@ public final class KinHttpServer {
 
                 GetMapping getMapping = method.getAnnotation(GetMapping.class);
                 if (Objects.nonNull(getMapping)) {
-                    mappingServlet(baseUrl.concat(getMapping.value()), createMappingAnnoServlet(controllerInst, method, RequestMethod.GET));
+                    mappingServlet(baseUrl.concat(getMapping.value()), createMappingAnnoServlet(controllerInst, method, RequestMethod.GET), RequestMethod.GET);
                 }
 
                 PostMapping postMapping = method.getAnnotation(PostMapping.class);
                 if (Objects.nonNull(postMapping)) {
-                    mappingServlet(baseUrl.concat(postMapping.value()), createMappingAnnoServlet(controllerInst, method, RequestMethod.POST));
+                    mappingServlet(baseUrl.concat(postMapping.value()), createMappingAnnoServlet(controllerInst, method, RequestMethod.POST), RequestMethod.POST);
                 }
 
                 DeleteMapping deleteMapping = method.getAnnotation(DeleteMapping.class);
                 if (Objects.nonNull(deleteMapping)) {
-                    mappingServlet(baseUrl.concat(deleteMapping.value()), createMappingAnnoServlet(controllerInst, method, RequestMethod.DELETE));
+                    mappingServlet(baseUrl.concat(deleteMapping.value()), createMappingAnnoServlet(controllerInst, method, RequestMethod.DELETE), RequestMethod.DELETE);
                 }
 
                 PutMapping putMapping = method.getAnnotation(PutMapping.class);
                 if (Objects.nonNull(putMapping)) {
-                    mappingServlet(baseUrl.concat(putMapping.value()), createMappingAnnoServlet(controllerInst, method, RequestMethod.PUT));
+                    mappingServlet(baseUrl.concat(putMapping.value()), createMappingAnnoServlet(controllerInst, method, RequestMethod.PUT), RequestMethod.PUT);
                 }
 
                 RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
                 if (Objects.nonNull(requestMapping)) {
                     for (RequestMethod requestMethod : requestMapping.method()) {
-                        mappingServlet(baseUrl.concat(requestMapping.value()), createMappingAnnoServlet(controllerInst, method, requestMethod));
+                        mappingServlet(baseUrl.concat(requestMapping.value()), createMappingAnnoServlet(controllerInst, method, requestMethod), requestMethod);
                     }
                 }
 
@@ -231,6 +230,20 @@ public final class KinHttpServer {
             }
 
             throw new IllegalStateException("encounter unknown error");
+        }
+
+        /**
+         * 注册servlet实例映射
+         *
+         * @param servlet servlet实例
+         */
+        private void mappingServlet(String url, Servlet servlet, RequestMethod method) {
+            checkState();
+            if (mappedServletUrls.add(url)) {
+                kinHttpServer.servletConfigs.add(new ServletConfig(url, servlet, method));
+            } else {
+                throw new IllegalArgumentException(String.format("servlet for '%s' has been mapped", url));
+            }
         }
 
         public KinHttpServerBuilder sessionManager(Class<? extends HttpSessionManager> sessionManagerClass) {

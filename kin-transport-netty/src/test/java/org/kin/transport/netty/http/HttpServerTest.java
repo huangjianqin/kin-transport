@@ -11,6 +11,9 @@ import java.net.InetSocketAddress;
 public class HttpServerTest {
     public static void main(String[] args) throws InterruptedException {
         InetSocketAddress address = new InetSocketAddress(8880);
-        KinHttpServer.builder().mappingServlet("/", PrintServlet.class).bind(address);
+        KinHttpServer.builder()
+                .mappingServlet("/base", PrintServlet.class)
+                .mappingServlet(new PrintController())
+                .bind(address);
     }
 }

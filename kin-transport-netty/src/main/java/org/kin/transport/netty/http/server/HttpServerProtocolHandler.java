@@ -16,6 +16,7 @@ import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.MediaType;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -88,7 +89,8 @@ class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> 
         }
 
         Attribute<Boolean> channelStatusAttribute = channel.attr(CHANNEL_STATUS_KEY);
-        if (channelStatusAttribute.get()) {
+        boolean channelStauts = !Objects.isNull(channelStatusAttribute.get()) && channelStatusAttribute.get();
+        if (channelStauts) {
             warn("channel '{}' '{}' is handling http request", channel.remoteAddress(), request.getUrl());
             return;
         }
@@ -141,6 +143,7 @@ class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> 
                 //url某个path不匹配, 就不匹配
                 return false;
             }
+            si += 1;
         }
 
         return true;
@@ -181,7 +184,7 @@ class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> 
             return matchedServletConfig.instance();
         }
 
-        throw new ServletException(String.format("can't find matched servlet, path path is '%s'", path));
+        throw new ServletException(String.format("can't find matched servlet, path: '%s' method: '%s'", path, method));
     }
 
     /**
@@ -252,9 +255,20 @@ class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> 
         ByteBuf buffer = channel.alloc().buffer();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        cause.printStackTrace(new PrintWriter(baos));
+        PrintWriter pw = new PrintWriter(baos);
+        cause.printStackTrace(pw);
+        pw.close();
+        try {
+            baos.close();
+        } catch (IOException e) {
 
-        buffer.writeBytes(StandardCharsets.UTF_8.encode(baos.toString()));
+        }
+
+        String errorContent = baos.toString();
+        if (StringUtils.isBlank(errorContent)) {
+            errorContent = "server encounter error";
+        }
+        buffer.writeBytes(StandardCharsets.UTF_8.encode(errorContent));
 
         response.setResponseBody(HttpResponseBody.of(buffer, MediaType.PLAIN_TEXT.transfer(StandardCharsets.UTF_8.name())));
     }
