@@ -1,10 +1,9 @@
 package org.kin.transport.netty.http;
 
-import org.kin.transport.netty.http.server.Controller;
-import org.kin.transport.netty.http.server.GetMapping;
-import org.kin.transport.netty.http.server.RequestMapping;
+import org.kin.transport.netty.http.server.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,10 +19,14 @@ public class PrintController {
     }
 
     @GetMapping("/data")
-    public Data getData() {
-        Map<String, String> args = new HashMap<>();
-        args.put("2", "3");
-        args.put("3", "4");
+    public Data getData(@RequestParam("i1") int i1,
+                        @RequestParam("i2") int i2,
+                        ServletRequest request,
+                        @RequestParam("i3") List<Integer> i3) {
+        Map<String, Object> args = new HashMap<>();
+        args.put("i1", i1);
+        args.put("i2", i2);
+        args.put("i3", i3);
         return new Data(1, args);
     }
 }

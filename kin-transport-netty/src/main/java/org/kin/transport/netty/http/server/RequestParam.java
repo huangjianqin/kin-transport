@@ -18,6 +18,5 @@ public @interface RequestParam {
     /**
      * @return 是否必须存在, 如果检查到不存在, 则报错
      */
-    boolean require();
-
+    boolean require() default true;
 }

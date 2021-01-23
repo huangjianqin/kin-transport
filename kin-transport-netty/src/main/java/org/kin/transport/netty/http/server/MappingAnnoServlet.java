@@ -3,6 +3,7 @@ package org.kin.transport.netty.http.server;
 import org.kin.framework.proxy.ProxyInvoker;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.JSON;
+import org.kin.framework.utils.StringUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -36,8 +37,6 @@ class MappingAnnoServlet extends AbstractServlet {
             if (Objects.nonNull(requestParam)) {
                 attrName = requestParam.value();
                 require = requestParam.require();
-            } else {
-                attrName = parameter.getName();
             }
             paramConfigs.add(new RequestParamAnnoConfig(attrName, parameter.getType(), require));
         }
@@ -58,19 +57,24 @@ class MappingAnnoServlet extends AbstractServlet {
             } else if (ServletResponse.class.equals(type)) {
                 params.add(response);
             } else {
-                Object attrValue = request.getParams().get(paramConfig.attrName);
-                if (Objects.nonNull(attrValue)) {
-                    if (attrValue instanceof Map) {
-                        //结构化数据, 需先转成json, 再反序列化
-                        params.add(JSON.read(JSON.write(attrValue), type));
+                String attrName = paramConfig.attrName;
+                if (StringUtils.isNotBlank(attrName)) {
+                    Object attrValue = request.getParams().get(attrName);
+                    if (Objects.nonNull(attrValue)) {
+                        if (attrValue instanceof Map) {
+                            //结构化数据, 需先转成json, 再反序列化
+                            params.add(JSON.read(JSON.write(attrValue), type));
+                        } else {
+                            params.add(JSON.read(attrValue.toString(), type));
+                        }
                     } else {
-                        params.add(JSON.read(attrValue.toString(), type));
+                        //找不到属性值
+                        if (paramConfig.require) {
+                            throw new IllegalArgumentException(String.format("http request doesn't have attribute with name '%s'", attrName));
+                        }
+                        params.add(ClassUtils.getDefaultValue(type));
                     }
                 } else {
-                    //找不到属性值
-                    if (paramConfig.require) {
-                        throw new IllegalArgumentException(String.format("http request doesn't have attribute with name '%s'", paramConfig.attrName));
-                    }
                     params.add(ClassUtils.getDefaultValue(type));
                 }
             }

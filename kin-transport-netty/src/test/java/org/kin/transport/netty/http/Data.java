@@ -8,9 +8,9 @@ import java.util.Map;
  */
 public class Data {
     private int id;
-    private Map<String, String> args;
+    private Map<String, Object> args;
 
-    public Data(int id, Map<String, String> args) {
+    public Data(int id, Map<String, Object> args) {
         this.id = id;
         this.args = args;
     }
@@ -24,11 +24,11 @@ public class Data {
         this.id = id;
     }
 
-    public Map<String, String> getArgs() {
+    public Map<String, Object> getArgs() {
         return args;
     }
 
-    public void setArgs(Map<String, String> args) {
+    public void setArgs(Map<String, Object> args) {
         this.args = args;
     }
 }

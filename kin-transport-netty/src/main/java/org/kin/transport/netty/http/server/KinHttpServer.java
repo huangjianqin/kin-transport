@@ -227,9 +227,9 @@ public final class KinHttpServer {
                             invoker.invoke(parseParams(request, response));
                         }
                     };
+                default:
+                    throw new IllegalStateException(String.format("unhandle http request method '%s'", requestMethod));
             }
-
-            throw new IllegalStateException("encounter unknown error");
         }
 
         /**
