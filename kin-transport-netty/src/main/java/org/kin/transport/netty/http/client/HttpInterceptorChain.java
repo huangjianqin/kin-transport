@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * http 调用链, 供interceptor使用
  * <p>
- * 责任链模式调用
+ * 责任链模式调用, 递归形式
  *
  * @author huangjianqin
  * @date 2020/9/4

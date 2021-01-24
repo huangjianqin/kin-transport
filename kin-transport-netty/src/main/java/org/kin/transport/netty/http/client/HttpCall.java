@@ -16,7 +16,6 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * http请求封装
- * todo 请求异步化
  *
  * @author huangjianqin
  * @date 2020/9/2
