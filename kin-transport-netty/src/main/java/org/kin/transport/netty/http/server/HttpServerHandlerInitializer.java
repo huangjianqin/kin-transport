@@ -27,7 +27,8 @@ class HttpServerHandlerInitializer
         channelHandlers.add(new HttpServerCodec());
         //通过在header增加Accept-Encoding -> gzip | deflate, netty就自动完成压缩
         channelHandlers.add(new HttpContentCompressor());
-        channelHandlers.add(new HttpObjectAggregator(65536));
+        //服务端最大发送/接受128k的请求(如果没有走chunked的话)
+        channelHandlers.add(new HttpObjectAggregator(128 * 1024));
         channelHandlers.add(new ChunkedWriteHandler());
 
         return channelHandlers;

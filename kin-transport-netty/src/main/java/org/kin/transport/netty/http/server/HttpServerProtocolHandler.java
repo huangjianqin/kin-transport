@@ -11,6 +11,7 @@ import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.ProtocolHandler;
+import org.kin.transport.netty.http.HttpCode;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.MediaType;
@@ -225,6 +226,9 @@ class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> 
                 //filter中没有设置response
                 RequestMethod method = RequestMethod.valueOf(request.getMethod().name());
                 Servlet matchedServlet = matchedServlet(path, method);
+                if (Objects.isNull(matchedServlet)) {
+                    throw new IllegalStateException(String.format("can't find matched servlet for url '%s'", path));
+                }
                 //servlet 处理
                 matchedServlet.service(request, response);
             }
@@ -251,7 +255,7 @@ class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> 
      * 处理异常, 修改response1的内容, 不作channel write处理
      */
     private void handleException(Channel channel, ServletResponse response, Throwable cause) {
-        response.setStatusCode(ServletResponse.SC_INTERNAL_SERVER_ERROR);
+        response.setStatusCode(HttpCode.SC_INTERNAL_SERVER_ERROR);
         ByteBuf buffer = channel.alloc().buffer();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

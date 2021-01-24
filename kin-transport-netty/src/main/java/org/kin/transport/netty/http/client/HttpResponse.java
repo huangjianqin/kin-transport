@@ -1,5 +1,6 @@
 package org.kin.transport.netty.http.client;
 
+import org.kin.transport.netty.http.HttpCode;
 import org.kin.transport.netty.http.HttpResponseBody;
 
 import java.util.Map;
@@ -51,7 +52,7 @@ public final class HttpResponse implements HttpEntity {
      * response是否成功
      */
     public boolean isSuccess() {
-        return 200 <= code && code < 300;
+        return HttpCode.SC_OK <= code && code < HttpCode.SC_MULTIPLE_CHOICES;
     }
 
     //-------------------------------------------------------------------------------------------------------------

@@ -18,14 +18,13 @@ public class HttpClientTest {
         get();
         Thread.sleep(2000);
         post();
-
         Thread.sleep(5000);
         kinHttpClient.close();
     }
 
     public static void get() {
         try {
-            HttpRequest httpRequest = HttpRequest.of("http://127.0.0.1:8880/a").get();
+            HttpRequest httpRequest = HttpRequest.of("http://127.0.0.1:8880/base").get();
             HttpResponse response = kinHttpClient.newCall(httpRequest).execute();
             System.out.println(response.code());
             System.out.println(response.headers());
@@ -40,7 +39,7 @@ public class HttpClientTest {
         try {
             Map<String, Object> params = new HashMap<>();
             params.put("index", 1);
-            HttpRequest httpRequest = HttpRequest.of("http://127.0.0.1:8880/a").post(MediaType.JSON.toRequestBody(params, "utf-8"));
+            HttpRequest httpRequest = HttpRequest.of("http://127.0.0.1:8880/base").post(MediaType.JSON.toRequestBody(params, "utf-8"));
             HttpResponse response = kinHttpClient.newCall(httpRequest).execute();
             System.out.println(response.code());
             System.out.println(response.headers());

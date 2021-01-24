@@ -51,22 +51,28 @@ public final class ServletRequest implements ServletTransportEntity {
     /**
      * 解析出参数map
      */
-    private Map<String, Object> parseParams() {
+    private void initParams() {
+        if (Objects.nonNull(params)) {
+            return;
+        }
         //默认先从url获取参数
-        Map<String, Object> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>(16);
         QueryStringDecoder decoder = new QueryStringDecoder(url.uri());
         for (Map.Entry<String, List<String>> entry : decoder.parameters().entrySet()) {
             //entry.getValue()是一个List, 只取第一个元素
             params.put(entry.getKey(), entry.getValue().get(0));
         }
 
-        if (Objects.isNull(requestBody)) {
-            return params;
+        if (Objects.nonNull(requestBody)) {
+            //然后用body内容覆盖url的参数
+            params.putAll(requestBody.getParams());
         }
 
-        //然后用body内容覆盖url的参数
-        params.putAll(requestBody.getParams());
-        return params;
+        if (CollectionUtils.isEmpty(params)) {
+            params = Collections.emptyMap();
+        }
+
+        this.params = params;
     }
 
     /**
@@ -74,22 +80,18 @@ public final class ServletRequest implements ServletTransportEntity {
      * 存在可能空map, 因为requestBody仅仅支持被消费一次
      */
     public Map<String, Object> getParams() {
-        Map<String, Object> params = this.params;
-        if (Objects.isNull(params)) {
+        if (Objects.isNull(this.params)) {
             //没有初始化过
-            params = parseParams();
-            if (CollectionUtils.isEmpty(params)) {
-                params = Collections.emptyMap();
-            }
-            this.params = params;
+            initParams();
         }
-        return params;
+        return this.params;
     }
 
     /**
      * 获取string类型参数
      */
     public String getParam(String name) {
+        initParams();
         Object value = params.get(name);
         return Objects.isNull(value) ? "" : value.toString();
     }
@@ -158,6 +160,7 @@ public final class ServletRequest implements ServletTransportEntity {
      * 获取指定类型参数
      */
     public <C> C getObjParam(String name, Class<? extends C> targetClasss) {
+        initParams();
         Object value = params.get(name);
         if (Objects.isNull(value)) {
             return null;

@@ -34,6 +34,8 @@ public final class HttpCall implements LoggerOprs {
     public HttpCall(KinHttpClient kinHttpClient, HttpRequest httpRequest) {
         this.kinHttpClient = kinHttpClient;
         this.httpRequest = httpRequest;
+        //默认都是使用长连接, 不然底层传输channel无法复用
+        this.httpRequest.header("connection", "keep-alive");
     }
 
     //-------------------------------------------------------------------------------------------------------------

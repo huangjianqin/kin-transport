@@ -5,6 +5,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.JSON;
 import org.kin.framework.utils.StringUtils;
+import org.kin.transport.netty.http.HttpCode;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.MediaType;
 import org.kin.transport.netty.http.MediaTypeWrapper;
@@ -40,13 +41,13 @@ public abstract class AbstractServlet implements Servlet, LoggerOprs {
                 handleReturn(doPost(request, response), request, response);
             } else if (HttpMethod.DELETE.equals(method)) {
                 doDelete(request, response);
-                response.setStatusCode(ServletResponse.SC_OK);
+                response.setStatusCode(HttpCode.SC_OK);
             } else if (HttpMethod.PUT.equals(method)) {
                 doPut(request, response);
-                response.setStatusCode(ServletResponse.SC_OK);
+                response.setStatusCode(HttpCode.SC_OK);
             }
         } catch (Throwable e) {
-            response.setStatusCode(ServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setStatusCode(HttpCode.SC_INTERNAL_SERVER_ERROR);
             response.setResponseBody(MediaType.PLAIN_TEXT.toResponseBody(e.getMessage(), StandardCharsets.UTF_8));
             log().error("", e);
         }
@@ -76,7 +77,7 @@ public abstract class AbstractServlet implements Servlet, LoggerOprs {
                         long ifModifiedSinceDateSeconds = ifModifiedSinceDate.getTime() / 1000;
                         long fileLastModifiedSeconds = lastModified / 1000;
                         if (ifModifiedSinceDateSeconds == fileLastModifiedSeconds) {
-                            response.setStatusCode(ServletResponse.SC_NOT_MODIFIED);
+                            response.setStatusCode(HttpCode.SC_NOT_MODIFIED);
                             return;
                         }
                     }
@@ -127,7 +128,7 @@ public abstract class AbstractServlet implements Servlet, LoggerOprs {
             response.setResponseBody(MediaType.JSON.toResponseBody(JSON.write(returnObj), StandardCharsets.UTF_8));
         }
 
-        response.setStatusCode(ServletResponse.SC_OK);
+        response.setStatusCode(HttpCode.SC_OK);
     }
 
     //------------------------------------------------------------------------------------------------------

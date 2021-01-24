@@ -4,6 +4,7 @@ import org.kin.framework.utils.ExceptionUtils;
 import org.kin.transport.netty.http.server.ServletException;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * http call重试interceptor
@@ -26,10 +27,15 @@ class RetryCallInterceptor implements Interceptor {
         while ((nowTry < maxRetry) || maxRetry == -1) {
             //仍然有尝试次数
             try {
-                return chain.proceed(chain.getCall().getRequest());
+                HttpResponse httpResponse = chain.proceed(chain.getCall().getRequest());
+                if (Objects.nonNull(httpResponse) && httpResponse.isSuccess()) {
+                    //成功返回
+                    return httpResponse;
+                }
             } catch (Exception e) {
                 ExceptionUtils.throwExt(e);
             }
+            nowTry++;
         }
         throw new ServletException(String.format("http call fail with retry %s times", nowTry));
     }

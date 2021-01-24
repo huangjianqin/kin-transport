@@ -21,6 +21,12 @@ class ConnectInterceptor implements Interceptor {
         KinHttpClient kinHttpClient = httpCall.getHttpClient();
         InetSocketAddress address = httpCall.getRequest().getUrl().address();
 
-        return chain.proceed(httpCall.getRequest(), kinHttpClient.client(address));
+        HttpClient httpClient = kinHttpClient.client(address);
+        try {
+            return chain.proceed(httpCall.getRequest(), httpClient);
+        } finally {
+            //归还已使用的client
+            kinHttpClient.returnClient(address, httpClient);
+        }
     }
 }

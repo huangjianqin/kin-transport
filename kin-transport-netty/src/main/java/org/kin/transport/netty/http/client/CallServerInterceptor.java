@@ -28,7 +28,8 @@ class CallServerInterceptor implements Interceptor {
         }
         Future<HttpResponse> future = httpClient.request(httpCall);
         try {
-            return future.get();
+            HttpResponse response = future.get();
+            return response;
         } catch (InterruptedException e) {
             future.cancel(true);
         } catch (ExecutionException e) {

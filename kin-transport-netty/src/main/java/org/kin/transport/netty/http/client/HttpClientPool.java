@@ -19,24 +19,29 @@ import java.util.concurrent.TimeUnit;
  * @date 2020/9/4
  */
 final class HttpClientPool {
-    private final HttpClientTransportOption transportOption;
+    /** 通用配置生成 */
+    private final HttpTransportOptionGenerator transportOptionGenerator;
+    /** key -> address, value -> http client pool */
     private final Map<InetSocketAddress, GenericObjectPool<HttpClient>> pools = new ConcurrentHashMap<>();
 
-    public HttpClientPool(HttpClientTransportOption transportOption) {
-        this.transportOption = transportOption;
+    public HttpClientPool(HttpTransportOptionGenerator transportOptionGenerator) {
+        this.transportOptionGenerator = transportOptionGenerator;
     }
 
     /**
      * 获取http client
      */
-    public HttpClient client(InetSocketAddress address) {
+    public HttpClient borrowClient(InetSocketAddress address) {
         try {
-            synchronized (this) {
-                if (!pools.containsKey(address)) {
-                    pools.put(address, createPool(address));
+            if (!pools.containsKey(address)) {
+                synchronized (this) {
+                    if (!pools.containsKey(address)) {
+                        pools.put(address, createPool(address));
+                    }
                 }
-                return pools.get(address).borrowObject();
             }
+
+            return pools.get(address).borrowObject();
         } catch (Exception e) {
             ExceptionUtils.throwExt(e);
         }
@@ -47,7 +52,7 @@ final class HttpClientPool {
     /**
      * 归还http client
      */
-    public void clientBack(InetSocketAddress address, HttpClient httpClient) {
+    public void returnClient(InetSocketAddress address, HttpClient httpClient) {
         pools.get(address).returnObject(httpClient);
     }
 
@@ -67,8 +72,12 @@ final class HttpClientPool {
         poolConfig.setMaxWaitMillis(TimeUnit.SECONDS.toMillis(3));
         //空闲等待时间, 毫秒
         poolConfig.setMinEvictableIdleTimeMillis(TimeUnit.MINUTES.toMillis(5));
+        //链接创建后, 判断是否有效
         poolConfig.setTestOnCreate(true);
+        //借出时判断链接是否有效
         poolConfig.setTestOnBorrow(true);
+        //归还时判断链接是否有效
+        poolConfig.setTestOnReturn(true);
         //new
         return new GenericObjectPool<>(httpClientFactory, poolConfig);
     }
@@ -87,8 +96,12 @@ final class HttpClientPool {
         }
 
         @Override
-        public HttpClient create() throws Exception {
-            return (HttpClient) transportOption.connect(address);
+        public HttpClient create() {
+            HttpClientTransportOption transportOption = transportOptionGenerator.generate();
+            HttpClient httpClient = transportOption.connect(address);
+            //bing client on HttpClientProtocolHandler
+            ((HttpClientProtocolHandler) transportOption.getProtocolHandler()).setHttpClient(httpClient);
+            return httpClient;
         }
 
         @Override

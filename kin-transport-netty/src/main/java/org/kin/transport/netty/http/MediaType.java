@@ -1,12 +1,11 @@
 package org.kin.transport.netty.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.kin.framework.utils.StringUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 
 /**
  * media type
@@ -40,6 +39,9 @@ public enum MediaType {
         @Override
         public Map<String, Object> parseParams(ByteBuffer sink, String charset) {
             String content = parseContent(sink, charset);
+            if (StringUtils.isBlank(content)) {
+                return Collections.emptyMap();
+            }
             return org.kin.framework.utils.JSON.read(content, StrObjMapTypeReference.INSTANCE);
         }
     },
@@ -75,8 +77,11 @@ public enum MediaType {
 
         @Override
         public Map<String, Object> parseParams(ByteBuffer sink, String charset) {
-            Map<String, Object> params = new HashMap<>();
             String content = parseContent(sink, charset);
+            if (StringUtils.isBlank(content)) {
+                return Collections.emptyMap();
+            }
+            Map<String, Object> params = new HashMap<>();
             for (String s1 : content.split("&")) {
                 String[] splits = s1.split("=");
                 params.put(splits[0], splits[1]);
@@ -161,6 +166,9 @@ public enum MediaType {
      * 根据类型转换成对应的{@link HttpResponseBody}
      */
     public HttpResponseBody toResponseBody(String content, String charset) {
+        if (Objects.isNull(content)) {
+            content = "";
+        }
         return toResponseBody(content, Charset.forName(charset));
     }
 
@@ -168,6 +176,9 @@ public enum MediaType {
      * 根据类型转换成对应的{@link HttpResponseBody}
      */
     public HttpResponseBody toResponseBody(String content, Charset charset) {
+        if (Objects.isNull(content)) {
+            content = "";
+        }
         return HttpResponseBody.of(charset.encode(content), transfer(charset.name()));
     }
 

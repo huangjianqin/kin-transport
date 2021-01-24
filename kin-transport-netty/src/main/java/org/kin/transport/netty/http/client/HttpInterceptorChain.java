@@ -59,15 +59,13 @@ public final class HttpInterceptorChain {
         } catch (IOException e) {
             ExceptionUtils.throwExt(e);
         }
-        if (Objects.nonNull(httpResponse)) {
-            if (Objects.isNull(httpResponse.responseBody())) {
-                throw new NullPointerException(String.format("interceptor %s return a response with empty body", interceptor));
-            }
-
-            return httpResponse;
-        } else {
-            throw new NullPointerException(String.format("interceptor %s return null", interceptor));
+        if (Objects.nonNull(httpResponse) &&
+                httpResponse.isSuccess() &&
+                Objects.isNull(httpResponse.responseBody())) {
+            //成功了, 但response body is empty
+            throw new NullPointerException(String.format("interceptor %s return a response with empty body", interceptor));
         }
+        return httpResponse;
     }
 
     //-------------------------------------------------------------------------------------------------------------

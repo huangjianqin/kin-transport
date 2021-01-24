@@ -8,6 +8,7 @@ import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.TimeUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,7 +68,8 @@ class CookieInterceptor implements Interceptor, LoggerOprs {
         if (StringUtils.isNotBlank(setCookie)) {
             Cookie cookie = cookieDecoder.decode(setCookie);
             String cacheKey = CacheUtils.generateCacheKey(httpRequest);
-            Map<String, CookieInfo> cookies = new HashMap<>(cookieCache.get(cacheKey));
+
+            Map<String, CookieInfo> cookies = new HashMap<>(cookieCache.getOrDefault(cacheKey, Collections.emptyMap()));
             cookies.put(cookie.name(), new CookieInfo(cookie));
             cookieCache.put(cacheKey, cookies);
         }

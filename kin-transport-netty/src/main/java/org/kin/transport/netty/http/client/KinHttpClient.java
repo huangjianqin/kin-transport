@@ -40,14 +40,13 @@ public final class KinHttpClient implements Closeable {
     private DiskLruCache cache;
 
     private KinHttpClient() {
-        HttpClientTransportOption transportOption = HttpClientTransportOption.builder()
+        pool = new HttpClientPool(() -> HttpClientTransportOption.builder()
                 .readTimeout(readTimeout, TimeUnit.MILLISECONDS)
                 .writeTimeout(writeTimeout, TimeUnit.MILLISECONDS)
                 .awaitTimeout(connectTimeout, TimeUnit.MILLISECONDS)
                 .channelOption(ChannelOption.SO_KEEPALIVE, true)
-                .protocolHandler(HttpClient.HttpClientProtocolHandler.INSTANCE)
-                .build();
-        pool = new HttpClientPool(transportOption);
+                .protocolHandler(new HttpClientProtocolHandler())
+                .build());
     }
 
     //--------------------------------------------------------------------------------------------------------------
@@ -65,14 +64,14 @@ public final class KinHttpClient implements Closeable {
      * 从http client池获取client
      */
     HttpClient client(InetSocketAddress address) {
-        return pool.client(address);
+        return pool.borrowClient(address);
     }
 
     /**
      * 将client归还到http client池
      */
-    void clientBack(InetSocketAddress address, HttpClient client) {
-        pool.clientBack(address, client);
+    void returnClient(InetSocketAddress address, HttpClient client) {
+        pool.returnClient(address, client);
     }
 
     @Override
