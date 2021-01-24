@@ -4,15 +4,13 @@ import com.google.common.base.Preconditions;
 import com.jakewharton.disklrucache.DiskLruCache;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.Closeable;
+import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.ExceptionUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -135,6 +133,11 @@ public final class KinHttpClient implements Closeable {
 
         public KinHttpClient connect() {
             checkState();
+            if (CollectionUtils.isEmpty(kinHttpClient.interceptors)) {
+                kinHttpClient.interceptors = Collections.emptyList();
+            } else {
+                kinHttpClient.interceptors = Collections.unmodifiableList(kinHttpClient.interceptors);
+            }
             exported = true;
             return kinHttpClient;
         }
