@@ -132,6 +132,9 @@ class HttpServerTransfer
         }
     }
 
+    /**
+     * 以chunked形式返回大数据
+     */
     private void writeChunkedResponse(ChannelHandlerContext ctx, ServletResponse servletResponse) {
         HttpUrl httpUrl = servletResponse.getUrl();
         boolean keepAlive = servletResponse.isKeepAlive();
