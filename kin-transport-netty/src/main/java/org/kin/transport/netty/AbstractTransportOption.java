@@ -116,10 +116,6 @@ public abstract class AbstractTransportOption<IN, MSG, OUT, O extends AbstractTr
         return awaitTimeout;
     }
 
-    void setProtocolHandler(ProtocolHandler<MSG> protocolHandler) {
-        this.protocolHandler = protocolHandler;
-    }
-
     //------------------------------------------------------builder------------------------------------------------------
     public static class TransportOptionBuilder<IN, MSG, OUT, O extends AbstractTransportOption<IN, MSG, OUT, O>, B extends TransportOptionBuilder<IN, MSG, OUT, O, B>> {
         /** target */
