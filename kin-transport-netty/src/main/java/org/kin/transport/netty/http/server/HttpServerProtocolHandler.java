@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import org.kin.framework.concurrent.ExecutionContext;
-import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
+import org.kin.framework.concurrent.PinnedThreadExecutor;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
@@ -97,7 +97,7 @@ class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> 
         }
         //设置channel busy
         channelStatusAttribute.set(true);
-        channelServletRequestHandler.handle(handler -> handle(channel, request));
+        channelServletRequestHandler.receive(e -> handle(channel, request));
     }
 
     /**
@@ -282,7 +282,7 @@ class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> 
     /**
      * 每个channel一条线程处理逻辑
      */
-    private static class ChannelServletRequestHandler extends PinnedThreadSafeHandler<ChannelServletRequestHandler> {
+    private static class ChannelServletRequestHandler extends PinnedThreadExecutor<ChannelServletRequestHandler> {
         public ChannelServletRequestHandler() {
             super(EXECUTION_CONTEXT);
         }

@@ -1,6 +1,7 @@
 package org.kin.transport.netty.http.client;
 
-import org.kin.framework.concurrent.lock.OneLock;
+
+import org.kin.framework.concurrent.OneLock;
 
 import java.util.Objects;
 import java.util.concurrent.Future;
