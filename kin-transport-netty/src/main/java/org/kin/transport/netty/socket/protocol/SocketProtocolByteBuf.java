@@ -32,16 +32,16 @@ public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseO
 
     public SocketProtocolByteBuf(ByteBuf byteBuf) {
         this.byteBuf = byteBuf;
-        this.protocolId = byteBuf.readUnsignedShort();
+        this.protocolId = readVarInt32();
         this.contentSize = byteBuf.readableBytes();
         this.mode = READ_MODE;
     }
 
     public SocketProtocolByteBuf(int protocolId) {
         byteBuf = Unpooled.buffer();
-        byteBuf.writeShort(protocolId);
         this.protocolId = protocolId;
         this.mode = WRITE_MODE;
+        writeVarInt32(protocolId);
     }
 
     //--------------------------------------------request----------------------------------------------------
@@ -113,6 +113,12 @@ public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseO
     }
 
     @Override
+    public int readVarInt32() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return readRawVarInt32();
+    }
+
+    @Override
     public float readFloat() {
         Preconditions.checkArgument(mode == READ_MODE);
         return byteBuf.readFloat();
@@ -122,6 +128,12 @@ public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseO
     public long readLong() {
         Preconditions.checkArgument(mode == READ_MODE);
         return byteBuf.readLong();
+    }
+
+    @Override
+    public long readVarLong64() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        return readRawVarLong64();
     }
 
     @Override
@@ -198,13 +210,6 @@ public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseO
     }
 
     @Override
-    public SocketResponseOprs setProtocolId(int protocolId) {
-        Preconditions.checkArgument(mode == WRITE_MODE);
-        byteBuf.setShort(0, protocolId);
-        return this;
-    }
-
-    @Override
     public int getProtocolId() {
         return protocolId;
     }
@@ -277,6 +282,13 @@ public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseO
     }
 
     @Override
+    public SocketResponseOprs writeVarInt32(int value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        writeRawVarInt32(value);
+        return this;
+    }
+
+    @Override
     public SocketResponseOprs writeFloat(float value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         Preconditions.checkArgument(value >= Float.MIN_VALUE && value <= Float.MAX_VALUE, "value: %s", value);
@@ -288,6 +300,13 @@ public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseO
     public SocketResponseOprs writeLong(long value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
         byteBuf.writeLong(value);
+        return this;
+    }
+
+    @Override
+    public SocketResponseOprs writeVarLong64(long value) {
+        Preconditions.checkArgument(mode == WRITE_MODE);
+        writeRawVarlong64(value);
         return this;
     }
 
@@ -404,4 +423,245 @@ public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseO
         byteBuf.setBytes(index, value);
         return this;
     }
+
+    //------------------------------------------var int/long reader 算法来自于protocolbuf------------------------------------------
+    private int readRawVarInt32() {
+        return decodeZigZag32(_readRawVarInt32());
+    }
+
+    /**
+     * Decode a ZigZag-encoded 32-bit value. ZigZag encodes signed integers into values that can be
+     * efficiently encoded with varint. (Otherwise, negative values must be sign-extended to 64 bits
+     * to be varint encoded, thus always taking 10 bytes on the wire.)
+     *
+     * @param n An unsigned 32-bit integer, stored in a signed int because Java has no explicit
+     *          unsigned support.
+     * @return A signed 32-bit integer.
+     */
+    private int decodeZigZag32(int n) {
+        return (n >>> 1) ^ -(n & 1);
+    }
+
+    /**
+     * read 变长 32位int
+     */
+    private int _readRawVarInt32() {
+        fastpath:
+        {
+            int readerIndex = byteBuf.readerIndex();
+
+            if (byteBuf.readableBytes() <= 0) {
+                break fastpath;
+            }
+
+            int x;
+            if ((x = byteBuf.readByte()) >= 0) {
+                return x;
+            } else if (byteBuf.readableBytes() < 9) {
+                //reset reader index
+                byteBuf.readerIndex(readerIndex);
+                break fastpath;
+            } else if ((x ^= (byteBuf.readByte() << 7)) < 0) {
+                x ^= (~0 << 7);
+            } else if ((x ^= (byteBuf.readByte() << 14)) >= 0) {
+                x ^= (~0 << 7) ^ (~0 << 14);
+            } else if ((x ^= (byteBuf.readByte() << 21)) < 0) {
+                x ^= (~0 << 7) ^ (~0 << 14) ^ (~0 << 21);
+            } else {
+                int y = byteBuf.readByte();
+                x ^= y << 28;
+                x ^= (~0 << 7) ^ (~0 << 14) ^ (~0 << 21) ^ (~0 << 28);
+                if (y < 0
+                        && byteBuf.readByte() < 0
+                        && byteBuf.readByte() < 0
+                        && byteBuf.readByte() < 0
+                        && byteBuf.readByte() < 0
+                        && byteBuf.readByte() < 0) {
+                    //reset reader index
+                    byteBuf.readerIndex(readerIndex);
+                    break fastpath; // Will throw malformedVarint()
+                }
+            }
+            return x;
+        }
+        return (int) readRawVarint64SlowPath();
+    }
+
+    private long readRawVarint64SlowPath() {
+        long result = 0;
+        for (int shift = 0; shift < 64; shift += 7) {
+            final byte b = readRawByte();
+            result |= (long) (b & 0x7F) << shift;
+            if ((b & 0x80) == 0) {
+                return result;
+            }
+        }
+        throw new IllegalArgumentException("encountered a malformed varint");
+    }
+
+    private long readRawVarLong64() {
+        return decodeZigZag64(_readRawVarLong64());
+    }
+
+    /**
+     * Decode a ZigZag-encoded 64-bit value. ZigZag encodes signed integers into values that can be
+     * efficiently encoded with varint. (Otherwise, negative values must be sign-extended to 64 bits
+     * to be varint encoded, thus always taking 10 bytes on the wire.)
+     *
+     * @param n An unsigned 64-bit integer, stored in a signed int because Java has no explicit
+     *          unsigned support.
+     * @return A signed 64-bit integer.
+     */
+    public long decodeZigZag64(long n) {
+        return (n >>> 1) ^ -(n & 1);
+    }
+
+    /**
+     * read 变长 64位long
+     */
+    public long _readRawVarLong64() {
+        // Implementation notes:
+        //
+        // Optimized for one-byte values, expected to be common.
+        // The particular code below was selected from various candidates
+        // empirically, by winning VarintBenchmark.
+        //
+        // Sign extension of (signed) Java bytes is usually a nuisance, but
+        // we exploit it here to more easily obtain the sign of bytes read.
+        // Instead of cleaning up the sign extension bits by masking eagerly,
+        // we delay until we find the final (positive) byte, when we clear all
+        // accumulated bits with one xor.  We depend on javac to constant fold.
+        fastpath:
+        {
+            int readerIndex = byteBuf.readerIndex();
+
+            if (byteBuf.readableBytes() <= 0) {
+                break fastpath;
+            }
+
+            long x;
+            int y;
+            if ((y = byteBuf.readByte()) >= 0) {
+                return y;
+            } else if (byteBuf.readableBytes() < 9) {
+                //reset reader index
+                byteBuf.readerIndex(readerIndex);
+                break fastpath;
+            } else if ((y ^= (byteBuf.readByte() << 7)) < 0) {
+                x = y ^ (~0 << 7);
+            } else if ((y ^= (byteBuf.readByte() << 14)) >= 0) {
+                x = y ^ ((~0 << 7) ^ (~0 << 14));
+            } else if ((y ^= (byteBuf.readByte() << 21)) < 0) {
+                x = y ^ ((~0 << 7) ^ (~0 << 14) ^ (~0 << 21));
+            } else if ((x = y ^ ((long) byteBuf.readByte() << 28)) >= 0L) {
+                x ^= (~0L << 7) ^ (~0L << 14) ^ (~0L << 21) ^ (~0L << 28);
+            } else if ((x ^= ((long) byteBuf.readByte() << 35)) < 0L) {
+                x ^= (~0L << 7) ^ (~0L << 14) ^ (~0L << 21) ^ (~0L << 28) ^ (~0L << 35);
+            } else if ((x ^= ((long) byteBuf.readByte() << 42)) >= 0L) {
+                x ^= (~0L << 7) ^ (~0L << 14) ^ (~0L << 21) ^ (~0L << 28) ^ (~0L << 35) ^ (~0L << 42);
+            } else if ((x ^= ((long) byteBuf.readByte() << 49)) < 0L) {
+                x ^=
+                        (~0L << 7)
+                                ^ (~0L << 14)
+                                ^ (~0L << 21)
+                                ^ (~0L << 28)
+                                ^ (~0L << 35)
+                                ^ (~0L << 42)
+                                ^ (~0L << 49);
+            } else {
+                x ^= ((long) byteBuf.readByte() << 56);
+                x ^=
+                        (~0L << 7)
+                                ^ (~0L << 14)
+                                ^ (~0L << 21)
+                                ^ (~0L << 28)
+                                ^ (~0L << 35)
+                                ^ (~0L << 42)
+                                ^ (~0L << 49)
+                                ^ (~0L << 56);
+                if (x < 0L) {
+                    if (byteBuf.readByte() < 0L) {
+                        //reset reader index
+                        byteBuf.readerIndex(readerIndex);
+                        break fastpath; // Will throw malformedVarint()
+                    }
+                }
+            }
+            return x;
+        }
+        return readRawVarint64SlowPath();
+    }
+
+    private byte readRawByte() {
+        if (byteBuf.readableBytes() <= 0) {
+            throw new IllegalStateException("While parsing a protocol, the input ended unexpectedly "
+                    + "in the middle of a field.  This could mean either that the "
+                    + "input has been truncated or that an embedded message "
+                    + "misreported its own length.");
+        }
+        return byteBuf.readByte();
+    }
+
+    //------------------------------------------var int/long writer 算法来自于protocolbuf------------------------------------------
+    private void writeRawVarInt32(int value) {
+        _writeRawVarInt32(encodeZigZag32(value));
+    }
+
+    /**
+     * Encode a ZigZag-encoded 32-bit value. ZigZag encodes signed integers into values that can be
+     * efficiently encoded with varint. (Otherwise, negative values must be sign-extended to 64 bits
+     * to be varint encoded, thus always taking 10 bytes on the wire.)
+     *
+     * @param n A signed 32-bit integer.
+     * @return An unsigned 32-bit integer, stored in a signed int because Java has no explicit
+     * unsigned support.
+     */
+    private int encodeZigZag32(int n) {
+        // Note:  the right-shift must be arithmetic
+        return (n << 1) ^ (n >> 31);
+    }
+
+    private void _writeRawVarInt32(int value) {
+        while (true) {
+            if ((value & ~0x7F) == 0) {
+                byteBuf.writeByte(value);
+                return;
+            } else {
+                byteBuf.writeByte((value & 0x7F) | 0x80);
+                value >>>= 7;
+            }
+        }
+    }
+
+    private void writeRawVarlong64(long value) {
+        _writRawVarLong64(encodeZigZag64(value));
+    }
+
+    /**
+     * Encode a ZigZag-encoded 64-bit value. ZigZag encodes signed integers into values that can be
+     * efficiently encoded with varint. (Otherwise, negative values must be sign-extended to 64 bits
+     * to be varint encoded, thus always taking 10 bytes on the wire.)
+     *
+     * @param n A signed 64-bit integer.
+     * @return An unsigned 64-bit integer, stored in a signed int because Java has no explicit
+     * unsigned support.
+     */
+    private long encodeZigZag64(long n) {
+        // Note:  the right-shift must be arithmetic
+        return (n << 1) ^ (n >> 63);
+    }
+
+    private void _writRawVarLong64(long value) {
+        while (true) {
+            if ((value & ~0x7FL) == 0) {
+                byteBuf.writeByte((int) value);
+                return;
+            } else {
+                byteBuf.writeByte(((int) value & 0x7F) | 0x80);
+                value >>>= 7;
+            }
+        }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------
 }

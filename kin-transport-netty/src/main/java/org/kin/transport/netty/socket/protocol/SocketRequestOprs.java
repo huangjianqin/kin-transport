@@ -86,6 +86,13 @@ public interface SocketRequestOprs {
     long readUnsignedInt();
 
     /**
+     * 读变长int, 会压缩字节
+     *
+     * @return 协议内容中的一个int
+     */
+    int readVarInt32();
+
+    /**
      * 读float
      *
      * @return 协议内容中的一个float
@@ -98,6 +105,13 @@ public interface SocketRequestOprs {
      * @return 协议内容中的一个long
      */
     long readLong();
+
+    /**
+     * 读变长long, 会压缩字节
+     *
+     * @return 协议内容中的一个long
+     */
+    long readVarLong64();
 
     /**
      * 读double

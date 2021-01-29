@@ -10,14 +10,6 @@ import io.netty.buffer.ByteBuf;
  */
 public interface SocketResponseOprs {
     /**
-     * 设置协议id
-     *
-     * @param protocolId 协议id
-     * @return 该response
-     */
-    SocketResponseOprs setProtocolId(int protocolId);
-
-    /**
      * 获取底层的bytebuf
      *
      * @return 底层的bytebuf
@@ -103,6 +95,14 @@ public interface SocketResponseOprs {
     SocketResponseOprs writeUnsignedInt(long value);
 
     /**
+     * 写变长int, 会压缩字节
+     *
+     * @param value 值
+     * @return 该response
+     */
+    SocketResponseOprs writeVarInt32(int value);
+
+    /**
      * 写float
      *
      * @param value 值
@@ -117,6 +117,14 @@ public interface SocketResponseOprs {
      * @return 该response
      */
     SocketResponseOprs writeLong(long value);
+
+    /**
+     * 写变长long, 会压缩字节
+     *
+     * @param value 值
+     * @return 该response
+     */
+    SocketResponseOprs writeVarLong64(long value);
 
     /**
      * 写double

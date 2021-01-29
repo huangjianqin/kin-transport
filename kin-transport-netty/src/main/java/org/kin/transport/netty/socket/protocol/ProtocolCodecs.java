@@ -32,6 +32,10 @@ public class ProtocolCodecs {
     private static final Logger log = LoggerFactory.getLogger(ProtocolCodecs.class);
     /** javassist class pool */
     private static final ClassPool POOL = Javassists.getPool();
+    /** 32位变长整型类型名 */
+    private static final String VAR_INT_32 = "varInt32";
+    /** 64位变长整型类型名 */
+    private static final String VAR_LONG_64 = "varLong64";
 
     static {
         POOL.importPackage("org.kin");
@@ -267,7 +271,15 @@ public class ProtocolCodecs {
         if (Objects.isNull(protocolVO)) {
             //基础类型
             if (Integer.class.equals(type) || Integer.TYPE.equals(type)) {
-                return readCommon("int", sourceName);
+                //采用变长int
+                return readCommon(VAR_INT_32, sourceName);
+            } else if (Short.class.equals(type) || Short.TYPE.equals(type)) {
+                return "(short)" + readCommon(VAR_INT_32, sourceName);
+            } else if (Byte.class.equals(type) || Byte.TYPE.equals(type)) {
+                return "(byte)" + readCommon(VAR_INT_32, sourceName);
+            } else if (Long.class.equals(type) || Long.TYPE.equals(type)) {
+                //采用变长long
+                return readCommon(VAR_LONG_64, sourceName);
             } else {
                 return readCommon(type.getSimpleName(), sourceName);
             }
@@ -284,14 +296,12 @@ public class ProtocolCodecs {
         ProtocolVO protocolVO = type.getAnnotation(ProtocolVO.class);
         if (Objects.isNull(protocolVO)) {
             //基础类型
-            if (Integer.class.equals(type)) {
-                return ClassUtils.primitivePackage(Integer.TYPE, readCommon("int", sourceName));
-            } else if (Short.class.equals(type)) {
-                return ClassUtils.primitivePackage(Short.TYPE, readCommon(type.getSimpleName(), sourceName));
-            } else if (Byte.class.equals(type)) {
-                return ClassUtils.primitivePackage(Byte.TYPE, readCommon(type.getSimpleName(), sourceName));
+            if (Integer.class.equals(type) || Short.class.equals(type) || Byte.class.equals(type)) {
+                //采用变长int
+                return ClassUtils.primitivePackage(Integer.TYPE, readCommon(VAR_INT_32, sourceName));
             } else if (Long.class.equals(type)) {
-                return ClassUtils.primitivePackage(Long.TYPE, readCommon(type.getSimpleName(), sourceName));
+                //采用变长long
+                return ClassUtils.primitivePackage(Long.TYPE, readCommon(VAR_LONG_64, sourceName));
             } else if (Float.class.equals(type)) {
                 return ClassUtils.primitivePackage(Float.TYPE, readCommon(type.getSimpleName(), sourceName));
             } else if (Double.class.equals(type)) {
@@ -634,8 +644,14 @@ public class ProtocolCodecs {
         ProtocolVO protocolVO = fieldType.getAnnotation(ProtocolVO.class);
         if (Objects.isNull(protocolVO)) {
             //基础类型
-            if (Integer.class.equals(fieldType) || Integer.TYPE.equals(fieldType)) {
-                return writeCommon(sinkName, "int", source);
+            if (Integer.class.equals(fieldType) || Integer.TYPE.equals(fieldType) ||
+                    Short.class.equals(fieldType) || Short.TYPE.equals(fieldType) ||
+                    Byte.class.equals(fieldType) || Byte.TYPE.equals(fieldType)) {
+                //变长int
+                return writeCommon(sinkName, VAR_INT_32, source);
+            } else if (Long.class.equals(fieldType) || Long.TYPE.equals(fieldType)) {
+                //变长long
+                return writeCommon(sinkName, VAR_LONG_64, source);
             } else {
                 return writeCommon(sinkName, fieldType.getSimpleName(), source);
             }
@@ -661,8 +677,14 @@ public class ProtocolCodecs {
      */
     private static String writeCommon(String sinkName, Class<?> type, String source) {
         String typeName = type.getSimpleName();
-        if (Integer.class.equals(type)) {
-            typeName = "int";
+        if (Integer.class.equals(type) || Integer.TYPE.equals(type) ||
+                Short.class.equals(type) || Short.TYPE.equals(type) ||
+                Byte.class.equals(type) || Byte.TYPE.equals(type)) {
+            //变长int
+            typeName = VAR_INT_32;
+        } else if (Long.class.equals(type) || Long.TYPE.equals(type)) {
+            //变长long
+            typeName = VAR_LONG_64;
         }
         return sinkName.concat(".write")
                 .concat(StringUtils.firstUpperCase(typeName))

@@ -7,11 +7,11 @@ package org.kin.transport.netty.socket.protocol;
 public class VO1Codec extends ProtocolCodecAdapter<VO1> {
     @Override
     public VO1 readVO(SocketRequestOprs request) {
-        return VO1.of(request.readInt());
+        return VO1.of(request.readVarInt32());
     }
 
     @Override
     public void writeVO(VO1 vo, SocketResponseOprs response) {
-        response.writeInt(vo.getId());
+        response.writeVarInt32(vo.getId());
     }
 }
