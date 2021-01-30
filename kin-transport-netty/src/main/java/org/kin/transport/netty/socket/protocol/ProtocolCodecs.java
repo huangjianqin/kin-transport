@@ -644,32 +644,11 @@ public class ProtocolCodecs {
         ProtocolVO protocolVO = fieldType.getAnnotation(ProtocolVO.class);
         if (Objects.isNull(protocolVO)) {
             //基础类型
-            if (Integer.class.equals(fieldType) || Integer.TYPE.equals(fieldType) ||
-                    Short.class.equals(fieldType) || Short.TYPE.equals(fieldType) ||
-                    Byte.class.equals(fieldType) || Byte.TYPE.equals(fieldType)) {
-                //变长int
-                return writeCommon(sinkName, VAR_INT_32, source);
-            } else if (Long.class.equals(fieldType) || Long.TYPE.equals(fieldType)) {
-                //变长long
-                return writeCommon(sinkName, VAR_LONG_64, source);
-            } else {
-                return writeCommon(sinkName, fieldType.getSimpleName(), source);
-            }
+            return writeCommon(sinkName, fieldType, source);
         } else {
             //vo
             return writeVO(sinkName, source, fieldType);
         }
-    }
-
-    /**
-     * 生成 sinkName.writeXXX(source) 代码
-     */
-    private static String writeCommon(String sinkName, String typeName, String source) {
-        return sinkName.concat(".write")
-                .concat(StringUtils.firstUpperCase(typeName))
-                .concat("(")
-                .concat(source)
-                .concat(");");
     }
 
     /**
@@ -743,7 +722,6 @@ public class ProtocolCodecs {
      * write array
      */
     private static void writeArrayFieldStatement(StringBuilder sb, Field field, String sinkName, String sourceName, String sourceGetterMethod) {
-        Class<?> fieldType = field.getType();
         //数组item类型
         Class<?> itemType = ClassUtils.getItemType(field);
         if (isInited(itemType)) {
@@ -761,7 +739,7 @@ public class ProtocolCodecs {
                         .concat(".")
                         .concat(sourceGetterMethod)
                         .concat("().length;"));
-        prettyMethodStatement(sb, writeCommon(sinkName, Short.class.getSimpleName(), sizeVar));
+        prettyMethodStatement(sb, writeCommon(sinkName, Short.class, sizeVar));
 
         //for循环设置变量值
         StringBuilder forSb = new StringBuilder();
@@ -809,7 +787,7 @@ public class ProtocolCodecs {
                         .concat(".")
                         .concat(sourceGetterMethod)
                         .concat("().size();"));
-        prettyMethodStatement(sb, writeCommon(sinkName, Short.class.getSimpleName(), sizeVar));
+        prettyMethodStatement(sb, writeCommon(sinkName, Short.class, sizeVar));
 
         //iterator
         String iteratorVar = field.getName().concat("Iterator");
@@ -871,7 +849,7 @@ public class ProtocolCodecs {
                         .concat(".")
                         .concat(sourceGetterMethod)
                         .concat("().size();"));
-        prettyMethodStatement(sb, writeCommon(sinkName, Short.class.getSimpleName(), sizeVar));
+        prettyMethodStatement(sb, writeCommon(sinkName, Short.class, sizeVar));
 
         //iterator
         String iteratorVar = field.getName().concat("Iterator");
