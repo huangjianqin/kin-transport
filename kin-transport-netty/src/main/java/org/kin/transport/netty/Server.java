@@ -3,7 +3,6 @@ package org.kin.transport.netty;
 import com.google.common.base.Preconditions;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -28,9 +27,9 @@ public class Server extends ServerConnection {
     private static final Logger log = LoggerFactory.getLogger(Server.class);
 
     /** selector线程池 */
-    private NioEventLoopGroup bossGroup;
+    private EventLoopGroup bossGroup;
     /** worker线程池 */
-    private NioEventLoopGroup workerGroup;
+    private EventLoopGroup workerGroup;
     /** selector */
     private volatile Channel selector;
 
@@ -55,9 +54,9 @@ public class Server extends ServerConnection {
         Preconditions.checkArgument(channelHandlerInitializer != null);
 
         //一半的CPU用于selector
-        this.bossGroup = new NioEventLoopGroup(SysUtils.CPU_NUM / 2 + 1);
+        this.bossGroup = NettyUtils.getEventLoopGroup(SysUtils.CPU_NUM / 2 + 1);
         //默认2倍cpu
-        this.workerGroup = new NioEventLoopGroup();
+        this.workerGroup = NettyUtils.getEventLoopGroup();
 
         //配置bootstrap
         ServerBootstrap bootstrap = new ServerBootstrap();

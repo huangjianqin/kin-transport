@@ -1,12 +1,15 @@
 package org.kin.transport.netty;
 
 import io.netty.channel.Channel;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import org.kin.framework.utils.SysUtils;
 
 /**
  * @author huangjianqin
@@ -17,22 +20,40 @@ public class NettyUtils {
     }
 
     /**
-     * 自动识别是否linux, 则使用epoll, 否则是nio
+     * 自动识别是否支持, 则使用epoll, 否则是nio
      */
     public static Class<? extends ServerChannel> getServerChannelClass() {
-        if (SysUtils.isLinux()) {
+        if (Epoll.isAvailable()) {
             return EpollServerSocketChannel.class;
         }
         return NioServerSocketChannel.class;
     }
 
     /**
-     * 自动识别是否linux, 则使用epoll, 否则是nio
+     * 自动识别是否支持, 则使用epoll, 否则是nio
      */
     public static Class<? extends Channel> getChannelClass() {
-        if (SysUtils.isLinux()) {
+        if (Epoll.isAvailable()) {
             return EpollSocketChannel.class;
         }
         return NioSocketChannel.class;
+    }
+
+    /**
+     * 自动识别是否支持, 则使用epoll, 否则是nio
+     */
+    public static EventLoopGroup getEventLoopGroup(int nThreads) {
+        nThreads = Math.max(nThreads, 0);
+        if (Epoll.isAvailable()) {
+            return new EpollEventLoopGroup(nThreads);
+        }
+        return new NioEventLoopGroup(nThreads);
+    }
+
+    /**
+     * 自动识别是否支持, 则使用epoll, 否则是nio
+     */
+    public static EventLoopGroup getEventLoopGroup() {
+        return getEventLoopGroup(0);
     }
 }

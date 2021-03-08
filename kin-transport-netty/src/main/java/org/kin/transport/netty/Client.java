@@ -3,7 +3,6 @@ package org.kin.transport.netty;
 import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -52,7 +51,7 @@ public class Client<MSG> extends ClientConnection {
         Preconditions.checkArgument(channelOptions != null);
         Preconditions.checkArgument(channelHandlerInitializer != null);
 
-        group = new NioEventLoopGroup();
+        group = NettyUtils.getEventLoopGroup();
 
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(group).channel(NettyUtils.getChannelClass());
