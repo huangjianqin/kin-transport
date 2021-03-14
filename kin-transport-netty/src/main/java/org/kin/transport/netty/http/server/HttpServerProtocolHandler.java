@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import org.kin.framework.concurrent.ExecutionContext;
-import org.kin.framework.concurrent.PinnedThreadExecutor;
+import org.kin.framework.concurrent.OrderedEventLoop;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
@@ -71,7 +71,7 @@ class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         ChannelServletRequestHandler channelServletRequestHandler = channelServletRequestHandler(ctx.channel());
-        channelServletRequestHandler.stop();
+        channelServletRequestHandler.shutdown();
     }
 
     @Override
@@ -282,9 +282,9 @@ class HttpServerProtocolHandler extends ProtocolHandler<ServletTransportEntity> 
     /**
      * 每个channel一条线程处理逻辑
      */
-    private static class ChannelServletRequestHandler extends PinnedThreadExecutor<ChannelServletRequestHandler> {
+    private static class ChannelServletRequestHandler extends OrderedEventLoop<ChannelServletRequestHandler> {
         public ChannelServletRequestHandler() {
-            super(EXECUTION_CONTEXT);
+            super(null, EXECUTION_CONTEXT);
         }
     }
 }
