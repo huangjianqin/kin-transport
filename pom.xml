@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.kin</groupId>
     <artifactId>kin-transport</artifactId>
-    <version>0.1.0.0</version>
+    <version>${revision}</version>
     <modules>
         <module>kin-transport-netty</module>
         <module>kin-transport-http</module>
@@ -18,6 +18,9 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <revision>0.1.0.0</revision>
+
         <netty.version>4.1.54.Final</netty.version>
         <kin-framework.version>0.1.0.0</kin-framework.version>
         <httpclient.version>4.5.9</httpclient.version>
@@ -38,10 +41,12 @@
             <dependency>
                 <groupId>org.kin</groupId>
                 <artifactId>kin-transport-netty</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.kin</groupId>
                 <artifactId>kin-transport-http</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -84,6 +89,34 @@
                         <goals>
                             <goal>jar-no-fork</goal>
                             <goal>test-jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- 可自动替换pom中的${revision}值  -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.1.0</version>
+                <configuration>
+                    <!-- 是否更新pom文件，此处还有更高级的用法 -->
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
                         </goals>
                     </execution>
                 </executions>
