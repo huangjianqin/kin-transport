@@ -88,15 +88,4 @@ class HttpClientTransfer implements TransportProtocolTransfer<FullHttpResponse, 
 
         return Collections.singletonList(request);
     }
-
-    @Override
-    public Class<FullHttpResponse> getInClass() {
-        return FullHttpResponse.class;
-    }
-
-    @Override
-    public Class<HttpEntity> getMsgClass() {
-        return HttpEntity.class;
-    }
-
 }

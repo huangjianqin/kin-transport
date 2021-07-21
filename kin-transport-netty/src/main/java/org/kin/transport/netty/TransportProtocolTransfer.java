@@ -21,14 +21,4 @@ public interface TransportProtocolTransfer<IN, MSG, OUT> {
      * 编码协议层数据
      */
     Collection<OUT> encode(ChannelHandlerContext ctx, MSG msg) throws Exception;
-
-    /**
-     * @return IN 具体的Class
-     */
-    Class<IN> getInClass();
-
-    /**
-     * @return MSG 具体的Class
-     */
-    Class<MSG> getMsgClass();
 }

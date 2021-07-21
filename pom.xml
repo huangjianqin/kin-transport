@@ -34,6 +34,7 @@
         <kryo.version>4.0.0</kryo.version>
         <compress-lzf.version>1.0.4</compress-lzf.version>
         <javassist.version>3.25.0-GA</javassist.version>
+        <protostuff.version>1.7.2</protostuff.version>
     </properties>
 
     <dependencyManagement>

@@ -6,6 +6,7 @@ package org.kin.transport.netty;
  * @author 健勤
  * @date 2017/2/10
  */
+@SuppressWarnings("rawtypes")
 public abstract class AbstractConnection {
     protected final AbstractTransportOption transportOption;
     protected final ChannelHandlerInitializer channelHandlerInitializer;

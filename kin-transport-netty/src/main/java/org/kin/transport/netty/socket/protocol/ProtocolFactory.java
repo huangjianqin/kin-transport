@@ -1,17 +1,14 @@
 package org.kin.transport.netty.socket.protocol;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import org.kin.framework.utils.ClassScanUtils;
 import org.kin.framework.utils.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 协议生成工厂
@@ -21,8 +18,10 @@ import java.util.stream.Stream;
  */
 public class ProtocolFactory {
     private static final Logger log = LoggerFactory.getLogger(ProtocolFactory.class);
-    /** 协议类信息缓存 */
-    private static final Cache<Integer, ProtocolInfo> PROTOCOL_CACHE = CacheBuilder.newBuilder().build();
+    /** key -> 协议id, value -> 协议信息 */
+    private static final ConcurrentHashMap<Integer, ProtocolInfo> ID_2_PROTOCOL_CLASS = new ConcurrentHashMap<>();
+    /** key -> 协议实现类, value -> 协议id */
+    private static final ConcurrentHashMap<Class<? extends SocketProtocol>, Integer> PROTOCOL_CLASS_2_ID = new ConcurrentHashMap<>();
 
     private ProtocolFactory() {
     }
@@ -32,15 +31,19 @@ public class ProtocolFactory {
      *
      * @param scanPath 扫描package
      */
+    @SuppressWarnings("unchecked")
     public static void init(String scanPath) {
         synchronized (ProtocolFactory.class) {
-            Set<Class<? extends SocketProtocol>> protocolClasses = ClassUtils.getSubClass(scanPath, SocketProtocol.class, true);
-            for (Class<? extends SocketProtocol> protocolClass : protocolClasses) {
+
+            List<Class<?>> protocolClasses = ClassScanUtils.scan(scanPath, SocketProtocol.class);
+            for (Class<?> protocolClass : protocolClasses) {
                 Protocol protocolAnnotation = protocolClass.getAnnotation(Protocol.class);
                 if (protocolAnnotation != null) {
                     int rate = protocolAnnotation.rate();
-                    PROTOCOL_CACHE.put(protocolAnnotation.id(), new ProtocolInfo(protocolClass, rate));
-                    log.info("find protocol(id={}) >>> {}, rate={}", protocolAnnotation.id(), protocolClass, rate);
+                    int protocolId = protocolAnnotation.id();
+                    ID_2_PROTOCOL_CLASS.put(protocolId, new ProtocolInfo((Class<? extends SocketProtocol>) protocolClass, rate));
+                    PROTOCOL_CLASS_2_ID.put((Class<? extends SocketProtocol>) protocolClass, protocolId);
+                    log.info("find protocol(id={}) >>> {}, rate={}", protocolId, protocolClass, rate);
                 }
             }
             ProtocolCodecs.init(scanPath);
@@ -48,31 +51,13 @@ public class ProtocolFactory {
     }
 
     /**
-     * 根据id创建protocol, 并依照field定义(父类->子类)顺序设置field value, 从子类开始算
+     * 根据id创建protocol实例
      */
-    public static <T extends SocketProtocol> T createProtocol(int id, Object... fieldValues) {
-        ProtocolInfo protocolInfo = PROTOCOL_CACHE.getIfPresent(id);
-        if (protocolInfo != null) {
-            Class<? extends SocketProtocol> claxx = protocolInfo.getProtocolClass();
-            SocketProtocol protocol = ClassUtils.instance(claxx);
-            if (protocol != null) {
-                //设置成员域
-                Field[] fields = ClassUtils.getAllFields(claxx).toArray(new Field[0]);
-                List<Field> validFields = Stream.of(fields).filter(ProtocolUtils::isFieldValid).collect(Collectors.toList());
-                Collections.reverse(validFields);
-
-                //设置协议id
-                ClassUtils.setFieldValue(protocol, validFields.get(0), id);
-
-                if (fieldValues.length > 0) {
-                    for (int i = 0; i < fieldValues.length; i++) {
-                        Field field = validFields.get(i + 1);
-                        ClassUtils.setFieldValue(protocol, field, fieldValues[i]);
-                    }
-                }
-
-                return (T) protocol;
-            }
+    @SuppressWarnings("unchecked")
+    public static <T extends SocketProtocol> T createProtocol(int id) {
+        Class<? extends SocketProtocol> claxx = getSocketProtocolClass(id);
+        if (Objects.nonNull(claxx)) {
+            return (T) ClassUtils.instance(claxx);
         }
 
         throw new ProtocolException("unknow protocol '" + id + "'");
@@ -84,12 +69,34 @@ public class ProtocolFactory {
      * @param id 协议id
      */
     public static int getProtocolRate(int id) {
-        ProtocolInfo protocolInfo = PROTOCOL_CACHE.getIfPresent(id);
+        ProtocolInfo protocolInfo = ID_2_PROTOCOL_CLASS.get(id);
         if (protocolInfo != null) {
             return protocolInfo.getRate();
         }
         //没有该协议, 返回最大协议间隔, 也就意味着直接抛弃
         return Integer.MAX_VALUE;
+    }
+
+    /**
+     * 根据id获取protocol实现类
+     */
+    public static Class<? extends SocketProtocol> getSocketProtocolClass(int id) {
+        ProtocolInfo protocolInfo = ID_2_PROTOCOL_CLASS.get(id);
+        return Objects.nonNull(protocolInfo) ? protocolInfo.getProtocolClass() : null;
+    }
+
+    /**
+     * 获取所有已注册的protocol实现类
+     */
+    public static List<Class<? extends SocketProtocol>> getSocketProtocolClasses() {
+        return ID_2_PROTOCOL_CLASS.values().stream().map(ProtocolInfo::getProtocolClass).collect(Collectors.toList());
+    }
+
+    /**
+     * 根据protocol实现类获取id
+     */
+    public static Integer getProtocolId(Class<? extends SocketProtocol> claxx) {
+        return PROTOCOL_CLASS_2_ID.get(claxx);
     }
 
     //------------------------------------------------------------------------------------------------------

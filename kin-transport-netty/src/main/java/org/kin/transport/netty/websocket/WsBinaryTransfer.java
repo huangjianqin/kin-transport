@@ -32,14 +32,4 @@ public class WsBinaryTransfer implements TransportProtocolTransfer<BinaryWebSock
     public Collection<BinaryWebSocketFrame> encode(ChannelHandlerContext ctx, SocketProtocol protocol) {
         return transfer.encode(ctx, protocol).stream().map(BinaryWebSocketFrame::new).collect(Collectors.toList());
     }
-
-    @Override
-    public Class<BinaryWebSocketFrame> getInClass() {
-        return BinaryWebSocketFrame.class;
-    }
-
-    @Override
-    public Class<SocketProtocol> getMsgClass() {
-        return SocketProtocol.class;
-    }
 }

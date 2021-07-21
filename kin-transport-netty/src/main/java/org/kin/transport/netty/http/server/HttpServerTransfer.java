@@ -194,14 +194,4 @@ class HttpServerTransfer
         }
 
     }
-
-    @Override
-    public Class<FullHttpRequest> getInClass() {
-        return FullHttpRequest.class;
-    }
-
-    @Override
-    public Class<ServletTransportEntity> getMsgClass() {
-        return ServletTransportEntity.class;
-    }
 }

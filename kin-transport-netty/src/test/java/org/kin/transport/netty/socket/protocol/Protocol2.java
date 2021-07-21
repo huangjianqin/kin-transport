@@ -10,7 +10,10 @@ public class Protocol2 extends SocketProtocol {
     private byte b;
 
     public static Protocol2 of(String s, byte b) {
-        return ProtocolFactory.createProtocol(2, s, b);
+        Protocol2 inst = new Protocol2();
+        inst.s = s;
+        inst.b = b;
+        return inst;
     }
 
     public String getS() {
@@ -31,9 +34,9 @@ public class Protocol2 extends SocketProtocol {
 
     @Override
     public String toString() {
-        return super.toString() + "Protocol2{" +
+        return "Protocol2{" +
                 "s='" + s + '\'' +
                 ", b=" + b +
-                '}';
+                "} " + super.toString();
     }
 }

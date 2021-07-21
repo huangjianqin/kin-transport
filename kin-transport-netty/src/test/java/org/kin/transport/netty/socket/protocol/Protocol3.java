@@ -17,7 +17,7 @@ public class Protocol3 extends SocketProtocol {
     private VO1 vo1;
 
     public static Protocol3 of(byte a, short b, int c, float d, long e, double f, String g, boolean h, VO1 vo1) {
-        Protocol3 inst = ProtocolFactory.createProtocol(3);
+        Protocol3 inst = new Protocol3();
         inst.a = a;
         inst.b = b;
         inst.c = c;
@@ -105,8 +105,7 @@ public class Protocol3 extends SocketProtocol {
     @Override
     public String toString() {
         return "Protocol3{" +
-                "protocolId=" + getProtocolId() +
-                ", a=" + a +
+                "a=" + a +
                 ", b=" + b +
                 ", c=" + c +
                 ", d=" + d +
@@ -115,7 +114,7 @@ public class Protocol3 extends SocketProtocol {
                 ", g='" + g + '\'' +
                 ", h=" + h +
                 ", vo1=" + vo1 +
-                '}';
+                "} " + super.toString();
     }
 }
 

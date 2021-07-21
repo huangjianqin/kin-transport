@@ -9,9 +9,10 @@ public class Protocol1 extends SocketProtocol {
     private int f;
 
     public static Protocol1 of(int f) {
-        return ProtocolFactory.createProtocol(1, f);
+        Protocol1 inst = new Protocol1();
+        inst.f = f;
+        return inst;
     }
-
 
     public int getF() {
         return f;
@@ -23,8 +24,8 @@ public class Protocol1 extends SocketProtocol {
 
     @Override
     public String toString() {
-        return super.toString() + "Protocol1{" +
+        return "Protocol1{" +
                 "f=" + f +
-                '}';
+                "} " + super.toString();
     }
 }

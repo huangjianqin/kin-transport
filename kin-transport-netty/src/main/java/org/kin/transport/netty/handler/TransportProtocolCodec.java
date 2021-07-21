@@ -2,8 +2,10 @@ package org.kin.transport.netty.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import org.kin.framework.utils.ClassUtils;
 import org.kin.transport.netty.TransportProtocolTransfer;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 /**
@@ -16,8 +18,20 @@ public class TransportProtocolCodec<IN, MSG, OUT> extends MessageToMessageCodec<
     /** 协议转换 */
     private final TransportProtocolTransfer<IN, MSG, OUT> transfer;
 
+    @SuppressWarnings("unchecked")
+    private static <IN, MSG, OUT> Class<? extends IN> getInClass(TransportProtocolTransfer<IN, MSG, OUT> transfer) {
+        List<Type> types = ClassUtils.getSuperInterfacesGenericActualTypes(TransportProtocolTransfer.class, transfer.getClass());
+        return (Class<? extends IN>) types.get(0);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <IN, MSG, OUT> Class<? extends MSG> getMsgClass(TransportProtocolTransfer<IN, MSG, OUT> transfer) {
+        List<Type> types = ClassUtils.getSuperInterfacesGenericActualTypes(TransportProtocolTransfer.class, transfer.getClass());
+        return (Class<? extends MSG>) types.get(1);
+    }
+
     public TransportProtocolCodec(TransportProtocolTransfer<IN, MSG, OUT> transfer) {
-        super(transfer.getInClass(), transfer.getMsgClass());
+        super(getInClass(transfer), getMsgClass(transfer));
         this.transfer = transfer;
     }
 

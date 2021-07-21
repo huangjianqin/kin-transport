@@ -7,10 +7,8 @@ import org.kin.framework.log.LoggerOprs;
 import org.kin.transport.netty.TransportProtocolTransfer;
 import org.kin.transport.netty.socket.protocol.*;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * socket协议转换
@@ -50,11 +48,8 @@ public class SocketTransfer implements TransportProtocolTransfer<ByteBuf, Socket
 
     @Override
     public Collection<ByteBuf> encode(ChannelHandlerContext ctx, SocketProtocol msg) {
-        List<ByteBuf> out = new ArrayList<>();
-
         SocketProtocolByteBuf protocolByteBuf = (SocketProtocolByteBuf) ProtocolCodecs.codec(msg.getClass()).write(msg);
         ByteBuf outByteBuf = protocolByteBuf.getByteBuf();
-        out.add(outByteBuf);
 
         ReferenceCountUtil.retain(outByteBuf);
 
@@ -66,16 +61,6 @@ public class SocketTransfer implements TransportProtocolTransfer<ByteBuf, Socket
             ProtocolStatisicService.instance().statisticReq(protocolByteBuf.getProtocolId() + "", protocolByteBuf.getSize());
         }
 
-        return out;
-    }
-
-    @Override
-    public Class<ByteBuf> getInClass() {
-        return ByteBuf.class;
-    }
-
-    @Override
-    public Class<SocketProtocol> getMsgClass() {
-        return SocketProtocol.class;
+        return Collections.singleton(outByteBuf);
     }
 }

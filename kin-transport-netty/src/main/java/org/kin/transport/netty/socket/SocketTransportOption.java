@@ -2,6 +2,7 @@ package org.kin.transport.netty.socket;
 
 import io.netty.buffer.ByteBuf;
 import org.kin.transport.netty.*;
+import org.kin.transport.netty.socket.protocol.Protostuffs;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 import java.net.InetSocketAddress;
@@ -98,7 +99,7 @@ public class SocketTransportOption extends AbstractTransportOption<ByteBuf, Sock
             extends TransportOptionBuilder<ByteBuf, SocketProtocol, ByteBuf, SocketTransportOption, B> {
         private SocketTransportOptionBuilder(boolean serverElseClient) {
             super(new SocketTransportOption(serverElseClient));
-            //默认
+            //默认,自己实现编解码
             transportProtocolTransfer(new SocketTransfer(serverElseClient));
         }
 
@@ -121,6 +122,15 @@ public class SocketTransportOption extends AbstractTransportOption<ByteBuf, Sock
         @Override
         public Server bind(InetSocketAddress address) {
             return build().bind(address);
+        }
+
+        /**
+         * 是否使用protobuf作为底层编解码
+         */
+        public SocketServerTransportOptionBuilder protobuf() {
+            Protostuffs.initSchema();
+            transportProtocolTransfer(new ProtostuffSocketTransfer(true));
+            return this;
         }
     }
 
@@ -145,6 +155,15 @@ public class SocketTransportOption extends AbstractTransportOption<ByteBuf, Sock
         @Override
         public Client<SocketProtocol> withReconnect(InetSocketAddress address, boolean cacheMessage) {
             return build().withReconnect(address, cacheMessage);
+        }
+
+        /**
+         * 是否使用protobuf作为底层编解码
+         */
+        public SocketClientTransportOptionBuilder protobuf() {
+            Protostuffs.initSchema();
+            transportProtocolTransfer(new ProtostuffSocketTransfer(false));
+            return this;
         }
     }
 }

@@ -1,23 +1,20 @@
 package org.kin.transport.netty.socket.protocol;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import org.kin.framework.collection.Tuple;
 import org.kin.framework.proxy.Javassists;
+import org.kin.framework.utils.ClassScanUtils;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 协议自动生成javassist字节码
@@ -42,7 +39,8 @@ public class ProtocolCodecs {
     }
 
     /** {@link ProtocolCodec} 缓存 */
-    private static Cache<Class<?>, ProtocolCodec<?>> protocolCodecs = CacheBuilder.newBuilder().build();
+    private static final ConcurrentHashMap<Class<?>, ProtocolCodec<?>> PROTOCOL_CODECS = new ConcurrentHashMap<>();
+
 
     private ProtocolCodecs() {
     }
@@ -53,7 +51,7 @@ public class ProtocolCodecs {
      * @return 该协议对象是否已初始化
      */
     private static boolean isInited(Class<?> target) {
-        return Objects.nonNull(protocolCodecs.getIfPresent(target));
+        return Objects.nonNull(PROTOCOL_CODECS.get(target));
     }
 
     /**
@@ -61,7 +59,7 @@ public class ProtocolCodecs {
      */
     @SuppressWarnings("unchecked")
     public static <P> ProtocolCodec<P> codec(Class<P> target) {
-        return (ProtocolCodec<P>) protocolCodecs.getIfPresent(target);
+        return (ProtocolCodec<P>) PROTOCOL_CODECS.get(target);
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------
@@ -69,26 +67,26 @@ public class ProtocolCodecs {
     /**
      * 初始化某classpath下的协议codec
      */
+    @SuppressWarnings("rawtypes")
     static void init(String scanPath) {
         synchronized (ProtocolCodecs.class) {
-            Reflections reflections = new Reflections(scanPath, new SubTypesScanner(), new TypeAnnotationsScanner());
             //init implemented protocol codecs
-            for (Class<?> target : reflections.getSubTypesOf(ProtocolCodec.class)) {
+            for (Class<?> target : ClassScanUtils.scan(scanPath, ProtocolCodec.class)) {
                 Type genericSuperclass = target.getGenericSuperclass();
                 if (genericSuperclass instanceof ParameterizedType) {
                     ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
                     Type type = parameterizedType.getActualTypeArguments()[0];
-                    protocolCodecs.put((Class<?>) type, (ProtocolCodec) ClassUtils.instance(target));
+                    PROTOCOL_CODECS.put((Class<?>) type, (ProtocolCodec) ClassUtils.instance(target));
                 }
             }
 
             //init protocol class
-            for (Class<?> target : reflections.getTypesAnnotatedWith(Protocol.class)) {
+            for (Class<?> target : ClassScanUtils.scan(scanPath, Protocol.class)) {
                 init(target, true);
             }
 
             //init vo codec
-            for (Class<?> target : reflections.getTypesAnnotatedWith(ProtocolVO.class)) {
+            for (Class<?> target : ClassScanUtils.scan(scanPath, ProtocolVO.class)) {
                 init(target, false);
             }
         }
@@ -159,7 +157,7 @@ public class ProtocolCodecs {
             addWriteVOMethod(codecCtClass, target, validField, isProtocol);
 
             Object instance = codecCtClass.toClass().getConstructor().newInstance();
-            protocolCodecs.put(target, (ProtocolCodec<?>) instance);
+            PROTOCOL_CODECS.put(target, (ProtocolCodec<?>) instance);
 
             log.debug("##########################".concat(System.lineSeparator()));
         } catch (Exception e) {
@@ -540,6 +538,7 @@ public class ProtocolCodecs {
     /**
      * 添加协议编码方法
      */
+    @SuppressWarnings("unchecked")
     private static void addWriteMethod(CtClass codecCtClass, Class<?> target, List<Field> validField, boolean isProtocol) throws NoSuchMethodException, CannotCompileException {
         Method writeMethod = ProtocolCodec.class.getMethod("write", SocketProtocol.class);
         StringBuilder writeMethodBody = new StringBuilder();
@@ -560,8 +559,8 @@ public class ProtocolCodecs {
                             .concat(" = new ")
                             .concat(SocketProtocolByteBuf.class.getCanonicalName())
                             .concat("(")
-                            .concat(sourceName)
-                            .concat(".getProtocolId());"));
+                            .concat(ProtocolFactory.getProtocolId((Class<? extends SocketProtocol>) target) + "")
+                            .concat(");"));
 
             for (Field field : validField) {
                 addFieldWrite(writeMethodBody, sinkName, sourceName, target, field);

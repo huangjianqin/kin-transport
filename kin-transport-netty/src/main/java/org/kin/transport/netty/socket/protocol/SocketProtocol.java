@@ -7,26 +7,19 @@ package org.kin.transport.netty.socket.protocol;
  * @date 2019/5/30
  */
 public abstract class SocketProtocol {
-    /** 协议id */
-    @Ignore
-    private int protocolId;
     /** 创建时间 */
-    private final long createTime = System.currentTimeMillis();
+    @Ignore
+    private final transient long createTime = System.currentTimeMillis();
+
+    //getter
+    public long getCreateTime() {
+        return createTime;
+    }
 
     @Override
     public String toString() {
-        return "Protocol<" + getClass().getSimpleName() + ">{" +
-                "protocolId=" + protocolId +
-                ", createTime=" + createTime +
+        return "SocketProtocol{" +
+                "createTime=" + createTime +
                 '}';
-    }
-
-    //getter
-    public int getProtocolId() {
-        return protocolId;
-    }
-
-    public long getCreateTime() {
-        return createTime;
     }
 }

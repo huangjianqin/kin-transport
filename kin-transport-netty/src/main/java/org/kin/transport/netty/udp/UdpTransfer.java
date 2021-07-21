@@ -44,14 +44,4 @@ public class UdpTransfer implements TransportProtocolTransfer<DatagramPacket, Ud
 
         return datagramPackets;
     }
-
-    @Override
-    public Class<DatagramPacket> getInClass() {
-        return DatagramPacket.class;
-    }
-
-    @Override
-    public Class<UdpProtocolDetails> getMsgClass() {
-        return UdpProtocolDetails.class;
-    }
 }
