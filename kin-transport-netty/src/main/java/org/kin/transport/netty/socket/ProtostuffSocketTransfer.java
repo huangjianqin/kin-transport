@@ -2,6 +2,8 @@ package org.kin.transport.netty.socket;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.Schema;
@@ -20,8 +22,8 @@ import java.util.Objects;
  * @date 2021/7/21
  */
 public class ProtostuffSocketTransfer implements TransportProtocolTransfer<ByteBuf, SocketProtocol, ByteBuf>, LoggerOprs {
-    /** 避免每次序列化都重新申请Buffer空间 */
-    private static final LinkedBuffer BUFFER = LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE);
+    /** 与channel绑定的Protostuff序列化LinkedBuffer */
+    private static final AttributeKey<LinkedBuffer> BUFFER_KEY = AttributeKey.newInstance("protostuff");
     /** true = server, false = client */
     private final boolean serverElseClient;
 
@@ -68,11 +70,21 @@ public class ProtostuffSocketTransfer implements TransportProtocolTransfer<ByteB
     public Collection<ByteBuf> encode(ChannelHandlerContext ctx, SocketProtocol msg) throws Exception {
         Class clazz = msg.getClass();
         Schema schema = Protostuffs.getSchema(clazz);
+
+        Attribute<LinkedBuffer> attribute = ctx.channel().attr(BUFFER_KEY);
+        LinkedBuffer linkedBuffer = attribute.get();
+        if (Objects.isNull(linkedBuffer)) {
+            //避免每次序列化都重新申请Buffer空间
+            linkedBuffer = LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE);
+            attribute.set(linkedBuffer);
+
+        }
+
         byte[] data;
         try {
-            data = ProtostuffIOUtil.toByteArray(msg, schema, BUFFER);
+            data = ProtostuffIOUtil.toByteArray(msg, schema, linkedBuffer);
         } finally {
-            BUFFER.clear();
+            linkedBuffer.clear();
         }
 
         Integer protocolId = ProtocolFactory.getProtocolId(msg.getClass());
