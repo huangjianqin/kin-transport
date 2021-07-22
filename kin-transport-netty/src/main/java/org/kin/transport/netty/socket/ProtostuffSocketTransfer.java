@@ -71,13 +71,18 @@ public class ProtostuffSocketTransfer implements TransportProtocolTransfer<ByteB
         Class clazz = msg.getClass();
         Schema schema = Protostuffs.getSchema(clazz);
 
-        Attribute<LinkedBuffer> attribute = ctx.channel().attr(BUFFER_KEY);
-        LinkedBuffer linkedBuffer = attribute.get();
-        if (Objects.isNull(linkedBuffer)) {
-            //避免每次序列化都重新申请Buffer空间
+        LinkedBuffer linkedBuffer;
+        if (Objects.isNull(ctx)) {
+            //for test
             linkedBuffer = LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE);
-            attribute.set(linkedBuffer);
-
+        } else {
+            Attribute<LinkedBuffer> attribute = ctx.channel().attr(BUFFER_KEY);
+            linkedBuffer = attribute.get();
+            if (Objects.isNull(linkedBuffer)) {
+                //避免每次序列化都重新申请Buffer空间
+                linkedBuffer = LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE);
+                attribute.set(linkedBuffer);
+            }
         }
 
         byte[] data;
