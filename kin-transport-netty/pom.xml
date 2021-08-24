@@ -20,18 +20,21 @@
             <version>${netty.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.github.classgraph</groupId>
+            <artifactId>classgraph</artifactId>
+        </dependency>
+
         <!-- jackson-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>${jackson.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <!-- 池化 -->
@@ -66,7 +69,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
-            <version>1.20</version>
+            <version>${commons-compress.version}</version>
         </dependency>
 
         <!-- 字节码技术 -->
@@ -81,11 +84,13 @@
             <groupId>io.protostuff</groupId>
             <artifactId>protostuff-core</artifactId>
             <version>${protostuff.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.protostuff</groupId>
             <artifactId>protostuff-runtime</artifactId>
             <version>${protostuff.version}</version>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>

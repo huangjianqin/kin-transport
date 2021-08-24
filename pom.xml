@@ -35,19 +35,17 @@
         <compress-lzf.version>1.0.4</compress-lzf.version>
         <javassist.version>3.25.0-GA</javassist.version>
         <protostuff.version>1.7.2</protostuff.version>
+        <commons-compress.version>1.20</commons-compress.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.kin</groupId>
-                <artifactId>kin-transport-netty</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-transport-http</artifactId>
-                <version>${project.version}</version>
+                <artifactId>kin-framework-bom</artifactId>
+                <version>${kin-framework.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -56,7 +54,6 @@
         <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-framework-java</artifactId>
-            <version>${kin-framework.version}</version>
         </dependency>
     </dependencies>
 
