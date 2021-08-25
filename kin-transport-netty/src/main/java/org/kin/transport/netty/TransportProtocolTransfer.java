@@ -6,6 +6,7 @@ import java.util.Collection;
 
 /**
  * 传输层 <-> 协议层 数据转换逻辑具体实现
+ * 单例存在
  *
  * @author huangjianqin
  * @date 2019/6/3
