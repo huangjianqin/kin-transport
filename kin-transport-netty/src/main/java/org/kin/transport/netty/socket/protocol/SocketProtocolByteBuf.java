@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.ReferenceCounted;
-import org.kin.transport.netty.utils.ByteBufUtils;
+import org.kin.transport.netty.utils.VarIntUtils;
 
 import java.nio.charset.StandardCharsets;
 
@@ -116,7 +116,7 @@ public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseO
     @Override
     public int readVarInt32() {
         Preconditions.checkArgument(mode == READ_MODE);
-        return ByteBufUtils.readRawVarInt32(byteBuf);
+        return VarIntUtils.readRawVarInt32(byteBuf);
     }
 
     @Override
@@ -134,7 +134,7 @@ public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseO
     @Override
     public long readVarLong64() {
         Preconditions.checkArgument(mode == READ_MODE);
-        return ByteBufUtils.readRawVarLong64(byteBuf);
+        return VarIntUtils.readRawVarLong64(byteBuf);
     }
 
     @Override
@@ -285,7 +285,7 @@ public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseO
     @Override
     public SocketResponseOprs writeVarInt32(int value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
-        ByteBufUtils.writeRawVarInt32(byteBuf, value);
+        VarIntUtils.writeRawVarInt32(byteBuf, value);
         return this;
     }
 
@@ -307,7 +307,7 @@ public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseO
     @Override
     public SocketResponseOprs writeVarLong64(long value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
-        ByteBufUtils.writeRawVarlong64(byteBuf, value);
+        VarIntUtils.writeRawVarlong64(byteBuf, value);
         return this;
     }
 

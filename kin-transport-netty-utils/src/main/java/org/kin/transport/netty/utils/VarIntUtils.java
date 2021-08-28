@@ -3,11 +3,13 @@ package org.kin.transport.netty.utils;
 import io.netty.buffer.ByteBuf;
 
 /**
+ * 变长整形工具类
+ *
  * @author huangjianqin
  * @date 2021/7/31
  */
-public final class ByteBufUtils {
-    private ByteBufUtils() {
+public final class VarIntUtils {
+    private VarIntUtils() {
     }
 
     //------------------------------------------var int/long reader 算法来自于protocolbuf------------------------------------------

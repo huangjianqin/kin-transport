@@ -3,9 +3,11 @@ package org.kin.transport.netty.handler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import org.kin.transport.netty.ProtocolHandler;
 import org.kin.transport.netty.socket.ProtocolRateLimiter;
-import org.kin.transport.netty.utils.ChannelUtils;
+import org.kin.transport.netty.userevent.GlobalRatelimitEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +72,19 @@ public class ChannelProtocolHandler<MSG> extends ChannelInboundHandlerAdapter {
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
-        ChannelUtils.handleUserEvent(evt, ctx, protocolHandler);
+        if (evt instanceof IdleStateEvent) {
+            IdleStateEvent event = (IdleStateEvent) evt;
+            if (event.state() == IdleState.READER_IDLE) {
+                protocolHandler.readIdle(ctx);
+            } else if (event.state() == IdleState.WRITER_IDLE) {
+                protocolHandler.writeIdle(ctx);
+            } else {
+                //All IDLE
+                protocolHandler.readWriteIdle(ctx);
+            }
+        }
+        if (evt instanceof GlobalRatelimitEvent) {
+            protocolHandler.globalRateLimitReject();
+        }
     }
 }

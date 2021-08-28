@@ -21,6 +21,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-transport-netty-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
         </dependency>
