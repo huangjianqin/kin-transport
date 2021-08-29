@@ -100,14 +100,14 @@ public final class VarIntUtils {
      *          unsigned support.
      * @return A signed 64-bit integer.
      */
-    public static long decodeZigZag64(long n) {
+    private static long decodeZigZag64(long n) {
         return (n >>> 1) ^ -(n & 1);
     }
 
     /**
      * read 变长 64位long
      */
-    public static long _readRawVarLong64(ByteBuf byteBuf) {
+    private static long _readRawVarLong64(ByteBuf byteBuf) {
         // Implementation notes:
         //
         // Optimized for one-byte values, expected to be common.
