@@ -24,7 +24,7 @@
         <compress-lzf.version>1.0.4</compress-lzf.version>
         <javassist.version>3.25.0-GA</javassist.version>
         <protostuff.version>1.7.2</protostuff.version>
-        <commons-compress.version>1.20</commons-compress.version>
+        <commons-compress.version>1.21</commons-compress.version>
     </properties>
 
     <dependencyManagement>
