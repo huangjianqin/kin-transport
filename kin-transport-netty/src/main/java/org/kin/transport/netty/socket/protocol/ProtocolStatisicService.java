@@ -7,6 +7,7 @@ import org.kin.framework.counter.Counters;
 import org.kin.framework.counter.Reporters;
 import org.kin.framework.log.LoggerOprs;
 
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -28,6 +29,9 @@ public class ProtocolStatisicService implements Closeable, LoggerOprs {
     /** 响应字节数统计 */
     private static final String RESP_BYTES_COUNTER = "respBytesCounter";
 
+    /** 定时log future */
+    private final Future<?> future;
+
     static {
         JvmCloseCleaner.DEFAULT().add(INSTANCE);
     }
@@ -44,7 +48,7 @@ public class ProtocolStatisicService implements Closeable, LoggerOprs {
 
     private ProtocolStatisicService() {
         //一分钟打印一次
-        executionContext.scheduleAtFixedRate(() -> {
+        future = executionContext.scheduleAtFixedRate(() -> {
             log().info(System.lineSeparator().concat(Reporters.report()));
         }, 1, 1, TimeUnit.MINUTES);
     }
@@ -52,6 +56,7 @@ public class ProtocolStatisicService implements Closeable, LoggerOprs {
 
     @Override
     public void close() {
+        future.cancel(true);
         executionContext.shutdown();
     }
 
