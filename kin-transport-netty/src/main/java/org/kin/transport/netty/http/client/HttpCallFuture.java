@@ -76,7 +76,7 @@ public class HttpCallFuture implements Future<HttpResponse> {
         throw new TimeoutException();
     }
 
-    public void done(HttpResponse httpResponse) {
+    synchronized void done(HttpResponse httpResponse) {
         if (isDone()) {
             return;
         }
