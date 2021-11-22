@@ -6,7 +6,6 @@ import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import org.kin.framework.utils.SysUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +53,7 @@ public class Server extends ServerConnection {
         Preconditions.checkArgument(channelHandlerInitializer != null);
 
         //一半的CPU用于selector
-        this.bossGroup = NettyUtils.getEventLoopGroup(SysUtils.CPU_NUM / 2 + 1);
+        this.bossGroup = NettyUtils.getEventLoopGroup(2);
         //默认2倍cpu
         this.workerGroup = NettyUtils.getEventLoopGroup();
 
