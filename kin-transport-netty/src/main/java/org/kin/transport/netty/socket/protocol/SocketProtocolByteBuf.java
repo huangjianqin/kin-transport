@@ -307,7 +307,7 @@ public class SocketProtocolByteBuf implements SocketRequestOprs, SocketResponseO
     @Override
     public SocketResponseOprs writeVarLong64(long value) {
         Preconditions.checkArgument(mode == WRITE_MODE);
-        VarIntUtils.writeRawVarlong64(byteBuf, value);
+        VarIntUtils.writeRawVarLong64(byteBuf, value);
         return this;
     }
 

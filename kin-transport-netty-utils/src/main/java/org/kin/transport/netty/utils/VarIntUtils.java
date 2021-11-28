@@ -14,20 +14,16 @@ public final class VarIntUtils {
 
     //------------------------------------------var int/long reader 算法来自于protocolbuf------------------------------------------
     public static int readRawVarInt32(ByteBuf byteBuf) {
-        return decodeZigZag32(_readRawVarInt32(byteBuf));
+        return readRawVarInt32(byteBuf, true);
     }
 
-    /**
-     * Decode a ZigZag-encoded 32-bit value. ZigZag encodes signed integers into values that can be
-     * efficiently encoded with varint. (Otherwise, negative values must be sign-extended to 64 bits
-     * to be varint encoded, thus always taking 10 bytes on the wire.)
-     *
-     * @param n An unsigned 32-bit integer, stored in a signed int because Java has no explicit
-     *          unsigned support.
-     * @return A signed 32-bit integer.
-     */
-    private static int decodeZigZag32(int n) {
-        return (n >>> 1) ^ -(n & 1);
+    public static int readRawVarInt32(ByteBuf byteBuf, boolean zigzag) {
+        int rawVarInt32 = _readRawVarInt32(byteBuf);
+        if (zigzag) {
+            return org.kin.framework.utils.VarIntUtils.decodeZigZag32(rawVarInt32);
+        } else {
+            return rawVarInt32;
+        }
     }
 
     /**
@@ -72,10 +68,10 @@ public final class VarIntUtils {
             }
             return x;
         }
-        return (int) readRawVarint64SlowPath(byteBuf);
+        return (int) readRawVarInt64SlowPath(byteBuf);
     }
 
-    private static long readRawVarint64SlowPath(ByteBuf byteBuf) {
+    private static long readRawVarInt64SlowPath(ByteBuf byteBuf) {
         long result = 0;
         for (int shift = 0; shift < 64; shift += 7) {
             final byte b = readRawByte(byteBuf);
@@ -88,20 +84,16 @@ public final class VarIntUtils {
     }
 
     public static long readRawVarLong64(ByteBuf byteBuf) {
-        return decodeZigZag64(_readRawVarLong64(byteBuf));
+        return readRawVarLong64(byteBuf, true);
     }
 
-    /**
-     * Decode a ZigZag-encoded 64-bit value. ZigZag encodes signed integers into values that can be
-     * efficiently encoded with varint. (Otherwise, negative values must be sign-extended to 64 bits
-     * to be varint encoded, thus always taking 10 bytes on the wire.)
-     *
-     * @param n An unsigned 64-bit integer, stored in a signed int because Java has no explicit
-     *          unsigned support.
-     * @return A signed 64-bit integer.
-     */
-    private static long decodeZigZag64(long n) {
-        return (n >>> 1) ^ -(n & 1);
+    public static long readRawVarLong64(ByteBuf byteBuf, boolean zigzag) {
+        long rawVarLong64 = _readRawVarLong64(byteBuf);
+        if (zigzag) {
+            return org.kin.framework.utils.VarIntUtils.decodeZigZag64(rawVarLong64);
+        } else {
+            return rawVarLong64;
+        }
     }
 
     /**
@@ -177,7 +169,7 @@ public final class VarIntUtils {
             }
             return x;
         }
-        return readRawVarint64SlowPath(byteBuf);
+        return readRawVarInt64SlowPath(byteBuf);
     }
 
     private static byte readRawByte(ByteBuf byteBuf) {
@@ -192,21 +184,14 @@ public final class VarIntUtils {
 
     //------------------------------------------var int/long writer 算法来自于protocolbuf------------------------------------------
     public static void writeRawVarInt32(ByteBuf byteBuf, int value) {
-        _writeRawVarInt32(byteBuf, encodeZigZag32(value));
+        writeRawVarInt32(byteBuf, value, true);
     }
 
-    /**
-     * Encode a ZigZag-encoded 32-bit value. ZigZag encodes signed integers into values that can be
-     * efficiently encoded with varint. (Otherwise, negative values must be sign-extended to 64 bits
-     * to be varint encoded, thus always taking 10 bytes on the wire.)
-     *
-     * @param n A signed 32-bit integer.
-     * @return An unsigned 32-bit integer, stored in a signed int because Java has no explicit
-     * unsigned support.
-     */
-    private static int encodeZigZag32(int n) {
-        // Note:  the right-shift must be arithmetic
-        return (n << 1) ^ (n >> 31);
+    public static void writeRawVarInt32(ByteBuf byteBuf, int value, boolean zigzag) {
+        if (zigzag) {
+            value = org.kin.framework.utils.VarIntUtils.encodeZigZag32(value);
+        }
+        _writeRawVarInt32(byteBuf, value);
     }
 
     private static void _writeRawVarInt32(ByteBuf byteBuf, int value) {
@@ -221,22 +206,15 @@ public final class VarIntUtils {
         }
     }
 
-    public static void writeRawVarlong64(ByteBuf byteBuf, long value) {
-        _writRawVarLong64(byteBuf, encodeZigZag64(value));
+    public static void writeRawVarLong64(ByteBuf byteBuf, long value) {
+        writeRawVarLong64(byteBuf, value, true);
     }
 
-    /**
-     * Encode a ZigZag-encoded 64-bit value. ZigZag encodes signed integers into values that can be
-     * efficiently encoded with varint. (Otherwise, negative values must be sign-extended to 64 bits
-     * to be varint encoded, thus always taking 10 bytes on the wire.)
-     *
-     * @param n A signed 64-bit integer.
-     * @return An unsigned 64-bit integer, stored in a signed int because Java has no explicit
-     * unsigned support.
-     */
-    private static long encodeZigZag64(long n) {
-        // Note:  the right-shift must be arithmetic
-        return (n << 1) ^ (n >> 63);
+    public static void writeRawVarLong64(ByteBuf byteBuf, long value, boolean zigzag) {
+        if (zigzag) {
+            value = org.kin.framework.utils.VarIntUtils.decodeZigZag64(value);
+        }
+        _writRawVarLong64(byteBuf, value);
     }
 
     private static void _writRawVarLong64(ByteBuf byteBuf, long value) {
