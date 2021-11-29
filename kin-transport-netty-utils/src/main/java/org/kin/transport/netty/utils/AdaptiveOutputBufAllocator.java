@@ -1,0 +1,237 @@
+/*
+ * Copyright (c) 2015 The Jupiter Project
+ *
+ * Licensed under the Apache License, version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.kin.transport.netty.utils;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 争取预测下次new netty bytebuf时指定给定大小, 减少编解码, 序列化过程中, 扩容而带来的额外开销
+ * <p>
+ * Forked from <a href="https://github.com/fengjiachun/Jupiter">Jupiter</a>.
+ *
+ * @author huangjianqin
+ * @date 2021/11/29
+ */
+public class AdaptiveOutputBufAllocator {
+    /** 默认最小分配字节数 */
+    private static final int DEFAULT_MINIMUM = 64;
+    /** 默认初始分配字节数 */
+    private static final int DEFAULT_INITIAL = 512;
+    /** 默认最大分配字节数 */
+    private static final int DEFAULT_MAXIMUM = 524288;
+
+    /** index增加步数 */
+    private static final int INDEX_INCREMENT = 4;
+    /** index减少步数 */
+    private static final int INDEX_DECREMENT = 1;
+
+    /** bytes size表 */
+    private static final int[] SIZE_TABLE;
+
+    static {
+        List<Integer> sizeTable = new ArrayList<>();
+        for (int i = 16; i < 512; i += 16) {
+            sizeTable.add(i);
+        }
+
+        // lgtm [java/constant-comparison]
+        for (int i = 512; i > 0; i <<= 1) {
+            sizeTable.add(i);
+        }
+
+        SIZE_TABLE = new int[sizeTable.size()];
+        for (int i = 0; i < SIZE_TABLE.length; i++) {
+            SIZE_TABLE[i] = sizeTable.get(i);
+        }
+    }
+
+    /**
+     * 获取大于指定{@code size}大小的最小index
+     */
+    private static int getSizeTableIndex(int size) {
+        for (int low = 0, high = SIZE_TABLE.length - 1; ; ) {
+            if (high < low) {
+                return low;
+            }
+            if (high == low) {
+                return high;
+            }
+
+            int mid = low + high >>> 1;
+            int a = SIZE_TABLE[mid];
+            int b = SIZE_TABLE[mid + 1];
+            if (size > b) {
+                low = mid + 1;
+            } else if (size < a) {
+                high = mid - 1;
+            } else if (size == a) {
+                return mid;
+            } else {
+                return mid + 1;
+            }
+        }
+    }
+
+    /** 单例 */
+    public static final AdaptiveOutputBufAllocator INSTANCE = new AdaptiveOutputBufAllocator();
+
+    /** 大于最小分配字节数的最小index */
+    private final int minIndex;
+    /** 大于最大分配字节数的最小index */
+    private final int maxIndex;
+    /** 大于初始分配字节数的最小index */
+    private final int initial;
+
+    /**
+     * Creates a new predictor with the default parameters.  With the default
+     * parameters, the expected buffer size starts from {@code 512}, does not
+     * go down below {@code 64}, and does not go up above {@code 524288}.
+     */
+    private AdaptiveOutputBufAllocator() {
+        this(DEFAULT_MINIMUM, DEFAULT_INITIAL, DEFAULT_MAXIMUM);
+    }
+
+    /**
+     * Creates a new predictor with the specified parameters.
+     *
+     * @param minimum the inclusive lower bound of the expected buffer size
+     * @param initial the initial buffer size when no feedback was received
+     * @param maximum the inclusive upper bound of the expected buffer size
+     */
+    public AdaptiveOutputBufAllocator(int minimum, int initial, int maximum) {
+        if (minimum <= 0) {
+            throw new IllegalArgumentException("minimum: " + minimum);
+        }
+        if (initial < minimum) {
+            throw new IllegalArgumentException("initial: " + initial);
+        }
+        if (maximum < initial) {
+            throw new IllegalArgumentException("maximum: " + maximum);
+        }
+
+        int minIndex = getSizeTableIndex(minimum);
+        if (SIZE_TABLE[minIndex] < minimum) {
+            this.minIndex = minIndex + 1;
+        } else {
+            this.minIndex = minIndex;
+        }
+
+        int maxIndex = getSizeTableIndex(maximum);
+        if (SIZE_TABLE[maxIndex] > maximum) {
+            this.maxIndex = maxIndex - 1;
+        } else {
+            this.maxIndex = maxIndex;
+        }
+
+        this.initial = initial;
+    }
+
+    public Handle newHandle() {
+        return new HandleImpl(minIndex, maxIndex, initial);
+    }
+
+    //-----------------
+
+    /**
+     * 分配给每个netty io线程单独使用的predictor
+     */
+    public interface Handle {
+
+        /**
+         * Creates a new buffer whose capacity is probably large enough to write all outbound data and small
+         * enough not to waste its space.
+         */
+        ByteBuf allocate(ByteBufAllocator alloc);
+
+        /**
+         * Similar to {@link #allocate(ByteBufAllocator)} except that it does not allocate anything but just tells the
+         * capacity.
+         */
+        int guess();
+
+        /**
+         * Records the actual number of wrote bytes in the previous write operation so that the allocator allocates
+         * the buffer with potentially more correct capacity.
+         *
+         * @param actualWroteBytes the actual number of wrote bytes in the previous allocate operation
+         */
+        void record(int actualWroteBytes);
+    }
+
+    private static final class HandleImpl implements Handle {
+        /** 最小index */
+        private final int minIndex;
+        /** 最大index */
+        private final int maxIndex;
+        /**
+         * 当前index
+         * Single IO thread read/write
+         */
+        private int index;
+        /**
+         * 下次分配字节数
+         * Single IO thread read/write, other thread read
+         */
+        private volatile int nextAllocateBufSize;
+        /**
+         * 本次是否需要马上减少index
+         * Single IO thread read/write
+         */
+        private boolean decreaseNow;
+
+        HandleImpl(int minIndex, int maxIndex, int initial) {
+            this.minIndex = minIndex;
+            this.maxIndex = maxIndex;
+
+            index = getSizeTableIndex(initial);
+            nextAllocateBufSize = SIZE_TABLE[index];
+        }
+
+        @Override
+        public ByteBuf allocate(ByteBufAllocator alloc) {
+            return alloc.buffer(guess());
+        }
+
+        @Override
+        public int guess() {
+            return nextAllocateBufSize;
+        }
+
+        @Override
+        public void record(int actualWroteBytes) {
+            if (actualWroteBytes <= SIZE_TABLE[Math.max(0, index - INDEX_DECREMENT - 1)]) {
+                if (decreaseNow) {
+                    //马上减少index, 下次分配更少字节数
+                    index = Math.max(index - INDEX_DECREMENT, minIndex);
+                    nextAllocateBufSize = SIZE_TABLE[index];
+                    decreaseNow = false;
+                } else {
+                    //不减少index, 给机会看看下次字节数是不是真的更少了, 如果是, 则减少, 否则不减少
+                    decreaseNow = true;
+                }
+            } else if (actualWroteBytes >= nextAllocateBufSize) {
+                //增加index, 下次分配更多字节数
+                index = Math.min(index + INDEX_INCREMENT, maxIndex);
+                nextAllocateBufSize = SIZE_TABLE[index];
+                decreaseNow = false;
+            }
+        }
+    }
+}
