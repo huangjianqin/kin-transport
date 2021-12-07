@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
+import org.kin.transport.netty.estimator.MessageSizeEstimatorImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,7 @@ public class Server extends ServerConnection {
     }
 
 
+    @SuppressWarnings("rawtypes")
     @Override
     public void bind(InetSocketAddress address) {
         if (isActive()) {
@@ -65,6 +67,7 @@ public class Server extends ServerConnection {
             bootstrap.option(entry.getKey(), entry.getValue());
         }
 
+        bootstrap.childOption(ChannelOption.MESSAGE_SIZE_ESTIMATOR, MessageSizeEstimatorImpl.INSTANCE);
         for (Map.Entry<ChannelOption, Object> entry : channelOptions.entrySet()) {
             bootstrap.childOption(entry.getKey(), entry.getValue());
         }

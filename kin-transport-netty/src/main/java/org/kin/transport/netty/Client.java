@@ -7,6 +7,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.transport.netty.estimator.MessageSizeEstimatorImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ public class Client<MSG> extends ClientConnection {
         super(transportOption, channelHandlerInitializer);
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public void connect(InetSocketAddress address) {
         if (isStopped()) {
@@ -56,6 +58,7 @@ public class Client<MSG> extends ClientConnection {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(group).channel(NettyUtils.getChannelClass());
 
+        bootstrap.option(ChannelOption.MESSAGE_SIZE_ESTIMATOR, MessageSizeEstimatorImpl.INSTANCE);
         for (Map.Entry<ChannelOption, Object> entry : channelOptions.entrySet()) {
             bootstrap.option(entry.getKey(), entry.getValue());
         }

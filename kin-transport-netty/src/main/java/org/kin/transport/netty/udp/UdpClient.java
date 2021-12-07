@@ -11,6 +11,7 @@ import org.kin.transport.netty.AbstractTransportOption;
 import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.ClientConnectTimeoutException;
+import org.kin.transport.netty.estimator.MessageSizeEstimatorImpl;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 import javax.net.ssl.SSLException;
@@ -32,6 +33,7 @@ public final class UdpClient extends Client<UdpProtocolDetails> {
         super(transportOption, channelHandlerInitializer);
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public void connect(InetSocketAddress address) {
         log.info("client({}) connecting...", address);
@@ -46,6 +48,7 @@ public final class UdpClient extends Client<UdpProtocolDetails> {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(group).channel(NioDatagramChannel.class);
 
+        bootstrap.option(ChannelOption.MESSAGE_SIZE_ESTIMATOR, MessageSizeEstimatorImpl.INSTANCE);
         for (Map.Entry<ChannelOption, Object> entry : channelOptions.entrySet()) {
             bootstrap.option(entry.getKey(), entry.getValue());
         }

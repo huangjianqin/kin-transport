@@ -12,6 +12,7 @@ import org.kin.transport.netty.AbstractTransportOption;
 import org.kin.transport.netty.ChannelHandlerInitializer;
 import org.kin.transport.netty.ServerBindTimeoutException;
 import org.kin.transport.netty.ServerConnection;
+import org.kin.transport.netty.estimator.MessageSizeEstimatorImpl;
 
 import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;
@@ -36,6 +37,7 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
         super(transportOption, channelHandlerInitializer);
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public void bind(InetSocketAddress address) {
         log().info("server({}) connection binding...", address);
@@ -57,6 +59,7 @@ public class UdpServer extends ServerConnection implements LoggerOprs {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(this.workerGroup).channel(NioDatagramChannel.class);
 
+        bootstrap.option(ChannelOption.MESSAGE_SIZE_ESTIMATOR, MessageSizeEstimatorImpl.INSTANCE);
         for (Map.Entry<ChannelOption, Object> entry : selectorOptions.entrySet()) {
             bootstrap.option(entry.getKey(), entry.getValue());
         }
