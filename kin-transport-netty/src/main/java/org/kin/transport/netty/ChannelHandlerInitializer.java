@@ -5,6 +5,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.kin.framework.utils.SysUtils;
+import org.kin.transport.netty.utils.SystemProperties;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,7 @@ public interface ChannelHandlerInitializer<IN, MSG, OUT> {
         int readWriteIdleTime = transportOption.getReadWriteIdleTime();
         if (readIdleTime > 0 || writeIdleTime > 0 || readWriteIdleTime > 0) {
             //其中一个>0就设置Handler
-            if (SysUtils.getBoolSysProperty("kin.transport.netty.idleStateHandler", false)) {
+            if (SysUtils.getBoolSysProperty(SystemProperties.KIN_TRANSPORT_NETTY_IDLE_STATE_HANDLER, false)) {
                 channelHandlers.add(new IdleStateHandler(readIdleTime, writeIdleTime, readWriteIdleTime));
             } else {
                 channelHandlers.add(new org.kin.transport.netty.handler.IdleStateHandler(readIdleTime, writeIdleTime, readWriteIdleTime));
