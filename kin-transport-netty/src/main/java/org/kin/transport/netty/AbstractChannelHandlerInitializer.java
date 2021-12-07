@@ -2,6 +2,8 @@ package org.kin.transport.netty;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.ChannelHandler;
+import io.netty.handler.flush.FlushConsolidationHandler;
+import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.handler.ChannelProtocolHandler;
 import org.kin.transport.netty.handler.TransportProtocolCodec;
 
@@ -46,7 +48,12 @@ public abstract class AbstractChannelHandlerInitializer<IN, MSG, OUT, O extends 
         Preconditions.checkNotNull(transportProtocolTransfer, "transportProtocolTransfer must not null");
         Preconditions.checkNotNull(protocolHandler, "protocolHandler must not null");
 
-        List<ChannelHandler> channelHandlers = new ArrayList<>(firstHandlers());
+        //the number of flushes after which an explicit flush will be done
+        int explicitFlushAfterFlushes = SysUtils.getIntSysProperty("kin.transport.netty.explicitFlushAfterFlushes", 64);
+
+        List<ChannelHandler> channelHandlers = new ArrayList<>();
+        channelHandlers.add(new FlushConsolidationHandler(explicitFlushAfterFlushes, true));
+        channelHandlers.addAll(firstHandlers());
         channelHandlers.add(new TransportProtocolCodec<>(transportProtocolTransfer));
         channelHandlers.add(new ChannelProtocolHandler<>(protocolHandler));
         channelHandlers.addAll(lastHandlers());
