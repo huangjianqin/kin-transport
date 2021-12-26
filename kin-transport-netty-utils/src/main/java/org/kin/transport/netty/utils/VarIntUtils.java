@@ -16,7 +16,7 @@ public final class VarIntUtils {
      * read 变长 32位int
      */
     public static int readRawVarInt32(ByteBuf byteBuf) {
-        return readRawVarInt32(byteBuf, true);
+        return readRawVarInt32(byteBuf, false);
     }
 
     /**
@@ -30,7 +30,7 @@ public final class VarIntUtils {
      * read 变长 32位int
      */
     public static void writeRawVarInt32(ByteBuf byteBuf, int value) {
-        writeRawVarInt32(byteBuf, value, true);
+        writeRawVarInt32(byteBuf, value, false);
     }
 
     /**
@@ -44,7 +44,7 @@ public final class VarIntUtils {
      * read 变长 64位int
      */
     public static long readRawVarInt64(ByteBuf byteBuf) {
-        return readRawVarInt64(byteBuf, true);
+        return readRawVarInt64(byteBuf, false);
     }
 
     /**
@@ -58,7 +58,7 @@ public final class VarIntUtils {
      * read 变长 64位int
      */
     public static void writeRawVarInt64(ByteBuf byteBuf, long value) {
-        writeRawVarInt64(byteBuf, value, true);
+        writeRawVarInt64(byteBuf, value, false);
     }
 
     /**
