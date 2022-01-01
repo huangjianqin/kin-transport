@@ -1,0 +1,3 @@
+org.kin.transport.http.converter.MessageConverter=org.kin.transport.http.converter.JsonMessageConverter,\
+                                                  org.kin.transport.http.converter.TextMessageConverter,\
+                                                  org.kin.transport.http.converter.StreamMessageConverter,\
