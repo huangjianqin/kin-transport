@@ -5,7 +5,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.JSON;
 import org.kin.framework.utils.StringUtils;
-import org.kin.transport.netty.http.HttpCode;
+import org.kin.transport.http.HttpCode;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.MediaType;
 import org.kin.transport.netty.http.MediaTypeWrapper;

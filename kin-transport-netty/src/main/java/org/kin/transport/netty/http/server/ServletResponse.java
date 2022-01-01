@@ -3,7 +3,7 @@ package org.kin.transport.netty.http.server;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.kin.framework.io.ByteBufferOutputStream;
 import org.kin.framework.io.ByteBufferUtils;
-import org.kin.transport.netty.http.HttpCode;
+import org.kin.transport.http.HttpCode;
 import org.kin.transport.netty.http.HttpResponseBody;
 import org.kin.transport.netty.http.HttpUrl;
 import org.kin.transport.netty.http.MediaType;

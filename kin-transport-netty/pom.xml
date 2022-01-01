@@ -87,5 +87,11 @@
             <artifactId>protostuff-runtime</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-transport-http-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

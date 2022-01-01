@@ -1,6 +1,6 @@
 package org.kin.transport.netty.http.client;
 
-import org.kin.transport.netty.http.HttpCode;
+import org.kin.transport.http.HttpCode;
 import org.kin.transport.netty.http.HttpResponseBody;
 
 import java.util.Map;
