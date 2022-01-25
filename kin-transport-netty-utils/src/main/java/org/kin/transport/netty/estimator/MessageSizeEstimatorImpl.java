@@ -12,8 +12,8 @@ import io.netty.channel.MessageSizeEstimator;
  * @date 2021/12/7
  */
 public final class MessageSizeEstimatorImpl implements MessageSizeEstimator {
-    /** 默认实现, 默认8直接大小 */
-    public static final MessageSizeEstimator INSTANCE = new MessageSizeEstimatorImpl(8);
+    /** 默认实现, 默认32字节大小 */
+    public static final MessageSizeEstimator INSTANCE = new MessageSizeEstimatorImpl(32);
 
     /**
      * 默认实现
