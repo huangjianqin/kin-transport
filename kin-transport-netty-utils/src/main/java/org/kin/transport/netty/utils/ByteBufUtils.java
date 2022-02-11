@@ -60,21 +60,23 @@ public final class ByteBufUtils {
         }
 
         int position = nioBuffer.position();
-        nioBuffer = newNioByteBuffer(byteBuf, position + minWritableBytes);
+        nioBuffer = newNioByteBuffer(byteBuf, minWritableBytes);
         //回到之前write index
         nioBuffer.position(position);
         return nioBuffer;
     }
 
     /**
-     * 创建{@link ByteBuf}底层内存映射的满足可写字节数{@code writableBytes}的{@link ByteBuffer}实例
+     * 创建{@link ByteBuf}底层内存映射的满足可写字节数{@code minWritableBytes}的{@link ByteBuffer}实例
      *
-     * @param byteBuf       netty byte buffer
-     * @param writableBytes 可写字节数
+     * @param byteBuf          netty byte buffer
+     * @param minWritableBytes 可写字节数
      */
-    private static ByteBuffer newNioByteBuffer(ByteBuf byteBuf, int writableBytes) {
+    private static ByteBuffer newNioByteBuffer(ByteBuf byteBuf, int minWritableBytes) {
         return byteBuf
-                .ensureWritable(writableBytes)
+                //扩容, 新容量可能>=minWritableBytes, 因为内部会round to power2
+                .ensureWritable(minWritableBytes)
+                //取底层ByteBuffer, 因为操作底层ByteBuffer时, 不会影响包装ByteBuf的writerIndex, 这里使用原来的writerIndex, 保证获取到的底层ByteBuffer与扩容前的position值一致(仅仅容量变大了)
                 .nioBuffer(byteBuf.writerIndex(), byteBuf.writableBytes());
     }
 }
