@@ -22,24 +22,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 争取预测下次new netty bytebuf时指定给定大小, 减少编解码, 序列化过程中, 扩容而带来的额外开销
+ * 支持预测下次分配{@link ByteBuf}时大小, 减少编解码, 序列化过程中, 扩容而带来的额外性能开销
  * <p>
  * Forked from <a href="https://github.com/fengjiachun/Jupiter">Jupiter</a>.
  *
  * @author huangjianqin
  * @date 2021/11/29
  */
-public class AdaptiveOutputBufAllocator {
-    /** 默认最小分配字节数 */
+public class AdaptiveByteBufAllocator {
+    /** 默认最小分配字节数, 64B */
     private static final int DEFAULT_MINIMUM = 64;
-    /** 默认初始分配字节数 */
+    /** 默认初始分配字节数, 512B */
     private static final int DEFAULT_INITIAL = 512;
-    /** 默认最大分配字节数 */
+    /** 默认最大分配字节数, 512KB */
     private static final int DEFAULT_MAXIMUM = 524288;
 
-    /** index增加步数 */
+    /** index增量 */
     private static final int INDEX_INCREMENT = 4;
-    /** index减少步数 */
+    /** index减量 */
     private static final int INDEX_DECREMENT = 1;
 
     /** bytes size表 */
@@ -47,12 +47,16 @@ public class AdaptiveOutputBufAllocator {
 
     static {
         List<Integer> sizeTable = new ArrayList<>();
-        for (int i = 16; i < 512; i += 16) {
+        int step = 16;
+        int threshold = 512;
+        for (int i = step; i < threshold; i += step) {
+            //16 32 64 ... 496
             sizeTable.add(i);
         }
 
         // lgtm [java/constant-comparison]
-        for (int i = 512; i > 0; i <<= 1) {
+        for (int i = threshold; i > 0; i <<= 1) {
+            //512 1024 4096 8192....
             sizeTable.add(i);
         }
 
@@ -63,7 +67,7 @@ public class AdaptiveOutputBufAllocator {
     }
 
     /**
-     * 获取大于指定{@code size}大小的最小index
+     * 二分搜索查找大于指定{@code size}大小的最小index
      */
     private static int getSizeTableIndex(int size) {
         for (int low = 0, high = SIZE_TABLE.length - 1; ; ) {
@@ -90,13 +94,13 @@ public class AdaptiveOutputBufAllocator {
     }
 
     /** 单例 */
-    public static final AdaptiveOutputBufAllocator INSTANCE = new AdaptiveOutputBufAllocator();
+    public static final AdaptiveByteBufAllocator DEFAULT = new AdaptiveByteBufAllocator();
 
     /** 大于最小分配字节数的最小index */
     private final int minIndex;
     /** 大于最大分配字节数的最小index */
     private final int maxIndex;
-    /** 大于初始分配字节数的最小index */
+    /** 初始分配字节数 */
     private final int initial;
 
     /**
@@ -104,7 +108,7 @@ public class AdaptiveOutputBufAllocator {
      * parameters, the expected buffer size starts from {@code 512}, does not
      * go down below {@code 64}, and does not go up above {@code 524288}.
      */
-    private AdaptiveOutputBufAllocator() {
+    private AdaptiveByteBufAllocator() {
         this(DEFAULT_MINIMUM, DEFAULT_INITIAL, DEFAULT_MAXIMUM);
     }
 
@@ -115,7 +119,7 @@ public class AdaptiveOutputBufAllocator {
      * @param initial the initial buffer size when no feedback was received
      * @param maximum the inclusive upper bound of the expected buffer size
      */
-    public AdaptiveOutputBufAllocator(int minimum, int initial, int maximum) {
+    public AdaptiveByteBufAllocator(int minimum, int initial, int maximum) {
         if (minimum <= 0) {
             throw new IllegalArgumentException("minimum: " + minimum);
         }
@@ -126,19 +130,8 @@ public class AdaptiveOutputBufAllocator {
             throw new IllegalArgumentException("maximum: " + maximum);
         }
 
-        int minIndex = getSizeTableIndex(minimum);
-        if (SIZE_TABLE[minIndex] < minimum) {
-            this.minIndex = minIndex + 1;
-        } else {
-            this.minIndex = minIndex;
-        }
-
-        int maxIndex = getSizeTableIndex(maximum);
-        if (SIZE_TABLE[maxIndex] > maximum) {
-            this.maxIndex = maxIndex - 1;
-        } else {
-            this.maxIndex = maxIndex;
-        }
+        minIndex = getSizeTableIndex(minimum);
+        maxIndex = getSizeTableIndex(maximum);
 
         this.initial = initial;
     }
@@ -148,10 +141,6 @@ public class AdaptiveOutputBufAllocator {
     }
 
     //-----------------
-
-    /**
-     * 分配给每个netty io线程单独使用的predictor
-     */
     public interface Handle {
 
         /**
@@ -164,7 +153,7 @@ public class AdaptiveOutputBufAllocator {
          * Similar to {@link #allocate(ByteBufAllocator)} except that it does not allocate anything but just tells the
          * capacity.
          */
-        int guess();
+        int predict();
 
         /**
          * Records the actual number of wrote bytes in the previous write operation so that the allocator allocates
@@ -176,23 +165,20 @@ public class AdaptiveOutputBufAllocator {
     }
 
     private static final class HandleImpl implements Handle {
-        /** 最小index */
+        /** 最小字节数index */
         private final int minIndex;
-        /** 最大index */
+        /** 最大字节数index */
         private final int maxIndex;
         /**
-         * 当前index
-         * Single IO thread read/write
+         * 当前index, 线程本地读写
          */
         private int index;
         /**
-         * 下次分配字节数
-         * Single IO thread read/write, other thread read
+         * 下次分配字节数, 线程本地读写, 其他线程只能读
          */
         private volatile int nextAllocateBufSize;
         /**
-         * 本次是否需要马上减少index
-         * Single IO thread read/write
+         * 本次是否需要马上减少字节数index, 线程本地读写
          */
         private boolean decreaseNow;
 
@@ -200,23 +186,26 @@ public class AdaptiveOutputBufAllocator {
             this.minIndex = minIndex;
             this.maxIndex = maxIndex;
 
+            //初始分配字节数index
             index = getSizeTableIndex(initial);
             nextAllocateBufSize = SIZE_TABLE[index];
         }
 
         @Override
         public ByteBuf allocate(ByteBufAllocator alloc) {
-            return alloc.buffer(guess());
+            //自适应分配heap or direct ByteBuf
+            return alloc.buffer(predict());
         }
 
         @Override
-        public int guess() {
+        public int predict() {
             return nextAllocateBufSize;
         }
 
         @Override
         public void record(int actualWroteBytes) {
             if (actualWroteBytes <= SIZE_TABLE[Math.max(0, index - INDEX_DECREMENT - 1)]) {
+                //拿bytes size表[index - INDEX_DECREMENT - 1]比较, 但index仅仅减少INDEX_DECREMENT, 是为了缓慢减少分配字节数, 不太激进, 预防低谷
                 if (decreaseNow) {
                     //马上减少index, 下次分配更少字节数
                     index = Math.max(index - INDEX_DECREMENT, minIndex);
