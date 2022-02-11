@@ -7,6 +7,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.transport.netty.estimator.MessageSizeEstimatorImpl;
+import org.kin.transport.netty.utils.ChannelUtils;
+import org.kin.transport.netty.utils.EventLoopGroupUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,13 +57,13 @@ public class Server extends ServerConnection {
         Preconditions.checkArgument(channelHandlerInitializer != null);
 
         //一半的CPU用于selector
-        this.bossGroup = NettyUtils.getEventLoopGroup(2);
+        this.bossGroup = EventLoopGroupUtils.getAdaptiveEventLoopGroup(2);
         //默认2倍cpu
-        this.workerGroup = NettyUtils.getEventLoopGroup();
+        this.workerGroup = EventLoopGroupUtils.getAdaptiveEventLoopGroup();
 
         //配置bootstrap
         ServerBootstrap bootstrap = new ServerBootstrap();
-        bootstrap.group(this.bossGroup, this.workerGroup).channel(NettyUtils.getServerChannelClass());
+        bootstrap.group(this.bossGroup, this.workerGroup).channel(ChannelUtils.getAdaptiveServerChannelClass());
 
         for (Map.Entry<ChannelOption, Object> entry : selectorOptions.entrySet()) {
             bootstrap.option(entry.getKey(), entry.getValue());

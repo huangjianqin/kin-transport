@@ -8,6 +8,8 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.transport.netty.estimator.MessageSizeEstimatorImpl;
+import org.kin.transport.netty.utils.ChannelUtils;
+import org.kin.transport.netty.utils.EventLoopGroupUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,10 +55,10 @@ public class Client<MSG> extends ClientConnection {
         Preconditions.checkArgument(channelOptions != null);
         Preconditions.checkArgument(channelHandlerInitializer != null);
 
-        group = NettyUtils.getEventLoopGroup();
+        group = EventLoopGroupUtils.getAdaptiveEventLoopGroup();
 
         Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(group).channel(NettyUtils.getChannelClass());
+        bootstrap.group(group).channel(ChannelUtils.getAdaptiveChannelClass());
 
         bootstrap.option(ChannelOption.MESSAGE_SIZE_ESTIMATOR, MessageSizeEstimatorImpl.INSTANCE);
         for (Map.Entry<ChannelOption, Object> entry : channelOptions.entrySet()) {

@@ -6,7 +6,7 @@ package org.kin.transport.netty.utils;
  * @author huangjianqin
  * @date 2021/12/8
  */
-public interface SystemProperties {
+public interface NettyProperties {
     /**
      * the number of flushes after which an explicit flush will be done
      * flush操作后多少次flush才是真正一次flush
