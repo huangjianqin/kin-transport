@@ -17,14 +17,17 @@ package org.kin.transport.netty.utils;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import org.kin.framework.utils.Maths;
+import org.kin.framework.utils.SysUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.kin.transport.netty.utils.NettySysProperties.*;
+
+
 /**
  * 支持预测下次分配{@link ByteBuf}时大小, 减少编解码, 序列化过程中, 扩容而带来的额外性能开销
- * <p>
- * Forked from <a href="https://github.com/fengjiachun/Jupiter">Jupiter</a>.
  *
  * @author huangjianqin
  * @date 2021/11/29
@@ -38,25 +41,50 @@ public class AdaptiveByteBufAllocator {
     private static final int DEFAULT_MAXIMUM = 524288;
 
     /** index增量 */
-    private static final int INDEX_INCREMENT = 4;
+    private static final int INDEX_INCREMENT = SysUtils.getIntSysProperty(KIN_NETTY_ADAPTIVE_ALLOCATOR_INDEX_INCREMENT, 4);
     /** index减量 */
-    private static final int INDEX_DECREMENT = 1;
+    private static final int INDEX_DECREMENT = SysUtils.getIntSysProperty(KIN_NETTY_ADAPTIVE_ALLOCATOR_INDEX_DECREMENT, 1);
 
     /** bytes size表 */
     private static final int[] SIZE_TABLE;
 
     static {
         List<Integer> sizeTable = new ArrayList<>();
-        int step = 16;
-        int threshold = 512;
-        for (int i = step; i < threshold; i += step) {
-            //16 32 64 ... 496
-            sizeTable.add(i);
+        //默认8KB, 刚好是netty page
+        int threshold = Maths.round2Power2(SysUtils.getIntSysProperty(KIN_NETTY_ADAPTIVE_ALLOCATOR_THRESHOLD, 8192));
+
+        //参考SizeClasses
+        //power2基数, 即16
+        int base = 3;
+        //初始16bit
+        int size = 2 << base;
+        //初始16bit
+        int baseSize = 2 << base;
+
+        //第0组组内元素相差16
+        for (int i = 0; i < 3; i++) {
+            sizeTable.add(size);
+            size += baseSize;
+        }
+        sizeTable.add(size);
+        size += baseSize;
+
+        //第1组组内元素相差16, 第二组32.....
+        while (size <= threshold) {
+            for (int i = 0; i < 3; i++) {
+                sizeTable.add(size);
+                size += baseSize;
+            }
+            sizeTable.add(size);
+
+            base++;
+            baseSize = 2 << base;
+            size += baseSize;
         }
 
+        //超过threshold之后, double增长
         // lgtm [java/constant-comparison]
-        for (int i = threshold; i > 0; i <<= 1) {
-            //512 1024 4096 8192....
+        for (int i = threshold << 1; i > 0; i <<= 1) {
             sizeTable.add(i);
         }
 

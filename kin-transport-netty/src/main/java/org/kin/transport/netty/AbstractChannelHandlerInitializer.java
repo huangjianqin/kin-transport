@@ -6,12 +6,13 @@ import io.netty.handler.flush.FlushConsolidationHandler;
 import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.handler.ChannelProtocolHandler;
 import org.kin.transport.netty.handler.TransportProtocolCodec;
-import org.kin.transport.netty.utils.NettyProperties;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import static org.kin.transport.netty.utils.NettySysProperties.KIN_NETTY_EXPLICIT_FLUSH_AFTER_FLUSHES;
 
 /**
  * 定义 netty channel handler 初始化逻辑抽象
@@ -50,7 +51,7 @@ public abstract class AbstractChannelHandlerInitializer<IN, MSG, OUT, O extends 
         Preconditions.checkNotNull(protocolHandler, "protocolHandler must not null");
 
         //the number of flushes after which an explicit flush will be done
-        int explicitFlushAfterFlushes = SysUtils.getIntSysProperty(NettyProperties.KIN_TRANSPORT_NETTY_EXPLICIT_FLUSH_AFTER_FLUSHES, 64);
+        int explicitFlushAfterFlushes = SysUtils.getIntSysProperty(KIN_NETTY_EXPLICIT_FLUSH_AFTER_FLUSHES, 64);
 
         List<ChannelHandler> channelHandlers = new ArrayList<>();
         channelHandlers.add(new FlushConsolidationHandler(explicitFlushAfterFlushes, true));

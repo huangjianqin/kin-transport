@@ -12,12 +12,12 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class AdaptiveByteBufAllocatorTest {
     public static void main(String[] args) {
-        AdaptiveByteBufAllocator.Handle handle = new AdaptiveByteBufAllocator(64, 512, 512 * 1024).newHandle();
+        AdaptiveByteBufAllocator.Handle handle = AdaptiveByteBufAllocator.DEFAULT.newHandle();
         PooledByteBufAllocator allocator = PooledByteBufAllocator.DEFAULT;
 
-        //16M
+        //1KB
         int bound = 1024;
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 100; i++) {
             ByteBuf byteBuf = handle.allocate(allocator);
             int size = ThreadLocalRandom.current().nextInt(bound);
             System.out.println(String.format("%d: size:%s, capacity:%s", i, ByteUnit.format(size), ByteUnit.format(byteBuf.writableBytes())));
