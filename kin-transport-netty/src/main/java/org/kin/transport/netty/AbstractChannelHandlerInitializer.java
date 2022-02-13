@@ -55,7 +55,8 @@ public abstract class AbstractChannelHandlerInitializer<IN, MSG, OUT, O extends 
         int explicitFlushAfterFlushes = SysUtils.getIntSysProperty(KIN_NETTY_EXPLICIT_FLUSH_AFTER_FLUSHES, 64);
 
         List<ChannelHandler> channelHandlers = new ArrayList<>();
-        channelHandlers.add(new FlushConsolidationHandler(explicitFlushAfterFlushes, true));
+        //设置consolidateWhenNoReadInProgress为false, 是因为会延迟server端主动send message, 这是很致命的, 比如像心跳这种
+        channelHandlers.add(new FlushConsolidationHandler(explicitFlushAfterFlushes));
         channelHandlers.addAll(firstHandlers());
         channelHandlers.add(new TransportProtocolCodec<>(transportProtocolTransfer));
         channelHandlers.add(new ChannelProtocolHandler<>(protocolHandler));
