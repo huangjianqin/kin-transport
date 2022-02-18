@@ -33,7 +33,7 @@ public class ProtocolStatisicService implements Closeable, LoggerOprs {
     private final Future<?> future;
 
     static {
-        JvmCloseCleaner.DEFAULT().add(INSTANCE);
+        JvmCloseCleaner.instance().add(INSTANCE);
     }
 
     public static ProtocolStatisicService instance() {

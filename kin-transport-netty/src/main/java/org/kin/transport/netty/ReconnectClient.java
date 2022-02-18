@@ -31,7 +31,7 @@ public final class ReconnectClient<MSG> extends Client<MSG> implements LoggerOpr
                     2, "client-reconnect-scheduler");
 
     static {
-        JvmCloseCleaner.DEFAULT().add(RECONNECT_EXECUTORS::shutdownNow);
+        JvmCloseCleaner.instance().add(RECONNECT_EXECUTORS::shutdownNow);
     }
 
     /** 重连的TransportOption */
