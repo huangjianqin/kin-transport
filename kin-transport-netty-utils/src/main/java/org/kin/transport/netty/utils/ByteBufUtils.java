@@ -60,7 +60,9 @@ public final class ByteBufUtils {
         }
 
         int position = nioBuffer.position();
-        nioBuffer = newNioByteBuffer(byteBuf, minWritableBytes);
+        //这里需要position + minWritableBytes, 是因为改动底层nioBuffer, 上层byteBuf writer index并不会发生变化,
+        //加上position, 才能反应真实writer index
+        nioBuffer = newNioByteBuffer(byteBuf, position + minWritableBytes);
         //回到之前write index
         nioBuffer.position(position);
         return nioBuffer;
