@@ -18,7 +18,7 @@ public abstract class AbstractRestTemplate implements RestTemplate {
     protected static final List<MessageConverter> CONVERTERS;
 
     static {
-        CONVERTERS = Collections.unmodifiableList(ExtensionLoader.common().getExtensions(MessageConverter.class));
+        CONVERTERS = Collections.unmodifiableList(ExtensionLoader.getExtensions(MessageConverter.class));
     }
 
     /**
