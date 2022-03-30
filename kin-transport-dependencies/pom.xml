@@ -11,7 +11,8 @@
 
     <properties>
         <netty.version>4.1.54.Final</netty.version>
-        <kin-framework.version>0.1.0.0</kin-framework.version>
+        <kin-framework-java.version>0.1.0.0</kin-framework-java.version>
+        <kin-framework-dependencies.version>0.1.0.0</kin-framework-dependencies.version>
         <httpclient.version>4.5.9</httpclient.version>
         <httpasyncclient.version>4.1.4</httpasyncclient.version>
         <fastjson.version>1.2.58</fastjson.version>
@@ -31,16 +32,14 @@
         <dependencies>
             <dependency>
                 <groupId>org.kin</groupId>
-                <artifactId>kin-framework-bom</artifactId>
-                <version>${kin-framework.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
+                <artifactId>kin-framework-java</artifactId>
+                <version>${kin-framework-java.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.kin</groupId>
                 <artifactId>kin-framework-dependencies</artifactId>
-                <version>${kin-framework.version}</version>
+                <version>${kin-framework-dependencies.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
