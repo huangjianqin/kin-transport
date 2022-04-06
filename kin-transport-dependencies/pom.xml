@@ -10,7 +10,7 @@
     <description>kin-transport项目第三方依赖清单</description>
 
     <properties>
-        <netty.version>4.1.54.Final</netty.version>
+        <netty.version>4.1.75.Final</netty.version>
         <kin-framework-java.version>0.1.0.0</kin-framework-java.version>
         <kin-framework-dependencies.version>0.1.0.0</kin-framework-dependencies.version>
         <httpclient.version>4.5.9</httpclient.version>
