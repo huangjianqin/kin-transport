@@ -22,7 +22,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <revision>0.1.0.0</revision>
+        <revision>0.2.0.0</revision>
+        <kin-transport-dependencies.version>0.1.0.0</kin-transport-dependencies.version>
     </properties>
 
     <dependencyManagement>
@@ -30,7 +31,7 @@
             <dependency>
                 <groupId>org.kin</groupId>
                 <artifactId>kin-transport-dependencies</artifactId>
-                <version>${project.version}</version>
+                <version>${kin-transport-dependencies.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
