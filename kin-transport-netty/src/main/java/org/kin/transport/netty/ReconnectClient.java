@@ -27,8 +27,7 @@ import java.util.concurrent.TimeUnit;
 public final class ReconnectClient<MSG> extends Client<MSG> implements LoggerOprs {
     /** 重连线程池 */
     public static final ExecutionContext RECONNECT_EXECUTORS =
-            ExecutionContext.elastic(0, SysUtils.CPU_NUM, "client-reconnect",
-                    2, "client-reconnect-scheduler");
+            ExecutionContext.elastic(0, SysUtils.CPU_NUM, "client-reconnect", 2);
 
     static {
         JvmCloseCleaner.instance().add(RECONNECT_EXECUTORS::shutdownNow);

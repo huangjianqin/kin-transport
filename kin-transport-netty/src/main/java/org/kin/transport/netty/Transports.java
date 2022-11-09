@@ -1,7 +1,6 @@
 package org.kin.transport.netty;
 
 import org.kin.transport.netty.socket.SocketTransports;
-import org.kin.transport.netty.udp.UdpTransports;
 import org.kin.transport.netty.websocket.WebsocketTransports;
 
 /**
@@ -16,13 +15,6 @@ public class Transports {
      */
     public static SocketTransports socket() {
         return SocketTransports.INSTANCE;
-    }
-
-    /**
-     * udp transport 配置
-     */
-    public static UdpTransports datagram() {
-        return UdpTransports.INSTANCE;
     }
 
     /**
