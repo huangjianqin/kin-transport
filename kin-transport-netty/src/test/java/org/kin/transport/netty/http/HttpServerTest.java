@@ -8,11 +8,11 @@ import org.kin.transport.netty.http.server.HttpServerTransport;
  * @date 2020/9/1
  */
 public class HttpServerTest {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         HttpServer httpServer = HttpServerTransport.create()
                 .mapping(new PrintController())
                 .bind();
         Runtime.getRuntime().addShutdownHook(new Thread(httpServer::close));
-        httpServer.block();
+        Thread.currentThread().join();
     }
 }

@@ -19,17 +19,6 @@ public final class HttpServer implements Closeable {
         disposableMono.doOnNext(d -> disposable = d).subscribe();
     }
 
-    /**
-     * 阻塞
-     */
-    public void block() {
-        try {
-            Thread.currentThread().join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Override
     public void close() {
         if (Objects.isNull(disposable)) {

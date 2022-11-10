@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
+import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.server.HttpServer;
 import reactor.netty.resources.LoopResources;
 
@@ -171,6 +172,25 @@ public final class HttpServerTransport extends ServerTransport {
      * @param port server端口
      */
     public org.kin.transport.netty.http.server.HttpServer bind(int port) {
+        return bind(port, HttpProtocol.HTTP11);
+    }
+
+    /**
+     * http server绑定端口
+     *
+     * @param port server端口
+     */
+    public org.kin.transport.netty.http.server.HttpServer bind2(int port) {
+        return bind(port, HttpProtocol.H2);
+    }
+
+    /**
+     * http server绑定端口
+     * 全异步
+     *
+     * @param port server端口
+     */
+    public org.kin.transport.netty.http.server.HttpServer bind(int port, HttpProtocol protocol) {
         reactor.netty.http.server.HttpServer nettyHttpServer = HttpServer.create();
 
         //要覆盖nettyHttpServer, 其方法返回的不是this, 是新实例
@@ -179,6 +199,7 @@ public final class HttpServerTransport extends ServerTransport {
         }
 
         nettyHttpServer = nettyHttpServer.port(port)
+                .protocol(protocol)
                 .route(new HttpRoutesAcceptor(url2Handler, interceptors))
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
