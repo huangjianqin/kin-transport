@@ -1,19 +1,18 @@
 package org.kin.transport.netty.http;
 
-import org.kin.transport.netty.http.server.KinHttpServer;
-
-import java.net.InetSocketAddress;
+import org.kin.transport.netty.http.server.HttpServer;
+import org.kin.transport.netty.http.server.HttpServerTransport;
 
 /**
  * @author huangjianqin
  * @date 2020/9/1
  */
 public class HttpServerTest {
-    public static void main(String[] args) throws InterruptedException {
-        InetSocketAddress address = new InetSocketAddress(8880);
-        KinHttpServer.builder()
-                .mappingServlet("/base", PrintServlet.class)
-                .mappingServlet(new PrintController())
-                .bind(address);
+    public static void main(String[] args) {
+        HttpServer httpServer = HttpServerTransport.create()
+                .mapping(new PrintController())
+                .bind();
+        Runtime.getRuntime().addShutdownHook(new Thread(httpServer::close));
+        httpServer.block();
     }
 }

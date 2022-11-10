@@ -3,15 +3,15 @@ package org.kin.transport.netty.http.server;
 import java.lang.annotation.*;
 
 /**
- * 从request query取参数
+ * 从request header取值
  *
  * @author huangjianqin
- * @date 2021/1/23
+ * @date 2022/11/9
  */
 @Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface RequestParam {
+public @interface RequestHeader {
     /**
      * @return 请求参数名, 默认取方法参数名
      */

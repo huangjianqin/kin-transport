@@ -1,7 +1,6 @@
 package org.kin.transport.netty.http.client;
 
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.transport.netty.http.server.ServletException;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -37,6 +36,6 @@ class RetryCallInterceptor implements Interceptor {
             }
             nowTry++;
         }
-        throw new ServletException(String.format("http call fail with retry %s times", nowTry));
+        throw new RuntimeException(String.format("http call fail with retry %s times", nowTry));
     }
 }

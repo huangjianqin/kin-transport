@@ -75,7 +75,7 @@
             <artifactId>commons-compress</artifactId>
         </dependency>
 
-        <!-- 字节码技术 -->
+        <!-- 字节码技术 todo 移除 -->
         <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
@@ -97,6 +97,19 @@
             <groupId>org.kin</groupId>
             <artifactId>kin-transport-http-common</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <!-- byte buddy(基于ASM) -->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>
