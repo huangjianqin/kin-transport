@@ -11,8 +11,11 @@ public class HttpServerTest {
     public static void main(String[] args) throws InterruptedException {
         HttpServer httpServer = HttpServerTransport.create()
                 .mapping(new PrintController())
+                .interceptor(new LimitInterceptor())
+                .interceptor(new CommonInterceptor())
                 .bind();
         Runtime.getRuntime().addShutdownHook(new Thread(httpServer::close));
+
         Thread.currentThread().join();
     }
 }

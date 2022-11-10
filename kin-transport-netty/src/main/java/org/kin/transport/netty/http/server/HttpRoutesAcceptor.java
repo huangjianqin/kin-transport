@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.netty.NettyOutbound;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 import reactor.netty.http.server.HttpServerRoutes;
@@ -99,6 +100,12 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
         if (Objects.isNull(publisher)) {
             //request handler不返回值
             publisher = Mono.empty();
+        }
+
+        if (publisher instanceof NettyOutbound) {
+            //如果interceptor返回response send的返回值, 那么需要做一次转换
+            //也算是兜底, 防止send之后没有then, 那么就直接返回NettyOutbound了
+            publisher = ((NettyOutbound) publisher).then();
         }
 
         Exception finalException = exception;

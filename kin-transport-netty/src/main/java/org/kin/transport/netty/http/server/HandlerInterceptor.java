@@ -28,9 +28,13 @@ public interface HandlerInterceptor {
 
     /**
      * http request handler执行后逻辑处理
-     * @param request   http request
-     * @param response  http response
-     * @param handler   http request handler
+     * <p>
+     * 注意: response仅仅支持send一次, 如果在postHandle方法中调用send相关方法并且subscribe, 那么该response就会执行响应,
+     * 结果是导致{@link HttpRoutesAcceptor}的global handler中postHandle之后定义的逻辑都无法执行
+     *
+     * @param request  http request
+     * @param response http response
+     * @param handler  http request handler
      */
     default void postHandle(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler) {
     }
