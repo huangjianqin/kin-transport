@@ -49,6 +49,7 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
             List<RequestMethod> methods = handler.methods();
 
             log.info("find mapped [url={}, methods={}] onto {}", url, methods, handler);
+            //支持url模糊匹配, 以及/a/{param} path参数匹配
             for (RequestMethod requestMethod : methods) {
                 switch (requestMethod) {
                     case PUT:
