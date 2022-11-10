@@ -8,7 +8,6 @@ import java.util.Objects;
 
 /**
  * http server transport启动后的返回值, 用于外部关闭http server
- *
  * @author huangjianqin
  * @date 2020/9/10
  */

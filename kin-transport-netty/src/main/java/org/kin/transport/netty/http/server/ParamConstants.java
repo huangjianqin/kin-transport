@@ -9,7 +9,6 @@ package org.kin.transport.netty.http.server;
 interface ParamConstants {
     /**
      * 参考spring, {@link RequestParam}和{@link RequestHeader}默认值, 避开使用null
-     *
      * @see RequestParam
      * @see RequestHeader
      */

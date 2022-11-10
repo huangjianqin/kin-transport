@@ -4,7 +4,6 @@ import java.lang.annotation.*;
 
 /**
  * 从request body取参数
- *
  * @author huangjianqin
  * @date 2022/11/9
  */
