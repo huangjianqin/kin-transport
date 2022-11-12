@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-transport-netty-common</artifactId>
+            <artifactId>kin-transport-common</artifactId>
             <version>${project.version}</version>
         </dependency>
 

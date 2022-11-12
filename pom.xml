@@ -13,7 +13,7 @@
         <module>kin-transport-bom</module>
         <module>kin-transport-http-common</module>
         <module>kin-transport-http</module>
-        <module>kin-transport-netty-common</module>
+        <module>kin-transport-common</module>
     </modules>
     <packaging>pom</packaging>
 
