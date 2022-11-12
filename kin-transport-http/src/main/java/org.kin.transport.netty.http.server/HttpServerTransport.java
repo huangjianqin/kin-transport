@@ -10,7 +10,6 @@ import org.kin.framework.proxy.Proxys;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.ServerTransport;
-import org.kin.transport.netty.ServerTransportCustomizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -37,8 +36,6 @@ public final class HttpServerTransport extends ServerTransport {
     private final Map<String, HttpRequestHandler> url2Handler = new HashMap<>();
     /** http request interceptors */
     private final List<HandlerInterceptor> interceptors = new ArrayList<>();
-    /** 自定义http server transport配置 */
-    private final Set<ServerTransportCustomizer> serverTransportCustomizers = new HashSet<>();
     /** 业务线程数 */
     private int threadCap = SysUtils.CPU_NUM * 2 + 1;
     /** 最大等待处理任务数 */
@@ -164,15 +161,6 @@ public final class HttpServerTransport extends ServerTransport {
     }
 
     /**
-     * 自定义http server transport配置
-     */
-    public HttpServerTransport serverTransportCustomizer(ServerTransportCustomizer customizer) {
-        Preconditions.checkNotNull(customizer);
-        serverTransportCustomizers.add(customizer);
-        return this;
-    }
-
-    /**
      * 业务线程数
      */
     public HttpServerTransport threadCap(int threadCap) {
@@ -265,12 +253,7 @@ public final class HttpServerTransport extends ServerTransport {
                 //自定义event loop
                 .runOn(LoopResources.create("kin-http-server", 2, SysUtils.CPU_NUM * 2, false));
 
-        if (CollectionUtils.isNonEmpty(serverTransportCustomizers)) {
-            //外部自定义reactor netty server transport
-            for (ServerTransportCustomizer customizer : serverTransportCustomizers) {
-                nettyHttpServer = customizer.custom(nettyHttpServer);
-            }
-        }
+        customServerTransport(nettyHttpServer);
 
         Mono<DisposableServer> disposableMono =
                 nettyHttpServer.bind()

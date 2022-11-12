@@ -59,56 +59,60 @@ public abstract class Transport {
         return ssl;
     }
 
-    public Transport ssl(boolean ssl) {
+    @SuppressWarnings("unchecked")
+    public <T extends Transport> T ssl(boolean ssl) {
         this.ssl = ssl;
-        return this;
+        return (T) this;
     }
 
     public File getCertFile() {
         return certFile;
     }
 
-    public Transport certFile(String certFilePath) {
+    public <T extends Transport> T certFile(String certFilePath) {
         return certFile(new File(certFilePath));
     }
 
-    public Transport certFile(File certFile) {
+    @SuppressWarnings("unchecked")
+    public <T extends Transport> T certFile(File certFile) {
         if (!certFile.exists()) {
             throw new IllegalArgumentException("certFile not exists");
         }
         this.certFile = certFile;
-        return this;
+        return (T) this;
     }
 
     public File getCertKeyFile() {
         return certKeyFile;
     }
 
-    public Transport certKeyFile(String certKeyFilePath) {
+    public <T extends Transport> T certKeyFile(String certKeyFilePath) {
         return certKeyFile(new File(certKeyFilePath));
     }
 
-    public Transport certKeyFile(File certKeyFile) {
+    @SuppressWarnings("unchecked")
+    public <T extends Transport> T certKeyFile(File certKeyFile) {
         if (!certKeyFile.exists()) {
             throw new IllegalArgumentException("certKeyFile not exists");
         }
         this.certKeyFile = certKeyFile;
-        return this;
+        return (T) this;
     }
 
     public File getCaFile() {
         return caFile;
     }
 
-    public Transport caFile(String caFilePath) {
+    public <T extends Transport> T caFile(String caFilePath) {
         return caFile(new File(caFilePath));
     }
 
-    public Transport caFile(File caFile) {
+    @SuppressWarnings("unchecked")
+    public <T extends Transport> T caFile(File caFile) {
         if (!caFile.exists()) {
             throw new IllegalArgumentException("caFile not exists");
         }
         this.caFile = caFile;
-        return this;
+        return (T) this;
     }
 }
