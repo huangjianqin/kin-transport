@@ -15,6 +15,8 @@ import reactor.netty.http.server.HttpServerResponse;
 public class LimitInterceptor implements HandlerInterceptor {
     @Override
     public Publisher<Void> preHandle(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler) {
+        System.out.println(Thread.currentThread().getName());
+        System.out.println("pre http request handle");
         String limit = request.requestHeaders().get("limit");
         if (StringUtils.isNotBlank(limit) && Boolean.parseBoolean(limit)) {
             return response.sendString(Mono.just("server limit"));

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 
@@ -92,43 +93,47 @@ public final class DefaultHttpRequestHandler implements HttpRequestHandler {
     @Override
     public Publisher<Void> doRequest(HttpServerRequest request, HttpServerResponse response) {
         //目前市面上大多数都是用get post put delete等http method, 所以把request body当成json 处理
-        return request.receive().asString(StandardCharsets.UTF_8).switchIfEmpty(Mono.just("")).flatMap(body -> {
-            Map<String, String> params = new HashMap<>(4);
-            // /test/{param1}/{param2}
-            Map<String, String> uirParams = request.params();
-            if (Objects.nonNull(uirParams)) {
-                params.putAll(uirParams);
-            }
-            params.putAll(getQueryParams(request.uri()));
-            try {
-                Object ret = invoker.invoke(fillParams(request, response, params, body));
-                if (allowCors) {
-                    //允许跨域
-                    response.addHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, "*");
-                    response.addHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "*");
-                    response.addHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-                }
+        return Mono.deferContextual(context -> {
+            Scheduler scheduler = context.get(Scheduler.class);
 
-                //返回值不是Flux或者Mono, 统一转换成Mono
-                Publisher<?> retPublisher;
-                if (Objects.isNull(ret)) {
-                    retPublisher = Mono.empty();
-                } else if (ret instanceof Flux || ret instanceof Mono) {
-                    retPublisher = (Publisher<?>) ret;
-                } else {
-                    retPublisher = Mono.just(ret);
+            return request.receive().asString(StandardCharsets.UTF_8).switchIfEmpty(Mono.just("")).publishOn(scheduler).flatMap(body -> {
+                Map<String, String> params = new HashMap<>(4);
+                // /test/{param1}/{param2}
+                Map<String, String> uirParams = request.params();
+                if (Objects.nonNull(uirParams)) {
+                    params.putAll(uirParams);
                 }
+                params.putAll(getQueryParams(request.uri()));
+                try {
+                    Object ret = invoker.invoke(fillParams(request, response, params, body));
+                    if (allowCors) {
+                        //允许跨域
+                        response.addHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, "*");
+                        response.addHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "*");
+                        response.addHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+                    }
 
-                if (retPublisher instanceof Flux) {
-                    return response.sendString(((Flux<?>) retPublisher).map(JSON::write));
-                } else {
-                    return response.sendString(((Mono<?>) retPublisher).map(JSON::write));
+                    //返回值不是Flux或者Mono, 统一转换成Mono
+                    Publisher<?> retPublisher;
+                    if (Objects.isNull(ret)) {
+                        retPublisher = Mono.empty();
+                    } else if (ret instanceof Flux || ret instanceof Mono) {
+                        retPublisher = (Publisher<?>) ret;
+                    } else {
+                        retPublisher = Mono.just(ret);
+                    }
+
+                    if (retPublisher instanceof Flux) {
+                        return response.sendString(((Flux<?>) retPublisher).map(JSON::write));
+                    } else {
+                        return response.sendString(((Mono<?>) retPublisher).map(JSON::write));
+                    }
+                } catch (Exception e) {
+                    log.error("", e);
+                    response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+                    return response.sendString(Mono.just(ExceptionUtils.getExceptionDesc(e)));
                 }
-            } catch (Exception e) {
-                log.error("", e);
-                response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-                return response.sendString(Mono.just(ExceptionUtils.getExceptionDesc(e)));
-            }
+            }).then();
         });
     }
 

@@ -37,6 +37,10 @@ public final class HttpServerTransport extends ServerTransport {
     private final List<HandlerInterceptor> interceptors = new ArrayList<>();
     /** 自定义http server transport配置 */
     private final Set<ServerTransportCustomizer> serverTransportCustomizers = new HashSet<>();
+    /** 业务线程数 */
+    private int threadCap = SysUtils.CPU_NUM * 2 + 1;
+    /** 最大等待处理任务数 */
+    private int queueCap = Integer.MAX_VALUE;
 
     public static HttpServerTransport create() {
         return new HttpServerTransport();
@@ -160,6 +164,22 @@ public final class HttpServerTransport extends ServerTransport {
     }
 
     /**
+     * 业务线程数
+     */
+    public HttpServerTransport threadCap(int threadCap) {
+        this.threadCap = threadCap;
+        return this;
+    }
+
+    /**
+     * 最大等待处理任务数
+     */
+    public HttpServerTransport queueCap(int queueCap) {
+        this.queueCap = queueCap;
+        return this;
+    }
+
+    /**
      * http server绑定经典端口
      */
     public org.kin.transport.netty.http.server.HttpServer bind() {
@@ -200,7 +220,7 @@ public final class HttpServerTransport extends ServerTransport {
 
         nettyHttpServer = nettyHttpServer.port(port)
                 .protocol(protocol)
-                .route(new HttpRoutesAcceptor(url2Handler, interceptors))
+                .route(new HttpRoutesAcceptor(url2Handler, interceptors, threadCap, queueCap))
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.SO_REUSEADDR, true)

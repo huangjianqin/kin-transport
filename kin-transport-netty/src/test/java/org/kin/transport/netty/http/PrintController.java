@@ -1,9 +1,11 @@
 package org.kin.transport.netty.http;
 
 import org.kin.transport.netty.http.server.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +19,14 @@ import java.util.Map;
 public class PrintController {
     @GetMapping("/html")
     public Mono<String> getHtml() {
+        System.out.println(Thread.currentThread().getName());
         return Mono.just("test.html");
+    }
+
+    @GetMapping("/list")
+    public Flux<String> getList() {
+        System.out.println(Thread.currentThread().getName());
+        return Flux.fromIterable(Arrays.asList("1", "2", "3", "4"));
     }
 
     @GetMapping("/query")

@@ -1,16 +1,20 @@
 package org.kin.transport.netty.http.server;
 
+import com.google.common.base.Preconditions;
+import org.kin.framework.utils.CollectionUtils;
+import org.kin.framework.utils.SysUtils;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 import reactor.netty.NettyOutbound;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 import reactor.netty.http.server.HttpServerRoutes;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -28,17 +32,31 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
     private final Map<String, HttpRequestHandler> url2Handler;
     /** http request 拦截器 */
     private final List<HandlerInterceptor> interceptors;
+    /** http request处理线程池, 减少对netty io的影响 */
+    private final Scheduler scheduler;
 
     HttpRoutesAcceptor(Map<String, HttpRequestHandler> url2Handler) {
-        //copy, 防止外部使用transport进行修改
-        this.url2Handler = new HashMap<>(url2Handler);
-        this.interceptors = Collections.emptyList();
+        this(url2Handler, null);
     }
 
     HttpRoutesAcceptor(Map<String, HttpRequestHandler> url2Handler, List<HandlerInterceptor> interceptors) {
+        this(url2Handler, interceptors, SysUtils.CPU_NUM * 2 + 1, Integer.MAX_VALUE);
+    }
+
+    HttpRoutesAcceptor(Map<String, HttpRequestHandler> url2Handler, List<HandlerInterceptor> interceptors,
+                       int threadCap, int queueCap) {
+        Preconditions.checkArgument(threadCap > 0, "threadCap must be greater than 0");
+        Preconditions.checkArgument(queueCap > 0, "queueCap must be greater than 0");
+
         //copy, 防止外部使用transport进行修改
         this.url2Handler = new HashMap<>(url2Handler);
-        this.interceptors = new ArrayList<>(interceptors);
+        if (CollectionUtils.isNonEmpty(interceptors)) {
+            this.interceptors = new ArrayList<>(interceptors);
+        } else {
+            this.interceptors = Collections.emptyList();
+        }
+        this.scheduler = Schedulers.newBoundedElastic(threadCap, queueCap, "kin-http-server-bs", 300);
+
     }
 
     @Override
@@ -73,52 +91,47 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
     }
 
     private Publisher<Void> createGlobalHandler(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler) {
-        Publisher<Void> publisher = null;
+        return Mono.just(1).publishOn(scheduler).flatMap(v -> createGlobalHandler0(request, response, handler));
+    }
+
+    private Mono<Void> createGlobalHandler0(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler) {
+        Publisher<Void> handleResult = null;
         for (HandlerInterceptor interceptor : interceptors) {
-            publisher = interceptor.preHandle(request, response, handler);
-            if (Objects.nonNull(publisher)) {
+            handleResult = interceptor.preHandle(request, response, handler);
+            if (Objects.nonNull(handleResult)) {
                 break;
             }
         }
 
-        Exception exception = null;
-        if (Objects.isNull(publisher)) {
-            //pre handle没有拦截请求
-            try {
-                publisher = handler.doRequest(request, response);
-            } catch (Exception e) {
-                exception = e;
-            }
-            if (Objects.isNull(exception)) {
-                //request handler执行没有异常才执行post handle
-                for (HandlerInterceptor interceptor : interceptors) {
-                    interceptor.postHandle(request, response, handler);
-                }
-            }
+        //是否pre handle拦截请求
+        boolean latchOrNot = Objects.nonNull(handleResult);
+        if (!latchOrNot) {
+            //pre handle没有拦截
+            handleResult = handler.doRequest(request, response);
         }
 
-        if (Objects.isNull(publisher)) {
-            //request handler不返回值
-            publisher = Mono.empty();
-        }
-
-        if (publisher instanceof NettyOutbound) {
-            //如果interceptor返回response send的返回值, 那么需要做一次转换
+        //preHandle or handler结果转换
+        Mono<Void> real;
+        if (handleResult instanceof NettyOutbound) {
+            //如果返回response send的返回值, 那么需要做一次转换
             //也算是兜底, 防止send之后没有then, 那么就直接返回NettyOutbound了
-            publisher = ((NettyOutbound) publisher).then();
-        }
-
-        Exception finalException = exception;
-        if (publisher instanceof Flux) {
-            return ((Flux<Void>) publisher).doOnTerminate(() -> afterCompletion(request, response, handler, finalException));
+            real = ((NettyOutbound) handleResult).then();
         } else {
-            return ((Mono<Void>) publisher).doOnTerminate(() -> afterCompletion(request, response, handler, finalException));
+            if (handleResult instanceof Flux) {
+                real = ((Flux<Void>) handleResult).then();
+            } else {
+                real = (Mono<Void>) handleResult;
+            }
         }
-    }
+        //转换到业务线程处理
+        real = real.publishOn(scheduler);
 
-    private void afterCompletion(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler, @Nullable Exception e) {
-        for (HandlerInterceptor interceptor : interceptors) {
-            interceptor.afterCompletion(request, response, handler, e);
-        }
+        return real.contextWrite(context -> context.put(Scheduler.class, scheduler))
+                .doOnSuccess(v -> {
+                    //handler处理异常就会直接抛出error signal, 不会走到这里
+                    for (HandlerInterceptor interceptor : interceptors) {
+                        interceptor.postHandle(request, response, handler);
+                    }
+                });
     }
 }
