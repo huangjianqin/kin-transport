@@ -1,4 +1,9 @@
-package org.kin.transport.http;
+package org.kin.transport.http.utils;
+
+import org.kin.transport.http.FutureHttpCallback;
+import org.kin.transport.http.HttpCallback;
+import org.kin.transport.http.HttpHeaders;
+import org.kin.transport.http.HttpResponse;
 
 import java.util.Arrays;
 import java.util.Collection;

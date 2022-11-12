@@ -1,4 +1,4 @@
-package org.kin.transport.http.okhttp;
+package org.kin.transport.http.utils.okhttp;
 
 import org.kin.transport.http.HttpCallback;
 import org.kin.transport.http.HttpHeaders;

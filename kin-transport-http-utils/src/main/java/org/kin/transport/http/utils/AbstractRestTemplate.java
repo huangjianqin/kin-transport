@@ -1,6 +1,7 @@
-package org.kin.transport.http;
+package org.kin.transport.http.utils;
 
 import org.kin.framework.utils.ExtensionLoader;
+import org.kin.transport.http.HttpResponse;
 import org.kin.transport.http.converter.MessageConverter;
 
 import java.io.InputStream;

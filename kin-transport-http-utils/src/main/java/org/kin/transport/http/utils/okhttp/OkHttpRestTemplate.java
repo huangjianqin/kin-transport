@@ -1,12 +1,12 @@
-package org.kin.transport.http.okhttp;
+package org.kin.transport.http.utils.okhttp;
 
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.kin.framework.utils.JSON;
-import org.kin.transport.http.AbstractRestTemplate;
 import org.kin.transport.http.HttpCallback;
 import org.kin.transport.http.HttpHeaders;
 import org.kin.transport.http.HttpResponse;
+import org.kin.transport.http.utils.AbstractRestTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

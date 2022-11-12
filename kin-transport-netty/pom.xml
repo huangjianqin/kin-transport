@@ -13,15 +13,10 @@
     <packaging>jar</packaging>
 
     <dependencies>
-        <!-- 配置netty-->
         <dependency>
-            <groupId>io.projectreactor.netty</groupId>
-            <artifactId>reactor-netty-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.projectreactor.netty</groupId>
-            <artifactId>reactor-netty-http</artifactId>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-transport-netty-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -97,19 +92,6 @@
             <groupId>org.kin</groupId>
             <artifactId>kin-transport-http-common</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <!-- byte buddy(基于ASM) -->
-        <dependency>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy-agent</artifactId>
-            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>
