@@ -17,4 +17,10 @@ public class CommonInterceptor implements HandlerInterceptor {
         System.out.println(Thread.currentThread().getName());
         System.out.println("post http request handle");
     }
+
+    @Override
+    public void afterCompletion(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler) {
+        System.out.println(Thread.currentThread().getName());
+        System.out.println("http request complete");
+    }
 }

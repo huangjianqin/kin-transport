@@ -39,4 +39,15 @@ public interface HandlerInterceptor {
      */
     default void postHandle(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler) {
     }
+
+    /**
+     * http request处理完成后逻辑处理
+     *
+     * @param request  http request
+     * @param response http response
+     * @param handler  http request handler
+     * @param e        http request hanlder处理过程中遇到的异常
+     */
+    default void afterCompletion(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler) {
+    }
 }

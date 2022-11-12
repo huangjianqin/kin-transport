@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.kin.framework.collection.Tuple;
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.framework.utils.JSON;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,57 +91,90 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
     }
 
     private Publisher<Void> createGlobalHandler(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler) {
-        return Mono.just(1).publishOn(scheduler).flatMap(v -> createGlobalHandler0(request, response, handler));
+        return Mono.just(1)
+                //切换到业务线程处理
+                .publishOn(scheduler)
+                .flatMap(v -> createGlobalHandler0(request, response, handler));
     }
 
     private Mono<Void> createGlobalHandler0(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler) {
-        Publisher<Void> handleResult = null;
+        Publisher<Void> resultPublisher = null;
         for (HandlerInterceptor interceptor : interceptors) {
-            handleResult = interceptor.preHandle(request, response, handler);
-            if (Objects.nonNull(handleResult)) {
+            resultPublisher = interceptor.preHandle(request, response, handler);
+            if (Objects.nonNull(resultPublisher)) {
                 break;
             }
         }
 
         //是否pre handle拦截请求
-        boolean latchOrNot = Objects.nonNull(handleResult);
+        boolean latchOrNot = Objects.nonNull(resultPublisher);
         if (!latchOrNot) {
             //pre handle没有拦截
-            handleResult = handler.doRequest(request, response);
+            //本质上返回Mono<Object> or Mono<List>
+            resultPublisher = handler
+                    .doRequest(request, response)
+                    //异常, 则将reactive stream元素切换为异常实例
+                    .onErrorResume(Mono::just)
+                    .flatMap(obj -> {
+                        Throwable throwable;
+                        if (!(obj instanceof Throwable)) {
+                            //正常返回
+                            try {
+                                for (HandlerInterceptor interceptor : interceptors) {
+                                    interceptor.postHandle(request, response, handler);
+                                }
+
+                                return response.sendString(Mono.just(obj instanceof String ? obj.toString() : JSON.write(obj)), StandardCharsets.UTF_8).then();
+                            } catch (Exception e) {
+                                throwable = e;
+                            }
+                        } else {
+                            throwable = (Throwable) obj;
+                        }
+
+                        //异常处理
+                        ExceptionHandler<Throwable> exceptionHandler = getExceptionHandler(throwable);
+                        response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+                        Mono<String> errorMessage = null;
+                        if (Objects.nonNull(exceptionHandler)) {
+                            try {
+                                errorMessage = exceptionHandler.onException(request, throwable);
+                            } catch (Exception e) {
+                                //do nothing
+                            }
+                        }
+
+                        if (Objects.isNull(errorMessage)) {
+                            errorMessage = Mono.just("server encounter fatal error!!!");
+                        }
+
+                        return response.sendString(errorMessage, StandardCharsets.UTF_8).then();
+                    });
         }
 
         //preHandle or handler结果转换
-        Mono<Void> real;
-        if (handleResult instanceof NettyOutbound) {
+        Mono<Void> resultMono;
+        if (resultPublisher instanceof NettyOutbound) {
             //如果返回response send的返回值, 那么需要做一次转换
             //也算是兜底, 防止send之后没有then, 那么就直接返回NettyOutbound了
-            real = ((NettyOutbound) handleResult).then();
+            resultMono = ((NettyOutbound) resultPublisher).then();
         } else {
-            if (handleResult instanceof Flux) {
-                real = ((Flux<Void>) handleResult).then();
+            if (resultPublisher instanceof Flux) {
+                resultMono = ((Flux<Void>) resultPublisher).then();
             } else {
-                real = (Mono<Void>) handleResult;
+                resultMono = (Mono<Void>) resultPublisher;
             }
         }
-        //转换到业务线程处理
-        real = real.publishOn(scheduler);
 
-        return real.contextWrite(context -> context.put(Scheduler.class, scheduler))
-                .doOnError(t -> {
-                    ExceptionHandler<Throwable> exceptionHandler = getExceptionHandler(t);
-                    response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-                    Mono<String> errorMessage;
-                    if (Objects.nonNull(exceptionHandler)) {
-                        errorMessage = exceptionHandler.onException(request, t);
-                    } else {
-                        errorMessage = Mono.just("server encounter fatal error!!!");
-                    }
-                    response.sendString(errorMessage, StandardCharsets.UTF_8).then().subscribe();
-                })
+        //切换到业务线程处理
+        resultMono = resultMono.publishOn(scheduler);
+
+        return resultMono
+                //将业务线程绑定上reactive stream context
+                .contextWrite(context -> context.put(Scheduler.class, scheduler))
                 .doOnTerminate(() -> {
-                    //handler处理异常就会直接抛出error signal, 不会走到这里
                     for (HandlerInterceptor interceptor : interceptors) {
-                        interceptor.postHandle(request, response, handler);
+                        interceptor.afterCompletion(request, response, handler);
                     }
                 });
     }
