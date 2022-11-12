@@ -1,7 +1,9 @@
 package org.kin.transport.netty.http.server;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
+import org.kin.framework.collection.Tuple;
 import org.kin.framework.proxy.MethodDefinition;
 import org.kin.framework.proxy.ProxyInvoker;
 import org.kin.framework.proxy.Proxys;
@@ -41,24 +43,16 @@ public final class HttpServerTransport extends ServerTransport {
     private int threadCap = SysUtils.CPU_NUM * 2 + 1;
     /** 最大等待处理任务数 */
     private int queueCap = Integer.MAX_VALUE;
+    /** 存储已注册的异常及其handler */
+    private final Map<Class<? extends Throwable>, ExceptionHandler<? extends Throwable>> exceptionClass2Handler = new HashMap<>();
+    /** 异常handler */
+    private final List<Tuple<Class<? extends Throwable>, ExceptionHandler<? extends Throwable>>> exceptionHandlers = new ArrayList<>();
 
     public static HttpServerTransport create() {
         return new HttpServerTransport();
     }
 
     private HttpServerTransport() {
-    }
-
-    /**
-     * 将url与handler绑定
-     */
-    public HttpServerTransport mapping(String url, HttpRequestHandler handler) {
-        if (!url2Handler.containsKey(url)) {
-            url2Handler.put(url, handler);
-        } else {
-            throw new IllegalArgumentException(String.format("url '%s' has been mapped, conflict!!", url));
-        }
-        return this;
     }
 
     /**
@@ -72,6 +66,8 @@ public final class HttpServerTransport extends ServerTransport {
      * @see PutMapping
      */
     public HttpServerTransport mapping(Object controllerInst) {
+        Preconditions.checkNotNull(controllerInst);
+
         Class<?> controllerClass = controllerInst.getClass();
         if (!controllerClass.isAnnotationPresent(Controller.class)) {
             throw new IllegalArgumentException("target instance doesn't annotate with org.kin.transport.netty.http.server.Controller");
@@ -101,34 +97,45 @@ public final class HttpServerTransport extends ServerTransport {
 
             GetMapping getMapping = method.getAnnotation(GetMapping.class);
             if (Objects.nonNull(getMapping)) {
-                mapping(baseUrl.concat(getMapping.value()), new DefaultHttpRequestHandler(invoker, method, Arrays.asList(RequestMethod.GET)));
+                mapping0(baseUrl.concat(getMapping.value()), new HttpRequestHandler(invoker, method, Arrays.asList(RequestMethod.GET)));
             }
 
             PostMapping postMapping = method.getAnnotation(PostMapping.class);
             if (Objects.nonNull(postMapping)) {
-                mapping(baseUrl.concat(getMapping.value()), new DefaultHttpRequestHandler(invoker, method, Arrays.asList(RequestMethod.POST)));
+                mapping0(baseUrl.concat(getMapping.value()), new HttpRequestHandler(invoker, method, Arrays.asList(RequestMethod.POST)));
             }
 
             DeleteMapping deleteMapping = method.getAnnotation(DeleteMapping.class);
             if (Objects.nonNull(deleteMapping)) {
-                mapping(baseUrl.concat(getMapping.value()), new DefaultHttpRequestHandler(invoker, method, Arrays.asList(RequestMethod.DELETE)));
+                mapping0(baseUrl.concat(getMapping.value()), new HttpRequestHandler(invoker, method, Arrays.asList(RequestMethod.DELETE)));
             }
 
             PutMapping putMapping = method.getAnnotation(PutMapping.class);
             if (Objects.nonNull(putMapping)) {
-                mapping(baseUrl.concat(getMapping.value()), new DefaultHttpRequestHandler(invoker, method, Arrays.asList(RequestMethod.PUT)));
+                mapping0(baseUrl.concat(getMapping.value()), new HttpRequestHandler(invoker, method, Arrays.asList(RequestMethod.PUT)));
             }
 
             RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
             if (Objects.nonNull(requestMapping)) {
                 RequestMethod[] requestMethods = requestMapping.method();
                 if (CollectionUtils.isNonEmpty(requestMethods)) {
-                    mapping(baseUrl.concat(getMapping.value()), new DefaultHttpRequestHandler(invoker, method, Arrays.asList(requestMethods)));
+                    mapping0(baseUrl.concat(getMapping.value()), new HttpRequestHandler(invoker, method, Arrays.asList(requestMethods)));
                 }
             }
         }
 
         return this;
+    }
+
+    /**
+     * 映射url和http request handler
+     */
+    private void mapping0(String url, HttpRequestHandler handler) {
+        if (!url2Handler.containsKey(url)) {
+            url2Handler.put(url, handler);
+        } else {
+            throw new IllegalArgumentException(String.format("url '%s' has been mapped, conflict!!", url));
+        }
     }
 
     /**
@@ -151,6 +158,7 @@ public final class HttpServerTransport extends ServerTransport {
      * 添加自定义http request interceptor
      */
     public HttpServerTransport interceptor(HandlerInterceptor interceptor) {
+        Preconditions.checkNotNull(interceptor);
         interceptors.add(interceptor);
         return this;
     }
@@ -159,6 +167,7 @@ public final class HttpServerTransport extends ServerTransport {
      * 自定义http server transport配置
      */
     public HttpServerTransport serverTransportCustomizer(ServerTransportCustomizer customizer) {
+        Preconditions.checkNotNull(customizer);
         serverTransportCustomizers.add(customizer);
         return this;
     }
@@ -167,6 +176,7 @@ public final class HttpServerTransport extends ServerTransport {
      * 业务线程数
      */
     public HttpServerTransport threadCap(int threadCap) {
+        Preconditions.checkArgument(threadCap > 0, "threadCap must be greater than 0");
         this.threadCap = threadCap;
         return this;
     }
@@ -175,8 +185,26 @@ public final class HttpServerTransport extends ServerTransport {
      * 最大等待处理任务数
      */
     public HttpServerTransport queueCap(int queueCap) {
+        Preconditions.checkArgument(queueCap > 0, "queueCap must be greater than 0");
         this.queueCap = queueCap;
         return this;
+    }
+
+    /**
+     * 注册异常handler
+     */
+    public HttpServerTransport doOnException(Class<? extends Throwable> exceptionClass, ExceptionHandler<? extends Throwable> exceptionHandler) {
+        Preconditions.checkNotNull(exceptionClass);
+        Preconditions.checkNotNull(exceptionHandler);
+
+        ExceptionHandler<? extends Throwable> registered = exceptionClass2Handler.get(exceptionClass);
+        if (Objects.isNull(registered)) {
+            exceptionClass2Handler.put(exceptionClass, exceptionHandler);
+            exceptionHandlers.add(new Tuple<>(exceptionClass, exceptionHandler));
+            return this;
+        } else {
+            throw new IllegalArgumentException(String.format("'%s' has registered to handle exception '%s'", exceptionClass.getName(), registered.getClass().getName()));
+        }
     }
 
     /**
@@ -220,7 +248,7 @@ public final class HttpServerTransport extends ServerTransport {
 
         nettyHttpServer = nettyHttpServer.port(port)
                 .protocol(protocol)
-                .route(new HttpRoutesAcceptor(url2Handler, interceptors, threadCap, queueCap))
+                .route(new HttpRoutesAcceptor(url2Handler, interceptors, exceptionHandlers, threadCap, queueCap))
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.SO_REUSEADDR, true)

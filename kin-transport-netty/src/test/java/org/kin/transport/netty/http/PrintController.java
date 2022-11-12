@@ -29,6 +29,12 @@ public class PrintController {
         return Flux.fromIterable(Arrays.asList("1", "2", "3", "4"));
     }
 
+    @GetMapping("/throwE")
+    public Flux<String> throwE() {
+        System.out.println(Thread.currentThread().getName());
+        throw new UnsupportedOperationException("不支持");
+    }
+
     @GetMapping("/query")
     public Data query(@RequestParam("i1") int i1,
                       @RequestParam("i2") int i2,

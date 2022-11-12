@@ -1,8 +1,9 @@
 package org.kin.transport.netty.http.server;
 
 import com.google.common.base.Preconditions;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import org.kin.framework.collection.Tuple;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.framework.utils.SysUtils;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,8 @@ import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 import reactor.netty.http.server.HttpServerRoutes;
 
+import javax.annotation.Nullable;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -34,16 +37,11 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
     private final List<HandlerInterceptor> interceptors;
     /** http request处理线程池, 减少对netty io的影响 */
     private final Scheduler scheduler;
-
-    HttpRoutesAcceptor(Map<String, HttpRequestHandler> url2Handler) {
-        this(url2Handler, null);
-    }
-
-    HttpRoutesAcceptor(Map<String, HttpRequestHandler> url2Handler, List<HandlerInterceptor> interceptors) {
-        this(url2Handler, interceptors, SysUtils.CPU_NUM * 2 + 1, Integer.MAX_VALUE);
-    }
+    /** 已注册的异常handler, 按注册顺序匹配 */
+    private final List<Tuple<Class<? extends Throwable>, ExceptionHandler<? extends Throwable>>> exceptionHandlers;
 
     HttpRoutesAcceptor(Map<String, HttpRequestHandler> url2Handler, List<HandlerInterceptor> interceptors,
+                       List<Tuple<Class<? extends Throwable>, ExceptionHandler<? extends Throwable>>> exceptionHandlers,
                        int threadCap, int queueCap) {
         Preconditions.checkArgument(threadCap > 0, "threadCap must be greater than 0");
         Preconditions.checkArgument(queueCap > 0, "queueCap must be greater than 0");
@@ -55,6 +53,7 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
         } else {
             this.interceptors = Collections.emptyList();
         }
+        this.exceptionHandlers = new ArrayList<>(exceptionHandlers);
         this.scheduler = Schedulers.newBoundedElastic(threadCap, queueCap, "kin-http-server-bs", 300);
 
     }
@@ -127,11 +126,38 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
         real = real.publishOn(scheduler);
 
         return real.contextWrite(context -> context.put(Scheduler.class, scheduler))
-                .doOnSuccess(v -> {
+                .doOnError(t -> {
+                    ExceptionHandler<Throwable> exceptionHandler = getExceptionHandler(t);
+                    response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+                    Mono<String> errorMessage;
+                    if (Objects.nonNull(exceptionHandler)) {
+                        errorMessage = exceptionHandler.onException(request, t);
+                    } else {
+                        errorMessage = Mono.just("server encounter fatal error!!!");
+                    }
+                    response.sendString(errorMessage, StandardCharsets.UTF_8).then().subscribe();
+                })
+                .doOnTerminate(() -> {
                     //handler处理异常就会直接抛出error signal, 不会走到这里
                     for (HandlerInterceptor interceptor : interceptors) {
                         interceptor.postHandle(request, response, handler);
                     }
                 });
+    }
+
+    /**
+     * 根据异常寻找对应的异常处理类
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    private ExceptionHandler<Throwable> getExceptionHandler(Throwable throwable) {
+        for (Tuple<Class<? extends Throwable>, ExceptionHandler<? extends Throwable>> tuple : exceptionHandlers) {
+            Class<? extends Throwable> exceptionClass = tuple.first();
+            if (exceptionClass.isAssignableFrom(throwable.getClass())) {
+                return (ExceptionHandler<Throwable>) tuple.second();
+            }
+        }
+
+        return null;
     }
 }

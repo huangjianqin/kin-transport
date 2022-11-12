@@ -5,8 +5,6 @@ import org.kin.transport.netty.http.server.HttpRequestHandler;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 
-import javax.annotation.Nullable;
-
 /**
  * @author huangjianqin
  * @date 2022/11/10
@@ -18,11 +16,5 @@ public class CommonInterceptor implements HandlerInterceptor {
 //        response.sendString(Mono.just("post handle test")).then().subscribe();
         System.out.println(Thread.currentThread().getName());
         System.out.println("post http request handle");
-    }
-
-    @Override
-    public void afterCompletion(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler, @Nullable Exception e) {
-        System.out.println(Thread.currentThread().getName());
-        System.out.println("http request complete");
     }
 }
