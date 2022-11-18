@@ -44,7 +44,7 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
     /** 已注册的异常handler, 按注册顺序匹配 */
     private final List<Tuple<Class<? extends Throwable>, ExceptionHandler<? extends Throwable>>> exceptionHandlers;
 
-    HttpRoutesAcceptor(Map<String, HttpRequestHandler> url2Handler, List<HandlerInterceptor> interceptors,
+    HttpRoutesAcceptor(int port, Map<String, HttpRequestHandler> url2Handler, List<HandlerInterceptor> interceptors,
                        List<Tuple<Class<? extends Throwable>, ExceptionHandler<? extends Throwable>>> exceptionHandlers,
                        int threadCap, int queueCap) {
         Preconditions.checkArgument(threadCap >= 0, "threadCap must be greater than or equal to 0");
@@ -65,7 +65,7 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
         this.exceptionHandlers = new ArrayList<>(exceptionHandlers);
         if (threadCap > 0) {
             //定义了业务线程池
-            this.scheduler = Schedulers.newBoundedElastic(threadCap, queueCap, "kin-http-server-bs", 300);
+            this.scheduler = Schedulers.newBoundedElastic(threadCap, queueCap, "kin-http-server-bs-" + port, 300);
         } else {
             this.scheduler = null;
         }

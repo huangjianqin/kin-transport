@@ -234,6 +234,8 @@ public final class HttpServerTransport extends ServerTransport {
      * @param port server端口
      */
     public org.kin.transport.netty.http.server.HttpServer bind(int port, HttpProtocol protocol) {
+        Preconditions.checkArgument(port > 0, "http server port must be greater than 0");
+
         reactor.netty.http.server.HttpServer nettyHttpServer = HttpServer.create();
 
         //要覆盖nettyHttpServer, 其方法返回的不是this, 是新实例
@@ -241,10 +243,10 @@ public final class HttpServerTransport extends ServerTransport {
             nettyHttpServer = nettyHttpServer.secure(this::secure);
         }
 
-        LoopResources loopResources = LoopResources.create("kin-http-server", 2, SysUtils.CPU_NUM * 2, false);
+        LoopResources loopResources = LoopResources.create("kin-http-server-" + port, 2, SysUtils.CPU_NUM * 2, false);
         nettyHttpServer = nettyHttpServer.port(port)
                 .protocol(protocol)
-                .route(new HttpRoutesAcceptor(url2Handler, interceptors, exceptionHandlers, threadCap, queueCap))
+                .route(new HttpRoutesAcceptor(port, url2Handler, interceptors, exceptionHandlers, threadCap, queueCap))
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.SO_REUSEADDR, true)
