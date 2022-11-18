@@ -101,6 +101,7 @@ public final class HttpRequestHandler {
             //获取http请求处理线程
             Scheduler scheduler = context.get(Scheduler.class);
 
+            //receive(), 会切换回nio线程处理
             return request.receive()
                     .asString(StandardCharsets.UTF_8).
                     switchIfEmpty(Mono.just(""))

@@ -36,8 +36,8 @@ public final class HttpServerTransport extends ServerTransport {
     private final Map<String, HttpRequestHandler> url2Handler = new HashMap<>();
     /** http request interceptors */
     private final List<HandlerInterceptor> interceptors = new ArrayList<>();
-    /** 业务线程数 */
-    private int threadCap = SysUtils.CPU_NUM * 2 + 1;
+    /** 业务线程数, 默认=0, 即使用reactor-http-nio线程处理http请求 */
+    private int threadCap;
     /** 最大等待处理任务数 */
     private int queueCap = Integer.MAX_VALUE;
     /** 存储已注册的异常及其handler */
@@ -158,6 +158,13 @@ public final class HttpServerTransport extends ServerTransport {
         Preconditions.checkNotNull(interceptor);
         interceptors.add(interceptor);
         return this;
+    }
+
+    /**
+     * 业务线程数
+     */
+    public HttpServerTransport threadCap() {
+        return threadCap(SysUtils.CPU_NUM * 10);
     }
 
     /**

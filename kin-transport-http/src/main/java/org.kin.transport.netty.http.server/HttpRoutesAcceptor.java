@@ -47,7 +47,7 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
     HttpRoutesAcceptor(Map<String, HttpRequestHandler> url2Handler, List<HandlerInterceptor> interceptors,
                        List<Tuple<Class<? extends Throwable>, ExceptionHandler<? extends Throwable>>> exceptionHandlers,
                        int threadCap, int queueCap) {
-        Preconditions.checkArgument(threadCap > 0, "threadCap must be greater than 0");
+        Preconditions.checkArgument(threadCap >= 0, "threadCap must be greater than or equal to 0");
         Preconditions.checkArgument(queueCap > 0, "queueCap must be greater than 0");
 
         //copy, 防止外部使用transport进行修改
@@ -63,8 +63,12 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
             this.interceptors = Collections.emptyList();
         }
         this.exceptionHandlers = new ArrayList<>(exceptionHandlers);
-        this.scheduler = Schedulers.newBoundedElastic(threadCap, queueCap, "kin-http-server-bs", 300);
-
+        if (threadCap > 0) {
+            //定义了业务线程池
+            this.scheduler = Schedulers.newBoundedElastic(threadCap, queueCap, "kin-http-server-bs", 300);
+        } else {
+            this.scheduler = null;
+        }
     }
 
     @Override
@@ -104,10 +108,16 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
      * @return complete signal
      */
     private Publisher<Void> handle(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler) {
+        Scheduler selected = scheduler;
+        if (Objects.isNull(selected)) {
+            selected = Schedulers.immediate();
+        }
+        Scheduler finalSelected = selected;
         return Mono.just(new InterceptorChain(this, request, response, handler))
-                //切换到业务线程处理
-                .publishOn(scheduler)
-                .flatMap(InterceptorChain::next);
+                //切换到业务线程池处理
+                .publishOn(selected)
+                .flatMap(InterceptorChain::next)
+                .contextWrite(context -> context.put(Scheduler.class, finalSelected));
     }
 
     //getter
@@ -121,10 +131,6 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
 
     public List<HandlerInterceptor> getInterceptors() {
         return interceptors;
-    }
-
-    public Scheduler getScheduler() {
-        return scheduler;
     }
 
     public List<Tuple<Class<? extends Throwable>, ExceptionHandler<? extends Throwable>>> getExceptionHandlers() {

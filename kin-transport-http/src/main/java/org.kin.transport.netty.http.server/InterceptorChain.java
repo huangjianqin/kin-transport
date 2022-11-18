@@ -6,7 +6,6 @@ import org.kin.framework.utils.JSON;
 import org.kin.framework.utils.UriPathResolver;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
 import reactor.netty.NettyOutbound;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
@@ -116,7 +115,7 @@ public final class InterceptorChain {
         }
 
         //将业务线程绑定上reactive stream context
-        return resultMono.contextWrite(context -> context.put(Scheduler.class, acceptor.getScheduler()));
+        return resultMono;
     }
 
     /**

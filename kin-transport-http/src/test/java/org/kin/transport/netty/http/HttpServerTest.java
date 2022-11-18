@@ -13,6 +13,7 @@ public class HttpServerTest {
     public static void main(String[] args) throws InterruptedException {
         HttpServer httpServer = HttpServerTransport.create()
                 .mapping(new PrintController())
+//                .threadCap()
                 .interceptor(new LimitInterceptor())
                 .interceptor(new RedirectInterceptor())
                 .doOnException(UnsupportedOperationException.class, (req, t) -> Mono.just(ExceptionUtils.getExceptionDesc(t)))
