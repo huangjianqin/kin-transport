@@ -241,6 +241,7 @@ public final class HttpServerTransport extends ServerTransport {
             nettyHttpServer = nettyHttpServer.secure(this::secure);
         }
 
+        LoopResources loopResources = LoopResources.create("kin-http-server", 2, SysUtils.CPU_NUM * 2, false);
         nettyHttpServer = nettyHttpServer.port(port)
                 .protocol(protocol)
                 .route(new HttpRoutesAcceptor(url2Handler, interceptors, exceptionHandlers, threadCap, queueCap))
@@ -258,7 +259,7 @@ public final class HttpServerTransport extends ServerTransport {
                 //最多最存在512个待处理的http request
                 .maxKeepAliveRequests(512)
                 //自定义event loop
-                .runOn(LoopResources.create("kin-http-server", 2, SysUtils.CPU_NUM * 2, false));
+                .runOn(loopResources);
 
         customServerTransport(nettyHttpServer);
 
@@ -267,6 +268,9 @@ public final class HttpServerTransport extends ServerTransport {
                         .doOnSuccess(d -> log.info("http server stated on (port):" + port))
                         .doOnError(t -> log.error("http server encounter error when starting", t))
                         .cast(DisposableServer.class);
-        return new org.kin.transport.netty.http.server.HttpServer(disposableMono);
+        return new org.kin.transport.netty.http.server.HttpServer(disposableMono.doOnNext(d -> {
+            d.onDispose(loopResources);
+            d.onDispose(() -> log.info("http server(port:{}) closed", port));
+        }));
     }
 }

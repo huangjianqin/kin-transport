@@ -21,5 +21,7 @@ public class HttpServerTest {
         Runtime.getRuntime().addShutdownHook(new Thread(httpServer::close));
 
         Thread.currentThread().join();
+//        Thread.sleep(5_000);
+//        httpServer.close();
     }
 }
