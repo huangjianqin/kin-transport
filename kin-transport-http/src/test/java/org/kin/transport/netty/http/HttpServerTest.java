@@ -14,7 +14,7 @@ public class HttpServerTest {
         HttpServer httpServer = HttpServerTransport.create()
                 .mapping(new PrintController())
                 .interceptor(new LimitInterceptor())
-                .interceptor(new CommonInterceptor())
+                .interceptor(new RedirectInterceptor())
                 .doOnException(UnsupportedOperationException.class, (req, t) -> Mono.just(ExceptionUtils.getExceptionDesc(t)))
                 .bind();
         Runtime.getRuntime().addShutdownHook(new Thread(httpServer::close));

@@ -18,6 +18,11 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty-http</artifactId>
+        </dependency>
+
         <!-- jackson-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -39,5 +44,4 @@
             <artifactId>byte-buddy-agent</artifactId>
         </dependency>
     </dependencies>
-
 </project>
