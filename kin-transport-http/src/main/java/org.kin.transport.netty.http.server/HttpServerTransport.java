@@ -251,7 +251,8 @@ public final class HttpServerTransport extends ServerTransport {
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.SO_REUSEADDR, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .wiretap(true)
+                //打印底层event和二进制内容
+//                .wiretap(false)
                 .accessLog(true)
                 //>=256KB+client允许接受压缩就开启压缩
                 .compress(true)
