@@ -23,7 +23,7 @@ public abstract class Transport {
     protected File certFile;
     /** 证书密钥路径 */
     protected File certKeyFile;
-    /**  */
+    /** 证书 */
     protected File caFile;
 
     /**
@@ -42,7 +42,7 @@ public abstract class Transport {
             if (Objects.nonNull(certFile) && Objects.nonNull(certKeyFile)) {
                 sslContextBuilder = SslContextBuilder.forServer(certFile, certKeyFile);
                 if (Objects.nonNull(caFile)) {
-                    sslContextBuilder = sslContextBuilder.trustManager(certFile);
+                    sslContextBuilder = sslContextBuilder.trustManager(caFile);
                 }
             } else {
                 SelfSignedCertificate ssc = new SelfSignedCertificate();
