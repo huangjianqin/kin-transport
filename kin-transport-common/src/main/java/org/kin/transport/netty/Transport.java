@@ -19,11 +19,11 @@ import java.util.Objects;
 public abstract class Transport {
     /** ssl */
     protected boolean ssl;
-    /** 证书路径 */
-    protected File certFile;
-    /** 证书密钥路径 */
-    protected File certKeyFile;
     /** 证书 */
+    protected File certFile;
+    /** 证书密钥 */
+    protected File certKeyFile;
+    /** CA根证书 */
     protected File caFile;
 
     /**
