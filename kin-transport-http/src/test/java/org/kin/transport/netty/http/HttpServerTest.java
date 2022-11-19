@@ -18,8 +18,8 @@ public class HttpServerTest {
                 .interceptor(new RedirectInterceptor())
                 .doOnException(UnsupportedOperationException.class, (req, t) -> Mono.just(ExceptionUtils.getExceptionDesc(t)))
                 .bind();
-        Runtime.getRuntime().addShutdownHook(new Thread(httpServer::close));
 
+        Runtime.getRuntime().addShutdownHook(new Thread(httpServer::close));
         Thread.currentThread().join();
 //        Thread.sleep(5_000);
 //        httpServer.close();

@@ -99,47 +99,58 @@ public final class HttpRequestHandler {
         //目前市面上大多数都是用get post put delete等http method, 所以把request body当成json 处理
         return Mono.deferContextual(context -> {
             //获取http请求处理线程
-            Scheduler scheduler = context.get(Scheduler.class);
+            Scheduler bsScheduler = context.getOrDefault(Scheduler.class, null);
 
-            //receive(), 会切换回nio线程处理
-            return request.receive()
-                    .asString(StandardCharsets.UTF_8).
-                    switchIfEmpty(Mono.just(""))
-                    //切换到业务线程处理
-                    .publishOn(scheduler)
-                    .flatMap(body -> {
-                        Map<String, String> params = new HashMap<>(4);
-                        //比如/test/{param1}/{param2}
-                        Map<String, String> uriParams = request.params();
-                        if (Objects.nonNull(uriParams)) {
-                            params.putAll(uriParams);
-                        }
-                        params.putAll(getQueryParams(request.uri()));
-                        try {
-                            Object handleResult = invoker.invoke(fillParams(request, response, params, body));
-                            if (allowCors) {
-                                //允许跨域
-                                response.addHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, "*");
-                                response.addHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "*");
-                                response.addHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-                            }
-
-                            //统一转换成Mono
-                            if (handleResult instanceof Flux) {
-                                //等待所有结果并组装成list
-                                return ((Flux<?>) handleResult).collectList();
-                            } else if (handleResult instanceof Mono) {
-                                return (Publisher<?>) handleResult;
-                            } else {
-                                return Flux.just(handleResult);
-                            }
-                        } catch (Exception e) {
-                            return Flux.error(e);
-                        }
-                    })
+            return onReceiveReqBody(request, bsScheduler)
+                    .flatMap(body -> handleReqBody(request, response, body))
                     //取第一个即可, object or list
                     .single();
         });
+    }
+
+    /**
+     * 接受并解析http request body(reactor-http-nio), 如果配置了http request业务处理scheduler, 则切换
+     */
+    private Flux<String> onReceiveReqBody(HttpServerRequest request, Scheduler scheduler) {
+        //receive(), 会切换回nio线程处理
+        Flux<String> bodyFlux = request.receive()
+                .asString(StandardCharsets.UTF_8).
+                switchIfEmpty(Mono.just(""));
+        return Objects.isNull(scheduler) ? bodyFlux : bodyFlux.publishOn(scheduler);
+    }
+
+    /**
+     * 处理http request body
+     */
+    private Publisher<?> handleReqBody(HttpServerRequest request, HttpServerResponse response, String body) {
+        Map<String, String> params = new HashMap<>(4);
+        //比如/test/{param1}/{param2}
+        Map<String, String> uriParams = request.params();
+        if (Objects.nonNull(uriParams)) {
+            params.putAll(uriParams);
+        }
+        params.putAll(getQueryParams(request.uri()));
+        try {
+            Object handleResult = invoker.invoke(fillParams(request, response, params, body));
+            if (allowCors) {
+                //允许跨域
+                response.addHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, "*");
+                response.addHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "*");
+                response.addHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+            }
+
+            //统一转换成Mono
+            if (handleResult instanceof Flux) {
+                //等待所有结果并组装成list
+                return ((Flux<?>) handleResult).collectList();
+            } else if (handleResult instanceof Mono) {
+                return (Publisher<?>) handleResult;
+            } else {
+                return Flux.just(handleResult);
+            }
+        } catch (Exception e) {
+            return Flux.error(e);
+        }
     }
 
     /**

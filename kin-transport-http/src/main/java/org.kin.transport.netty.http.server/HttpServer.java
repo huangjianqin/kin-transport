@@ -13,12 +13,12 @@ import java.util.Objects;
  * @date 2020/9/10
  */
 public final class HttpServer implements Closeable {
+    /** http server disposable */
     private volatile DisposableServer disposable;
 
     public HttpServer(Mono<DisposableServer> disposableMono) {
         //这里才subscribe, 真正启动http server
-        disposableMono.doOnNext(d -> disposable = d);
-        disposableMono.subscribe();
+        disposableMono.doOnNext(d -> disposable = d).subscribe();
     }
 
     @Override

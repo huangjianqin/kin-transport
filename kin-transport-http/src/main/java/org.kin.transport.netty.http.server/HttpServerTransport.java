@@ -13,6 +13,8 @@ import org.kin.transport.netty.ServerTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.server.HttpServer;
@@ -244,9 +246,13 @@ public final class HttpServerTransport extends ServerTransport {
         }
 
         LoopResources loopResources = LoopResources.create("kin-http-server-" + port, 2, SysUtils.CPU_NUM * 2, false);
+        Scheduler bsScheduler = null;
+        if (threadCap > 0) {
+            bsScheduler = Schedulers.newBoundedElastic(threadCap, queueCap, "kin-http-server-bs-" + port, 300);
+        }
         nettyHttpServer = nettyHttpServer.port(port)
                 .protocol(protocol)
-                .route(new HttpRoutesAcceptor(port, url2Handler, interceptors, exceptionHandlers, threadCap, queueCap))
+                .route(new HttpRoutesAcceptor(url2Handler, interceptors, exceptionHandlers, bsScheduler))
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.SO_REUSEADDR, true)
@@ -271,8 +277,15 @@ public final class HttpServerTransport extends ServerTransport {
                         .doOnSuccess(d -> log.info("http server stated on (port):" + port))
                         .doOnError(t -> log.error("http server encounter error when starting", t))
                         .cast(DisposableServer.class);
+
+        Scheduler finalBsScheduler = bsScheduler;
         return new org.kin.transport.netty.http.server.HttpServer(disposableMono.doOnNext(d -> {
             d.onDispose(loopResources);
+            d.onDispose(() -> {
+                if (Objects.nonNull(finalBsScheduler)) {
+                    finalBsScheduler.dispose();
+                }
+            });
             d.onDispose(() -> log.info("http server(port:{}) closed", port));
         }));
     }

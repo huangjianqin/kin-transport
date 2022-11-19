@@ -1,6 +1,5 @@
 package org.kin.transport.netty.http.server;
 
-import com.google.common.base.Preconditions;
 import org.kin.framework.collection.Tuple;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.UriPathResolver;
@@ -9,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 import reactor.netty.http.server.HttpServerRoutes;
@@ -38,17 +36,14 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
     private final List<HandlerInterceptor> interceptors;
     /**
      * http request处理线程池, 减少对netty io的影响
-     * TODO: 2022/11/18  目前http请求在专门的业务线程处理, 鉴于目前webflux, r2dbc-mysql或者其他reactor框架默认都是在reactor-XX-nio线程处理, 所以是否考虑改成reactor-http-nio
      */
     private final Scheduler scheduler;
     /** 已注册的异常handler, 按注册顺序匹配 */
     private final List<Tuple<Class<? extends Throwable>, ExceptionHandler<? extends Throwable>>> exceptionHandlers;
 
-    HttpRoutesAcceptor(int port, Map<String, HttpRequestHandler> url2Handler, List<HandlerInterceptor> interceptors,
+    HttpRoutesAcceptor(Map<String, HttpRequestHandler> url2Handler, List<HandlerInterceptor> interceptors,
                        List<Tuple<Class<? extends Throwable>, ExceptionHandler<? extends Throwable>>> exceptionHandlers,
-                       int threadCap, int queueCap) {
-        Preconditions.checkArgument(threadCap >= 0, "threadCap must be greater than or equal to 0");
-        Preconditions.checkArgument(queueCap > 0, "queueCap must be greater than 0");
+                       Scheduler scheduler) {
 
         //copy, 防止外部使用transport进行修改
         this.url2Handler = new HashMap<>(url2Handler);
@@ -63,12 +58,7 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
             this.interceptors = Collections.emptyList();
         }
         this.exceptionHandlers = new ArrayList<>(exceptionHandlers);
-        if (threadCap > 0) {
-            //定义了业务线程池
-            this.scheduler = Schedulers.newBoundedElastic(threadCap, queueCap, "kin-http-server-bs-" + port, 300);
-        } else {
-            this.scheduler = null;
-        }
+        this.scheduler = scheduler;
     }
 
     @Override
@@ -108,16 +98,17 @@ final class HttpRoutesAcceptor implements Consumer<HttpServerRoutes> {
      * @return complete signal
      */
     private Publisher<Void> handle(HttpServerRequest request, HttpServerResponse response, HttpRequestHandler handler) {
-        Scheduler selected = scheduler;
-        if (Objects.isNull(selected)) {
-            selected = Schedulers.immediate();
+        if (Objects.isNull(scheduler)) {
+            return Mono.just(new InterceptorChain(this, request, response, handler))
+                    //切换到业务线程池处理
+                    .flatMap(InterceptorChain::next);
+        } else {
+            return Mono.just(new InterceptorChain(this, request, response, handler))
+                    //切换到业务线程池处理
+                    .publishOn(scheduler)
+                    .flatMap(InterceptorChain::next)
+                    .contextWrite(context -> context.put(Scheduler.class, scheduler));
         }
-        Scheduler finalSelected = selected;
-        return Mono.just(new InterceptorChain(this, request, response, handler))
-                //切换到业务线程池处理
-                .publishOn(selected)
-                .flatMap(InterceptorChain::next)
-                .contextWrite(context -> context.put(Scheduler.class, finalSelected));
     }
 
     //getter
