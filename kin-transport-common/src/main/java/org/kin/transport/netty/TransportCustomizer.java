@@ -10,6 +10,14 @@ import reactor.netty.transport.Transport;
  */
 @FunctionalInterface
 public interface TransportCustomizer {
+    TransportCustomizer DO_NOTHING = new TransportCustomizer() {
+        @Override
+        public <T extends Transport<?, ?>> T custom(T transport) {
+            //do nothing
+            return transport;
+        }
+    };
+
     /**
      * 自定义{@link Transport}配置
      *
