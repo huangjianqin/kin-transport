@@ -35,28 +35,6 @@
             <artifactId>classgraph</artifactId>
         </dependency>
 
-        <!-- jackson-->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-
-        <!-- 池化 -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-pool2</artifactId>
-        </dependency>
-
-        <!-- http client cache -->
-        <dependency>
-            <groupId>com.jakewharton</groupId>
-            <artifactId>disklrucache</artifactId>
-        </dependency>
-
         <!-- kryo -->
         <dependency>
             <groupId>com.esotericsoftware</groupId>
@@ -91,12 +69,6 @@
             <groupId>io.protostuff</groupId>
             <artifactId>protostuff-runtime</artifactId>
             <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-transport-http-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>
