@@ -19,7 +19,7 @@ public class HttpServerTest {
                 .doOnException(UnsupportedOperationException.class, (req, t) -> Mono.just(ExceptionUtils.getExceptionDesc(t)))
                 .bind();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(httpServer::close));
+        Runtime.getRuntime().addShutdownHook(new Thread(httpServer::dispose));
         Thread.currentThread().join();
 //        Thread.sleep(5_000);
 //        httpServer.close();

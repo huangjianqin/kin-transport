@@ -1,6 +1,6 @@
 package org.kin.transport.netty.http.server;
 
-import org.kin.framework.Closeable;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 
@@ -12,7 +12,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020/9/10
  */
-public final class HttpServer implements Closeable {
+public final class HttpServer implements Disposable {
     /** http server disposable */
     private volatile DisposableServer disposable;
 
@@ -22,7 +22,7 @@ public final class HttpServer implements Closeable {
     }
 
     @Override
-    public void close() {
+    public void dispose() {
         if (Objects.isNull(disposable)) {
             return;
         }
