@@ -272,21 +272,24 @@ public final class HttpServerTransport extends ServerTransport {
 
         customServerTransport(nettyHttpServer);
 
+        Scheduler finalBsScheduler = bsScheduler;
+
         Mono<DisposableServer> disposableMono =
-                nettyHttpServer.bind()
+                nettyHttpServer
+                        .doOnUnbound(d -> {
+                            d.onDispose(loopResources);
+                            d.onDispose(() -> {
+                                if (Objects.nonNull(finalBsScheduler)) {
+                                    finalBsScheduler.dispose();
+                                }
+                            });
+                            d.onDispose(() -> log.info("http server(port:{}) closed", port));
+                        })
+                        .bind()
                         .doOnSuccess(d -> log.info("http server stated on (port):" + port))
                         .doOnError(t -> log.error("http server encounter error when starting", t))
                         .cast(DisposableServer.class);
 
-        Scheduler finalBsScheduler = bsScheduler;
-        return new org.kin.transport.netty.http.server.HttpServer(disposableMono.doOnNext(d -> {
-            d.onDispose(loopResources);
-            d.onDispose(() -> {
-                if (Objects.nonNull(finalBsScheduler)) {
-                    finalBsScheduler.dispose();
-                }
-            });
-            d.onDispose(() -> log.info("http server(port:{}) closed", port));
-        }));
+        return new org.kin.transport.netty.http.server.HttpServer(disposableMono);
     }
 }
