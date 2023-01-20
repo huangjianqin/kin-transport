@@ -1,4 +1,4 @@
-package org.kin.transport.netty.common;
+package org.kin.transport.netty;
 
 import io.netty.buffer.ByteBuf;
 import org.kin.transport.netty.utils.AdaptiveOutputByteBufAllocator;

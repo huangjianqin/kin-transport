@@ -5,7 +5,7 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.utils.SysUtils;
-import org.kin.transport.netty.common.ProtocolTransport;
+import org.kin.transport.netty.ProtocolTransport;
 import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.TcpClient;
 

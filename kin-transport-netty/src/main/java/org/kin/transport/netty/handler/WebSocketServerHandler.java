@@ -1,4 +1,4 @@
-package org.kin.transport.netty.ws.handler;
+package org.kin.transport.netty.handler;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;

@@ -1,4 +1,4 @@
-package org.kin.transport.netty.common;
+package org.kin.transport.netty;
 
 import java.util.EventListener;
 

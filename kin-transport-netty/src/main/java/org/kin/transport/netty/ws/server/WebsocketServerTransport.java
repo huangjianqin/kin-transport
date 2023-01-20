@@ -3,7 +3,7 @@ package org.kin.transport.netty.ws.server;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
-import org.kin.transport.netty.common.ProtocolTransport;
+import org.kin.transport.netty.ProtocolTransport;
 import org.kin.transport.netty.ws.WebSocketConstants;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.server.HttpServer;

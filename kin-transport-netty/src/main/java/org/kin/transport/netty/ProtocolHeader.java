@@ -1,4 +1,4 @@
-package org.kin.transport.netty.common;
+package org.kin.transport.netty;
 
 /**
  * 协议头, 由魔数bytes+协议内容长度(4个字节组成), 协议内容由使用者负责解析

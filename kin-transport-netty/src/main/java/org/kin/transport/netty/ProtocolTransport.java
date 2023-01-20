@@ -1,8 +1,7 @@
-package org.kin.transport.netty.common;
+package org.kin.transport.netty;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
-import org.kin.transport.netty.Transport;
 
 /**
  * @author huangjianqin

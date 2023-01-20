@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.StringUtils;
-import org.kin.transport.netty.common.ProtocolTransport;
+import org.kin.transport.netty.ProtocolTransport;
 import org.kin.transport.netty.ws.WebSocketConstants;
 import reactor.netty.http.client.HttpClient;
 

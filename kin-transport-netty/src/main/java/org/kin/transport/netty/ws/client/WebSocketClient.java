@@ -2,9 +2,10 @@ package org.kin.transport.netty.ws.client;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
-import org.kin.transport.netty.common.*;
+import org.kin.transport.netty.*;
+import org.kin.transport.netty.handler.ClientHandler;
+import org.kin.transport.netty.handler.WebSocketClientHandler;
 import org.kin.transport.netty.ws.BinaryWebSocketFrameEncoder;
-import org.kin.transport.netty.ws.handler.WebSocketClientHandler;
 import reactor.core.publisher.Mono;
 import reactor.netty.ConnectionObserver;
 import reactor.netty.http.client.HttpClient;

@@ -1,4 +1,4 @@
-package org.kin.transport.netty.common;
+package org.kin.transport.netty;
 
 import io.netty.handler.codec.EncoderException;
 import org.jctools.queues.MpscLinkedQueue;

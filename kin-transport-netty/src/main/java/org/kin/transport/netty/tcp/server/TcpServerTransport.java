@@ -3,7 +3,7 @@ package org.kin.transport.netty.tcp.server;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
-import org.kin.transport.netty.common.ProtocolTransport;
+import org.kin.transport.netty.ProtocolTransport;
 
 /**
  * 创建{@link TcpServer}的入口
