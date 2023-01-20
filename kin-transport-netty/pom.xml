@@ -13,12 +13,6 @@
     <packaging>jar</packaging>
 
     <dependencies>
-<!-- todo 移除 -->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-transport-common</artifactId>
@@ -35,48 +29,5 @@
             <artifactId>kin-transport-netty-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- todo 移除 -->
-        <dependency>
-            <groupId>io.github.classgraph</groupId>
-            <artifactId>classgraph</artifactId>
-        </dependency>
-
-        <!-- kryo -->
-        <dependency>
-            <groupId>com.esotericsoftware</groupId>
-            <artifactId>kryo</artifactId>
-        </dependency>
-
-        <!-- lzf compression -->
-        <dependency>
-            <groupId>com.ning</groupId>
-            <artifactId>compress-lzf</artifactId>
-        </dependency>
-
-        <!-- 用于定制bzip2和lz4的encoder和decoder-->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-compress</artifactId>
-        </dependency>
-
-        <!-- 字节码技术 todo 移除 -->
-        <dependency>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-        </dependency>
-
-        <!-- protostuff -->
-        <dependency>
-            <groupId>io.protostuff</groupId>
-            <artifactId>protostuff-core</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.protostuff</groupId>
-            <artifactId>protostuff-runtime</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <!-- todo 移除 -->
     </dependencies>
 </project>

@@ -1,10 +1,13 @@
-package org.kin.transport.netty.websocket.client.handler;
+package org.kin.transport.netty.handler;
 
 import io.netty.channel.*;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
 import org.kin.framework.log.LoggerOprs;
+
+import java.net.URI;
 
 /**
  * websocket client channel handler
@@ -13,14 +16,15 @@ import org.kin.framework.log.LoggerOprs;
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class WsClientHandler extends ChannelInboundHandlerAdapter implements LoggerOprs {
+public class WebSocketClientHandler extends ChannelInboundHandlerAdapter implements LoggerOprs {
     /** ws握手 */
     private final WebSocketClientHandshaker handshaker;
     /** ws握手future */
     private ChannelPromise handshakeFuture;
 
-    public WsClientHandler(WebSocketClientHandshaker handshaker) {
-        this.handshaker = handshaker;
+    public WebSocketClientHandler(URI uri) {
+        this.handshaker = WebSocketClientHandshakerFactory.newHandshaker(
+                uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders());
     }
 
     public ChannelFuture handshakeFuture() {
