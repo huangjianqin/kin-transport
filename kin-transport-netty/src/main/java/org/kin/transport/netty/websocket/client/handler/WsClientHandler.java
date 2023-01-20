@@ -3,8 +3,6 @@ package org.kin.transport.netty.websocket.client.handler;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.*;
-import io.netty.handler.timeout.IdleState;
-import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.CharsetUtil;
 import org.kin.framework.log.LoggerOprs;
 
@@ -45,12 +43,12 @@ public class WsClientHandler extends ChannelInboundHandlerAdapter implements Log
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    public void channelRead(ChannelHandlerContext ctx, Object in) {
         Channel ch = ctx.channel();
         if (!handshaker.isHandshakeComplete()) {
             try {
                 //握手成功
-                handshaker.finishHandshake(ch, (FullHttpResponse) msg);
+                handshaker.finishHandshake(ch, (FullHttpResponse) in);
                 log().info("websocket client handshake success");
                 handshakeFuture.setSuccess();
             } catch (WebSocketHandshakeException e) {
@@ -64,24 +62,26 @@ public class WsClientHandler extends ChannelInboundHandlerAdapter implements Log
             return;
         }
 
-        if (msg instanceof FullHttpResponse) {
-            FullHttpResponse response = (FullHttpResponse) msg;
+        if (in instanceof FullHttpResponse) {
+            FullHttpResponse response = (FullHttpResponse) in;
             log().error("Unexpected FullHttpResponse (getStatus={}, content={})",
                     response.status(), response.content().toString(CharsetUtil.UTF_8));
             return;
         }
 
-        if (msg instanceof WebSocketFrame) {
-            if (msg instanceof PongWebSocketFrame) {
+        if (in instanceof WebSocketFrame) {
+            if (in instanceof PongWebSocketFrame) {
                 log().debug("websocket client received pong");
-            } else if (msg instanceof CloseWebSocketFrame) {
+            } else if (in instanceof CloseWebSocketFrame) {
                 log().info("websocket client received closing");
                 ctx.channel().close();
-            } else {
-                //其他类型的的websocket frame
-                ctx.fireChannelRead(msg);
+            } else if (in instanceof BinaryWebSocketFrame) {
+                ctx.fireChannelRead(((BinaryWebSocketFrame) in).content());
             }
         }
+
+        //其他类型的的frame
+        ctx.fireChannelRead(in);
     }
 
     @Override
@@ -92,17 +92,5 @@ public class WsClientHandler extends ChannelInboundHandlerAdapter implements Log
         } else {
             ctx.fireExceptionCaught(cause);
         }
-    }
-
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        if (evt instanceof IdleStateEvent) {
-            IdleStateEvent event = (IdleStateEvent) evt;
-            if (event.state() == IdleState.READER_IDLE) {
-                //读空闲, 太久没有收到server的消息, ping一下
-                ctx.writeAndFlush(new PingWebSocketFrame());
-            }
-        }
-        ctx.fireUserEventTriggered(evt);
     }
 }

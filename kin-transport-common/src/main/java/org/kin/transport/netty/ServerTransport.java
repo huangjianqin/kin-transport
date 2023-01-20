@@ -12,11 +12,11 @@ import java.util.Set;
  * @author huangjianqin
  * @date 2022/11/10
  */
-public abstract class ServerTransport extends Transport {
+public abstract class ServerTransport<ST extends ServerTransport<ST>> extends Transport<ST> {
     /** 自定义http server transport配置 */
     private final Set<ServerTransportCustomizer> serverTransportCustomizers = new HashSet<>();
 
-    protected <ST extends reactor.netty.transport.ServerTransport<?, ?>> ST customServerTransport(ST serverTransport) {
+    protected <RST extends reactor.netty.transport.ServerTransport<?, ?>> RST customServerTransport(RST serverTransport) {
         if (CollectionUtils.isNonEmpty(serverTransportCustomizers)) {
             //外部自定义reactor netty server transport
             for (ServerTransportCustomizer customizer : serverTransportCustomizers) {
@@ -33,7 +33,7 @@ public abstract class ServerTransport extends Transport {
      * 自定义http server transport配置
      */
     @SuppressWarnings("unchecked")
-    public <ST extends ServerTransport> ST serverTransportCustomizer(ServerTransportCustomizer customizer) {
+    public ST serverTransportCustomizer(ServerTransportCustomizer customizer) {
         Preconditions.checkNotNull(customizer);
         serverTransportCustomizers.add(customizer);
         return (ST) this;

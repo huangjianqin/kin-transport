@@ -1,4 +1,4 @@
-package org.kin.transport.netty.websocket;
+package org.kin.transport.netty.ws;
 
 /**
  * websocket 常量
@@ -6,7 +6,7 @@ package org.kin.transport.netty.websocket;
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class WsConstants {
+public class WebSocketConstants {
     /** websocket 握手url */
     public static final String WS_PATH = "/";
     /** websocket协议前缀 */

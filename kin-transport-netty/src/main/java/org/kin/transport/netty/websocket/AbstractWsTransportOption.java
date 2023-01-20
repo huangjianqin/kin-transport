@@ -3,6 +3,7 @@ package org.kin.transport.netty.websocket;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.kin.transport.netty.AbstractTransportOption;
 import org.kin.transport.netty.TransportProtocolTransfer;
+import org.kin.transport.netty.ws.WebSocketConstants;
 
 /**
  * @author huangjianqin
@@ -11,7 +12,7 @@ import org.kin.transport.netty.TransportProtocolTransfer;
 public abstract class AbstractWsTransportOption<MSG, INOUT extends WebSocketFrame, O extends AbstractWsTransportOption<MSG, INOUT, O>>
         extends AbstractTransportOption<INOUT, MSG, INOUT, O> {
     /** websocket 握手url */
-    protected String handshakeUrl = WsConstants.WS_PATH;
+    protected String handshakeUrl = WebSocketConstants.WS_PATH;
 
     //----------------------------------------------------------------------------------------------------------------
 

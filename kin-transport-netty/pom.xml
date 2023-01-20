@@ -13,6 +13,7 @@
     <packaging>jar</packaging>
 
     <dependencies>
+<!-- todo 移除 -->
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
@@ -25,11 +26,17 @@
         </dependency>
 
         <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty-http</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-transport-netty-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
 
+        <!-- todo 移除 -->
         <dependency>
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
@@ -70,5 +77,6 @@
             <artifactId>protostuff-runtime</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- todo 移除 -->
     </dependencies>
 </project>

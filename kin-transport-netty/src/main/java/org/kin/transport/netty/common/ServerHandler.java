@@ -1,20 +1,52 @@
-package org.kin.transport.netty.handler;
+package org.kin.transport.netty.common;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelConfig;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.*;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import org.kin.framework.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 /**
- * 设置了watermark后, {@link #channelWritabilityChanged(ChannelHandlerContext)}触发对read inbound消息进行开关
+ * server端inbound handler
  *
  * @author huangjianqin
- * @date 2022/2/13
+ * @date 2023/1/15
  */
-public final class ChannelWritabilityChangedHandler extends ChannelInboundHandlerAdapter {
-    private static final Logger log = LoggerFactory.getLogger(ChannelWritabilityChangedHandler.class);
+@ChannelHandler.Sharable
+public class ServerHandler extends ChannelInboundHandlerAdapter {
+    private static final Logger log = LoggerFactory.getLogger(ServerHandler.class);
+    public static final ServerHandler INSTANCE = new ServerHandler();
+
+    private ServerHandler() {
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        if (cause instanceof IOException) {
+            log.error("encounter I/O exception: {}, force to close channel: {}", ExceptionUtils.getExceptionDesc(cause), ctx.channel());
+            ctx.close();
+        } else if (cause instanceof TransportException) {
+            log.error("encounter I/O exception: {}, force to close channel: {}", ExceptionUtils.getExceptionDesc(cause), ctx.channel());
+            ctx.close();
+        } else {
+            log.error("encounter exception:", cause);
+        }
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof IdleStateEvent) {
+            IdleStateEvent event = (IdleStateEvent) evt;
+            if (event.state() == IdleState.READER_IDLE) {
+                throw new TransportException("channel read idle, " + ctx.channel());
+            } else {
+                super.userEventTriggered(ctx, evt);
+            }
+        }
+    }
 
     @Override
     public void channelWritabilityChanged(ChannelHandlerContext ctx) {

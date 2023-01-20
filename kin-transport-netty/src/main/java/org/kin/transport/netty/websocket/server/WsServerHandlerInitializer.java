@@ -7,7 +7,6 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import org.kin.transport.netty.AbstractChannelHandlerInitializer;
-import org.kin.transport.netty.websocket.server.handler.WsServerHandler;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +35,7 @@ public class WsServerHandlerInitializer<MSG, INOUT extends WebSocketFrame>
         //适配指定url
         //会对websocketframe进行引用release, 后面handler处理不能再release websocketframe
         channelHandlers.add(new WebSocketServerProtocolHandler(transportOption.getHandshakeUrl(), null, true));
-        channelHandlers.add(new WsServerHandler());
+//        channelHandlers.add(new WsServerHandler());
         return channelHandlers;
     }
 }

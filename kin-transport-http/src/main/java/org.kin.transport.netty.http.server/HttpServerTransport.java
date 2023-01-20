@@ -31,7 +31,7 @@ import java.util.*;
  * @author huangjianqin
  * @date 2022/11/9
  */
-public final class HttpServerTransport extends ServerTransport {
+public final class HttpServerTransport extends ServerTransport<HttpServerTransport> {
     private static final Logger log = LoggerFactory.getLogger(HttpServerTransport.class);
 
     /** key -> url, value -> 对应的{@link  HttpRequestHandler} */
@@ -235,6 +235,7 @@ public final class HttpServerTransport extends ServerTransport {
      *
      * @param port server端口
      */
+    @SuppressWarnings("unchecked")
     public org.kin.transport.netty.http.server.HttpServer bind(int port, HttpProtocol protocol) {
         Preconditions.checkArgument(port > 0, "http server port must be greater than 0");
 
@@ -270,7 +271,7 @@ public final class HttpServerTransport extends ServerTransport {
                 //自定义event loop
                 .runOn(loopResources);
 
-        customServerTransport(nettyHttpServer);
+        nettyHttpServer = (HttpServer) customServerTransport(nettyHttpServer);
 
         Scheduler finalBsScheduler = bsScheduler;
 

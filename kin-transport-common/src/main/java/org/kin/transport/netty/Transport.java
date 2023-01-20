@@ -16,7 +16,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2022/11/10
  */
-public abstract class Transport {
+public abstract class Transport<T extends Transport> {
     /** ssl */
     protected boolean ssl;
     /** 证书 */
@@ -60,7 +60,7 @@ public abstract class Transport {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Transport> T ssl(boolean ssl) {
+    public T ssl(boolean ssl) {
         this.ssl = ssl;
         return (T) this;
     }
@@ -69,12 +69,12 @@ public abstract class Transport {
         return certFile;
     }
 
-    public <T extends Transport> T certFile(String certFilePath) {
+    public T certFile(String certFilePath) {
         return certFile(new File(certFilePath));
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Transport> T certFile(File certFile) {
+    public T certFile(File certFile) {
         if (!certFile.exists()) {
             throw new IllegalArgumentException("certFile not exists");
         }
@@ -86,12 +86,12 @@ public abstract class Transport {
         return certKeyFile;
     }
 
-    public <T extends Transport> T certKeyFile(String certKeyFilePath) {
+    public T certKeyFile(String certKeyFilePath) {
         return certKeyFile(new File(certKeyFilePath));
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Transport> T certKeyFile(File certKeyFile) {
+    public T certKeyFile(File certKeyFile) {
         if (!certKeyFile.exists()) {
             throw new IllegalArgumentException("certKeyFile not exists");
         }
@@ -103,12 +103,12 @@ public abstract class Transport {
         return caFile;
     }
 
-    public <T extends Transport> T caFile(String caFilePath) {
+    public T caFile(String caFilePath) {
         return caFile(new File(caFilePath));
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Transport> T caFile(File caFile) {
+    public T caFile(File caFile) {
         if (!caFile.exists()) {
             throw new IllegalArgumentException("caFile not exists");
         }

@@ -30,7 +30,7 @@ public class SocketTest {
                 public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
                     System.out.println(protocol);
                 }
-            }).compress(CompressionType.FRAMED_LZ4).channelOption(ChannelOption.TCP_NODELAY, true).withReconnect(address);
+            }).channelOption(ChannelOption.TCP_NODELAY, true).withReconnect(address);
 
             int count = 10;
             int i = 0;

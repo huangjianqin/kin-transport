@@ -11,8 +11,8 @@ import org.kin.framework.utils.NetUtils;
 import org.kin.transport.netty.*;
 import org.kin.transport.netty.websocket.AbstractWsTransportOption;
 import org.kin.transport.netty.websocket.WsClientOptionOprs;
-import org.kin.transport.netty.websocket.WsConstants;
 import org.kin.transport.netty.websocket.client.handler.WsClientHandler;
+import org.kin.transport.netty.ws.WebSocketConstants;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -54,7 +54,7 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
      * @param reconnect 重连标识
      */
     private final Client<MSG> connect(InetSocketAddress address, boolean reconnect) {
-        String prefix = isSsl() ? WsConstants.SSL_WS_PREFIX : WsConstants.WS_PREFIX;
+        String prefix = isSsl() ? WebSocketConstants.SSL_WS_PREFIX : WebSocketConstants.WS_PREFIX;
         return connect(prefix.concat(":/").concat(address.toString()).concat(getHandshakeUrl()), reconnect);
     }
 
@@ -68,13 +68,13 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(String.format("invalid url '%s'", url), e);
         }
-        String scheme = uri.getScheme() == null ? WsConstants.WS_PREFIX : uri.getScheme();
+        String scheme = uri.getScheme() == null ? WebSocketConstants.WS_PREFIX : uri.getScheme();
         String host = uri.getHost() == null ? NetUtils.getLocalAddress().toString() : uri.getHost();
         int port;
         if (uri.getPort() == -1) {
-            if (WsConstants.WS_PREFIX.equalsIgnoreCase(scheme)) {
+            if (WebSocketConstants.WS_PREFIX.equalsIgnoreCase(scheme)) {
                 port = 80;
-            } else if (WsConstants.SSL_WS_PREFIX.equalsIgnoreCase(scheme)) {
+            } else if (WebSocketConstants.SSL_WS_PREFIX.equalsIgnoreCase(scheme)) {
                 port = 443;
             } else {
                 port = -1;
@@ -84,11 +84,11 @@ public class WsClientTransportOption<MSG, INOUT extends WebSocketFrame>
             port = uri.getPort();
         }
 
-        if (!WsConstants.WS_PREFIX.equalsIgnoreCase(scheme) && !WsConstants.SSL_WS_PREFIX.equalsIgnoreCase(scheme)) {
+        if (!WebSocketConstants.WS_PREFIX.equalsIgnoreCase(scheme) && !WebSocketConstants.SSL_WS_PREFIX.equalsIgnoreCase(scheme)) {
             throw new IllegalArgumentException(String.format("Only ws(s) is supported. now is '%s'", scheme));
         }
 
-        boolean ssl = WsConstants.SSL_WS_PREFIX.equalsIgnoreCase(scheme);
+        boolean ssl = WebSocketConstants.SSL_WS_PREFIX.equalsIgnoreCase(scheme);
         if (ssl && !isSsl()) {
             throw new IllegalArgumentException("transport config not open ssl");
         }

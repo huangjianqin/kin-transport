@@ -5,7 +5,6 @@ import io.netty.channel.ChannelHandler;
 import io.netty.handler.flush.FlushConsolidationHandler;
 import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.handler.ChannelProtocolHandler;
-import org.kin.transport.netty.handler.ChannelWritabilityChangedHandler;
 import org.kin.transport.netty.handler.TransportProtocolCodec;
 
 import java.util.ArrayList;
@@ -60,7 +59,6 @@ public abstract class AbstractChannelHandlerInitializer<IN, MSG, OUT, O extends 
         channelHandlers.addAll(firstHandlers());
         channelHandlers.add(new TransportProtocolCodec<>(transportProtocolTransfer));
         channelHandlers.add(new ChannelProtocolHandler<>(protocolHandler));
-        channelHandlers.add(new ChannelWritabilityChangedHandler());
         channelHandlers.addAll(lastHandlers());
         return channelHandlers.toArray(new ChannelHandler[0]);
     }
