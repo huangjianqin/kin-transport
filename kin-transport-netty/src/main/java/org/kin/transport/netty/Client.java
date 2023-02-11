@@ -4,12 +4,14 @@ import io.netty.handler.codec.EncoderException;
 import org.jctools.queues.MpscLinkedQueue;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.ExceptionUtils;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -111,7 +113,7 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
         //尝试重发断连时堆积payload
         OutboundPayload outboundPayload;
         while (Objects.nonNull((outboundPayload = waitingPayloads.poll()))) {
-            write(session, outboundPayload, true).subscribe();
+            writeOrCache(outboundPayload).subscribe();
         }
     }
 
@@ -184,7 +186,26 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
      * @return complete signal
      */
     public Mono<Void> write(Consumer<OutboundPayload> encoder) {
-        return write(encoder, false);
+        return session().flatMap(s -> {
+            OutboundPayload outboundPayload = s.newOutboundPayload();
+            encoder.accept(outboundPayload);
+            return session.write(outboundPayload);
+        });
+    }
+
+    /**
+     * client write outbound, 如果失败, 则丢失
+     *
+     * @param encoder  协议对象 -> bytes payload逻辑
+     * @param listener netty channel operation callback
+     * @return complete signal
+     */
+    public Mono<Void> write(Consumer<OutboundPayload> encoder, ChannelOperationListener<Session> listener) {
+        return session().flatMap(s -> {
+            OutboundPayload outboundPayload = s.newOutboundPayload();
+            encoder.accept(outboundPayload);
+            return session.write(outboundPayload, listener);
+        });
     }
 
     /**
@@ -194,55 +215,47 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
      * @return complete signal
      */
     public Mono<Void> writeOrCache(Consumer<OutboundPayload> encoder) {
-        return write(encoder, true);
-    }
-
-    /**
-     * client write outbound统一逻辑
-     *
-     * @param encoder 协议对象 -> bytes payload逻辑
-     * @param cache   是否缓存write out失败消息
-     * @return complete signal
-     */
-    private Mono<Void> write(Consumer<OutboundPayload> encoder, boolean cache) {
         return session().flatMap(s -> {
             OutboundPayload outboundPayload = s.newOutboundPayload();
             encoder.accept(outboundPayload);
-            return write(s, outboundPayload, cache);
+            return writeOrCache(outboundPayload);
         });
     }
 
     /**
-     * client write outbound统一逻辑
+     * client write outbound, 如果失败, 则缓存, 当重连成功时, 重发
      *
-     * @param session 会话
-     * @param payload 协议payload
-     * @param cache   是否缓存write out失败消息
+     * @param outboundPayload outbound payload
      * @return complete signal
      */
-    private Mono<Void> write(Session session, OutboundPayload payload, boolean cache) {
-        if (cache) {
-            return session.write(payload, new NettyOperationListener<Session>() {
-                @Override
-                public void onFailure(Session session, Throwable cause) {
-                    //过滤某些异常
-                    if (cause instanceof EncoderException) {
-                        //payload无法encode, ignore
-                        return;
-                    }
-                    waitingPayloads.add(payload);
+    private Mono<Void> writeOrCache(OutboundPayload outboundPayload) {
+        return session.write(outboundPayload, new ChannelOperationListener<Session>() {
+            @Override
+            public void onFailure(Session session, Throwable cause) {
+                //过滤某些异常
+                if (cause instanceof EncoderException) {
+                    //payload无法encode, ignore
+                    ExceptionUtils.throwExt(cause);
+                    return;
                 }
-            });
-        } else {
-            return session.write(payload);
-        }
+                waitingPayloads.add(outboundPayload);
+            }
+        });
     }
 
     @Override
     public void dispose() {
+        dispose(null);
+    }
+
+    public void dispose(@Nullable Disposable disposable) {
         disposed = true;
         Session session = SESSION_UPDATER.get(this);
         if (Objects.nonNull(session)) {
+            if (Objects.nonNull(disposable)) {
+                //自定义dispose逻辑
+                session.getConnection().onDispose(disposable);
+            }
             session.dispose();
         }
     }

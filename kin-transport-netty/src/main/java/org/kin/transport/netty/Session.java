@@ -106,7 +106,7 @@ public class Session implements Disposable {
     /**
      * write out
      */
-    public final Mono<Void> write(@Nonnull OutboundPayload payload, @Nonnull NettyOperationListener<Session> listener) {
+    public final Mono<Void> write(@Nonnull OutboundPayload payload, @Nonnull ChannelOperationListener<Session> listener) {
         Mono<Void> result;
         if (!isActive()) {
             result = Mono.error(new TransportException("channel inactive, " + channel()));
@@ -123,7 +123,7 @@ public class Session implements Disposable {
      *
      * @param encoder 协议对象 -> bytes payload逻辑
      */
-    public Mono<Void> write(@Nonnull Consumer<OutboundPayload> encoder, @Nonnull NettyOperationListener<Session> listener) {
+    public Mono<Void> write(@Nonnull Consumer<OutboundPayload> encoder, @Nonnull ChannelOperationListener<Session> listener) {
         OutboundPayload outboundPayload = newOutboundPayload();
         encoder.accept(outboundPayload);
         return write(outboundPayload, listener);
@@ -138,7 +138,7 @@ public class Session implements Disposable {
         }
 
         channel().eventLoop().schedule(this::dispose, 300, TimeUnit.MILLISECONDS);
-        return write(payload, new NettyOperationListener<Session>() {
+        return write(payload, new ChannelOperationListener<Session>() {
             @Override
             public void onSuccess(Session session) {
                 dispose();

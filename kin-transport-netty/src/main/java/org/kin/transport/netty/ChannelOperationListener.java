@@ -8,7 +8,7 @@ import java.util.EventListener;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public interface NettyOperationListener<C> extends EventListener {
+public interface ChannelOperationListener<C> extends EventListener {
     /**
      * 操作成功
      *
