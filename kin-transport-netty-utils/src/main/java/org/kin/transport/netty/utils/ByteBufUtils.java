@@ -40,6 +40,24 @@ public final class ByteBufUtils {
     }
 
     /**
+     * 修正{@link ByteBuf#readerIndex()}
+     * 因为底层使用{@link ByteBuf#nioBuffer()}获取{@link java.nio.ByteBuffer}实例,
+     * 但修改{@link java.nio.ByteBuffer}实例, 对{@link io.netty.buffer.ByteBuf}不可见,
+     * 故完成output后需要修正{@link ByteBuf#readerIndex()}
+     *
+     * @param byteBuf   netty byte buffer
+     * @param nioBuffer {@code byteBuf}底层映射的java byte buffer
+     */
+    public static void fixByteBufReadIndex(ByteBuf byteBuf, ByteBuffer nioBuffer) {
+        int actualReadBytes = byteBuf.readerIndex();
+        if (nioBuffer != null) {
+            actualReadBytes += nioBuffer.position();
+        }
+
+        byteBuf.readerIndex(actualReadBytes);
+    }
+
+    /**
      * 创建{@link ByteBuf}底层内存映射的满足最小可写字节数{@code minWritableBytes}的{@link ByteBuffer}实例
      *
      * @param byteBuf          netty byte buffer
