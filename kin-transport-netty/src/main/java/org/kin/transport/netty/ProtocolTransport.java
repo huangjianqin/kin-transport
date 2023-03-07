@@ -3,13 +3,18 @@ package org.kin.transport.netty;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * @author huangjianqin
  * @date 2023/1/15
  */
 public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extends Transport<PT> {
+    /** 默认魔数 */
+    private static final byte[] DEFAULT_MAGIC = "kin-transport".getBytes(StandardCharsets.UTF_8);
+
     /** 魔数 */
-    private String magic = "kin-transport";
+    private byte[] magic = DEFAULT_MAGIC;
     /** 协议内容最大长度, 默认16MB */
     private int maxBodySize = 16 * 1024 * 1024;
     /**
@@ -40,8 +45,14 @@ public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extend
     }
 
     @SuppressWarnings("unchecked")
-    public PT magic(String magic) {
+    public PT magic(byte[] magic) {
         this.magic = magic;
+        return (PT) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public PT magic(String magicStr) {
+        this.magic = magicStr.getBytes(StandardCharsets.UTF_8);
         return (PT) this;
     }
 
@@ -70,7 +81,7 @@ public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extend
     }
 
     //getter
-    public String getMagic() {
+    public byte[] getMagic() {
         return magic;
     }
 

@@ -34,10 +34,10 @@ public class ProtocolEncoder extends ChannelOutboundHandlerAdapter {
                 byteBuf.markWriterIndex();
                 //重置到header
                 byteBuf.writerIndex(byteBuf.writerIndex() - length);
-                //write header
-                byteBuf.writeBytes(options.getMagicBytes())
-                        //write protocol content
-                        .writeInt(length - options.getHeaderSize());
+                //write protocol content
+                byteBuf.writeInt(length - Protocols.PROTOCOL_LENGTH_BYTES)
+                        //write header
+                        .writeBytes(options.getMagic());
                 //回滚到之前的write index
                 byteBuf.resetWriterIndex();
 

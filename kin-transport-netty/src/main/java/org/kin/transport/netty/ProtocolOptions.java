@@ -1,8 +1,7 @@
 package org.kin.transport.netty;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * 协议配置
@@ -12,10 +11,10 @@ import java.nio.charset.StandardCharsets;
  */
 public class ProtocolOptions {
     /** 魔数bytes */
-    private final byte[] magicBytes;
-    /** 协议内容最大长度 */
+    private final byte[] magic;
+    /** 数据内容最大长度 */
     private final int maxBodySize;
-    /** 协议头部长度 */
+    /** 协议头部长度, 即协议内容长度+魔数bytes */
     private final int headerSize;
     /**
      * Cumulate {@link ByteBuf}s by add them to a CompositeByteBuf and so do no memory copy whenever possible.
@@ -24,10 +23,12 @@ public class ProtocolOptions {
      */
     private final boolean useCompositeBuf;
 
-    public ProtocolOptions(String magic, int maxBodySize, boolean useCompositeBuf) {
-        this.magicBytes = magic.getBytes(StandardCharsets.UTF_8);
+    public ProtocolOptions(byte[] magic, int maxBodySize, boolean useCompositeBuf) {
+        Preconditions.checkArgument(magic.length <= Protocols.MAX_MAGIC_SIZE, "max magic bytes size must be lower than " + Protocols.MAX_MAGIC_SIZE);
+        Preconditions.checkArgument(maxBodySize <= Protocols.MAX_BODY_SIZE, "max body size must be lower than " + Protocols.MAX_BODY_SIZE);
+        this.magic = magic;
         this.maxBodySize = maxBodySize;
-        this.headerSize = magicBytes.length + 4;
+        this.headerSize = magic.length + Protocols.PROTOCOL_LENGTH_BYTES;
         this.useCompositeBuf = useCompositeBuf;
     }
 
@@ -35,12 +36,12 @@ public class ProtocolOptions {
      * 获取magic bytes大小
      */
     public int getMagicSize() {
-        return magicBytes.length;
+        return magic.length;
     }
 
     //getter
-    public byte[] getMagicBytes() {
-        return magicBytes;
+    public byte[] getMagic() {
+        return magic;
     }
 
     public int getMaxBodySize() {
