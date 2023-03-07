@@ -1,5 +1,6 @@
 package org.kin.transport.netty;
 
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.handler.codec.EncoderException;
 import org.jctools.queues.MpscLinkedQueue;
 import org.kin.framework.JvmCloseCleaner;
@@ -15,7 +16,6 @@ import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Consumer;
 
@@ -30,10 +30,6 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
     @SuppressWarnings("rawtypes")
     private static final AtomicReferenceFieldUpdater<Client, Session> SESSION_UPDATER =
             AtomicReferenceFieldUpdater.newUpdater(Client.class, Session.class, "session");
-    /** 原子更新connectSignal字段 */
-    @SuppressWarnings("rawtypes")
-    private static final AtomicReferenceFieldUpdater<Client, CompletableFuture> CONNECT_SIGNAL_UPDATER =
-            AtomicReferenceFieldUpdater.newUpdater(Client.class, CompletableFuture.class, "connectSignal");
     /** 重连scheduler */
     private static final Scheduler RECONNECT_SCHEDULER = Schedulers.newSingle("kin-client-reconnect", true);
 
@@ -53,12 +49,6 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
     protected Client(PT clientTransport) {
         this.clientTransport = clientTransport;
     }
-
-    /**
-     * 连接成功signal
-     * {@link CompletableFuture}实例, 用于首次connect时, 创建等待complete signal的{@link Mono}
-     */
-    private volatile CompletableFuture<Session> connectSignal = new CompletableFuture<>();
 
     /**
      * 获取connect逻辑
@@ -155,13 +145,10 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
                         }
 
                         log().info("{} prepare to reconnect to remote '{}'", clientName(), remoteDesc());
-                        CONNECT_SIGNAL_UPDATER.set(this, new CompletableFuture<>());
                         tryReconnect(nextTimes);
                     });
                     //更新session实例
                     SESSION_UPDATER.set(this, s);
-                    //连接成功时signal
-                    CONNECT_SIGNAL_UPDATER.get(this).complete(s);
 
                     afterConnected();
                 }, t -> handleErrorOnConnecting(t, nextTimes));
@@ -183,7 +170,23 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
     @SuppressWarnings("unchecked")
     public Mono<Session> session() {
         //用于首次connect时, 创建等待complete signal的{@link Mono}, 后续都会取到一个session实例, 但是已经disposed
-        return Mono.justOrEmpty(SESSION_UPDATER.get(this)).switchIfEmpty(Mono.fromFuture(CONNECT_SIGNAL_UPDATER.get(this)));
+        return Mono.justOrEmpty(SESSION_UPDATER.get(this));
+    }
+
+    /**
+     * 构造{@link OutboundPayload}
+     */
+    private OutboundPayload newOutboundPayload(Session session, Consumer<OutboundPayload> encoder) {
+        OutboundPayload outboundPayload;
+        if (Objects.nonNull(session)) {
+            outboundPayload = session.newOutboundPayload();
+        } else {
+            //连接未建立 or 连接断开
+            outboundPayload = new OutboundPayload(PooledByteBufAllocator.DEFAULT.directBuffer());
+        }
+        encoder.accept(outboundPayload);
+
+        return outboundPayload;
     }
 
     /**
@@ -193,11 +196,7 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
      * @return complete signal
      */
     public Mono<Void> write(Consumer<OutboundPayload> encoder) {
-        return session().flatMap(s -> {
-            OutboundPayload outboundPayload = s.newOutboundPayload();
-            encoder.accept(outboundPayload);
-            return session.write(outboundPayload);
-        });
+        return session().flatMap(s -> session.write(newOutboundPayload(s, encoder)));
     }
 
     /**
@@ -208,11 +207,7 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
      * @return complete signal
      */
     public Mono<Void> write(Consumer<OutboundPayload> encoder, ChannelOperationListener<Session> listener) {
-        return session().flatMap(s -> {
-            OutboundPayload outboundPayload = s.newOutboundPayload();
-            encoder.accept(outboundPayload);
-            return session.write(outboundPayload, listener);
-        });
+        return session().flatMap(s -> session.write(newOutboundPayload(s, encoder), listener));
     }
 
     /**
@@ -222,11 +217,7 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
      * @return complete signal
      */
     public Mono<Void> writeOrCache(Consumer<OutboundPayload> encoder) {
-        return session().flatMap(s -> {
-            OutboundPayload outboundPayload = s.newOutboundPayload();
-            encoder.accept(outboundPayload);
-            return writeOrCache(outboundPayload);
-        });
+        return session().flatMap(s -> writeOrCache(newOutboundPayload(s, encoder)));
     }
 
     /**

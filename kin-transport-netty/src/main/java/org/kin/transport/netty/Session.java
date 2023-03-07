@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public class Session implements Disposable {
+public final class Session implements Disposable {
     private static final Logger log = LoggerFactory.getLogger(Session.class);
     /** session channel key */
     public static final AttributeKey<Session> SESSION_KEY = AttributeKey.valueOf("session");
@@ -76,7 +76,7 @@ public class Session implements Disposable {
     /**
      * write out
      */
-    public final Mono<Void> write(@Nonnull OutboundPayload payload) {
+    public Mono<Void> write(@Nonnull OutboundPayload payload) {
         if (!isActive()) {
             return Mono.empty();
         }
@@ -132,7 +132,7 @@ public class Session implements Disposable {
     /**
      * write out and close session
      */
-    public final Mono<Void> writeAndClose(@Nonnull OutboundPayload payload) {
+    public Mono<Void> writeAndClose(@Nonnull OutboundPayload payload) {
         if (!isActive()) {
             return Mono.empty();
         }
@@ -166,7 +166,7 @@ public class Session implements Disposable {
      * close session
      */
     @Override
-    public final void dispose() {
+    public void dispose() {
         if (disposed) {
             return;
         }
