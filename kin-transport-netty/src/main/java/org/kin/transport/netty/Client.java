@@ -109,7 +109,12 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
                 .flatMap(bp -> payloadProcessor.process(session, bp))
                 .onErrorContinue((throwable, o) -> log().error("{} process payload error, {}\r\n{}", clientName(), o, throwable))
                 .subscribe();
+    }
 
+    /**
+     * 连接成功并更新好{@link #session}后执行操作
+     */
+    private void afterConnected() {
         //尝试重发断连时堆积payload
         OutboundPayload outboundPayload;
         while (Objects.nonNull((outboundPayload = waitingPayloads.poll()))) {
@@ -157,6 +162,8 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
                     SESSION_UPDATER.set(this, s);
                     //连接成功时signal
                     CONNECT_SIGNAL_UPDATER.get(this).complete(s);
+
+                    afterConnected();
                 }, t -> handleErrorOnConnecting(t, nextTimes));
     }
 
