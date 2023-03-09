@@ -1,6 +1,8 @@
 package org.kin.transport.netty;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelConfig;
 import io.netty.channel.EventLoop;
@@ -16,6 +18,7 @@ import reactor.netty.Connection;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -33,7 +36,7 @@ public final class Session implements Disposable {
     /** 协议配置 */
     private final ProtocolOptions options;
     /** session绑定的{@link  Connection}实例 */
-    private final Connection connection;
+    private volatile Connection connection;
     /** 标识是否closed */
     private volatile boolean disposed;
     /** 自适应分配bytebuf */
@@ -51,8 +54,30 @@ public final class Session implements Disposable {
         return sessionAttribute.get();
     }
 
+    /**
+     * 构建无连接的session, 常用于client端建立connection或建立自动重连的connection
+     */
+    public Session(ProtocolOptions options) {
+        this.options = options;
+    }
+
+    /**
+     * 基于已建立的connection构建session, 常用于server维护client session
+     */
     public Session(ProtocolOptions options, Connection connection) {
         this.options = options;
+        bind(connection);
+    }
+
+    /**
+     * 底层连接建立时调用, 以绑定已连接的connection
+     */
+    public void bind(Connection connection) {
+        Connection oldConnection = this.connection;
+        if (Objects.nonNull(oldConnection) && !oldConnection.isDisposed()) {
+            //shutdown old connection
+            oldConnection.dispose();
+        }
         this.connection = connection;
 
         //bind session to channel
@@ -61,7 +86,6 @@ public final class Session implements Disposable {
 
         log.info("session bound on channel {}", channel());
         connection.onDispose(() -> {
-            disposed = true;
             log.info("session unbound on channel {}", channel());
         });
     }
@@ -70,18 +94,11 @@ public final class Session implements Disposable {
      * 获取{@link Connection}实例绑定的netty channel
      */
     public Channel channel() {
-        return connection.channel();
-    }
-
-    /**
-     * write out
-     */
-    public Mono<Void> write(@Nonnull OutboundPayload payload) {
-        if (!isActive()) {
-            return Mono.empty();
+        if (Objects.isNull(connection)) {
+            return null;
         }
 
-        return write0(payload);
+        return connection.channel();
     }
 
     /**
@@ -98,6 +115,17 @@ public final class Session implements Disposable {
     /**
      * write out
      */
+    public Mono<Void> write(@Nonnull OutboundPayload payload) {
+        if (!isActive()) {
+            return Mono.error(new TransportException("channel inactive, " + channel()));
+        }
+
+        return write0(payload);
+    }
+
+    /**
+     * write out
+     */
     private Mono<Void> write0(@Nonnull OutboundPayload payload) {
         //sendObject相当于channel.writeAndFlush
         return connection.outbound().sendObject(payload).then();
@@ -105,8 +133,19 @@ public final class Session implements Disposable {
 
     /**
      * write out
+     *
+     * @param encoder 协议对象 -> bytes payload逻辑
      */
-    public final Mono<Void> write(@Nonnull OutboundPayload payload, @Nonnull ChannelOperationListener<Session> listener) {
+    public Mono<Void> write(@Nonnull Consumer<OutboundPayload> encoder, @Nonnull ChannelOperationListener<Session> listener) {
+        OutboundPayload outboundPayload = newOutboundPayload();
+        encoder.accept(outboundPayload);
+        return write(outboundPayload, listener);
+    }
+
+    /**
+     * write out
+     */
+    public Mono<Void> write(@Nonnull OutboundPayload payload, @Nonnull ChannelOperationListener<Session> listener) {
         Mono<Void> result;
         if (!isActive()) {
             result = Mono.error(new TransportException("channel inactive, " + channel()));
@@ -119,14 +158,14 @@ public final class Session implements Disposable {
     }
 
     /**
-     * write out
+     * write out and close session
      *
      * @param encoder 协议对象 -> bytes payload逻辑
      */
-    public Mono<Void> write(@Nonnull Consumer<OutboundPayload> encoder, @Nonnull ChannelOperationListener<Session> listener) {
+    public Mono<Void> writeAndClose(@Nonnull Consumer<OutboundPayload> encoder) {
         OutboundPayload outboundPayload = newOutboundPayload();
         encoder.accept(outboundPayload);
-        return write(outboundPayload, listener);
+        return writeAndClose(outboundPayload);
     }
 
     /**
@@ -152,17 +191,6 @@ public final class Session implements Disposable {
     }
 
     /**
-     * write out and close session
-     *
-     * @param encoder 协议对象 -> bytes payload逻辑
-     */
-    public Mono<Void> writeAndClose(@Nonnull Consumer<OutboundPayload> encoder) {
-        OutboundPayload outboundPayload = newOutboundPayload();
-        encoder.accept(outboundPayload);
-        return writeAndClose(outboundPayload);
-    }
-
-    /**
      * close session
      */
     @Override
@@ -175,6 +203,11 @@ public final class Session implements Disposable {
         connection.dispose();
     }
 
+    @Override
+    public boolean isDisposed() {
+        return disposed;
+    }
+
     /**
      * session是否有效
      */
@@ -183,10 +216,21 @@ public final class Session implements Disposable {
     }
 
     /**
+     * 获取底层连接{@link Channel#alloc()}, 如果connection未建立, 则返回{@link io.netty.buffer.PooledByteBufAllocator#DEFAULT}
+     */
+    private ByteBufAllocator getChannelAlloc() {
+        if (isActive()) {
+            return channel().alloc();
+        } else {
+            return PooledByteBufAllocator.DEFAULT;
+        }
+    }
+
+    /**
      * 分配新的自适应大小的outbound bytebuf
      */
     public OutboundPayload newOutboundPayload() {
-        ByteBuf byteBuf = adaptiveHandle.allocate(channel().alloc())
+        ByteBuf byteBuf = adaptiveHandle.allocate(getChannelAlloc())
                 .ensureWritable(options.getHeaderSize())
                 .writerIndex(options.getHeaderSize());
         return new OutboundPayload(adaptiveHandle, byteBuf);
@@ -243,7 +287,7 @@ public final class Session implements Disposable {
     }
 
     //getter
-    public Connection getConnection() {
+    public Connection connection() {
         return connection;
     }
 }

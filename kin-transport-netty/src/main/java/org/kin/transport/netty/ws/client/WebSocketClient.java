@@ -7,6 +7,7 @@ import org.kin.transport.netty.handler.ClientHandler;
 import org.kin.transport.netty.handler.WebSocketClientHandler;
 import org.kin.transport.netty.ws.BinaryWebSocketFrameEncoder;
 import reactor.core.publisher.Mono;
+import reactor.netty.Connection;
 import reactor.netty.ConnectionObserver;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
@@ -23,7 +24,7 @@ public final class WebSocketClient extends Client<WebsocketClientTransport> {
     /** handshake uri */
     private final String uri;
     /** websocket connect逻辑 */
-    private final Mono<Session> connector;
+    private final Mono<Connection> connector;
 
     WebSocketClient(WebsocketClientTransport clientTransport, HttpClient httpClient, String uri) {
         super(clientTransport);
@@ -36,7 +37,7 @@ public final class WebSocketClient extends Client<WebsocketClientTransport> {
     /**
      * websocket connect
      */
-    private Mono<Session> connect(WebsocketClientTransport clientTransport, HttpClient httpClient, String uri) {
+    private Mono<Connection> connect(WebsocketClientTransport clientTransport, HttpClient httpClient, String uri) {
         ProtocolOptions options = clientTransport.getProtocolOptions();
 
         //channel共享handler
@@ -77,21 +78,17 @@ public final class WebSocketClient extends Client<WebsocketClientTransport> {
                             .addHandlerLast(new ProtocolDecoder(options))
                             .addHandlerLast(protocolEncoder)
                             .addHandlerLast(ClientHandler.INSTANCE);
-
-                    Session session = new Session(options, connection);
-
-                    onConnected(session);
-                    return session;
+                    return connection;
                 });
     }
 
     @Override
-    protected Mono<Session> connector() {
+    protected Mono<Connection> connector() {
         return connector;
     }
 
     @Override
-    protected String remoteDesc() {
+    protected String remoteAddress() {
         return uri;
     }
 }

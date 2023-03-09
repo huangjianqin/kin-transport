@@ -4,6 +4,7 @@ import io.netty.channel.ChannelHandler;
 import org.kin.transport.netty.*;
 import org.kin.transport.netty.handler.ClientHandler;
 import reactor.core.publisher.Mono;
+import reactor.netty.Connection;
 import reactor.netty.ConnectionObserver;
 
 import java.net.InetSocketAddress;
@@ -19,7 +20,7 @@ public final class TcpClient extends Client<TcpClientTransport> {
     /** remote address */
     private final InetSocketAddress address;
     /** tcp connect逻辑 */
-    private final Mono<Session> connector;
+    private final Mono<Connection> connector;
 
     TcpClient(TcpClientTransport clientTransport, reactor.netty.tcp.TcpClient tcpClient, InetSocketAddress address) {
         super(clientTransport);
@@ -32,7 +33,7 @@ public final class TcpClient extends Client<TcpClientTransport> {
     /**
      * tcp connect
      */
-    private Mono<Session> connect(TcpClientTransport clientTransport, reactor.netty.tcp.TcpClient tcpClient, InetSocketAddress address) {
+    private Mono<Connection> connect(TcpClientTransport clientTransport, reactor.netty.tcp.TcpClient tcpClient, InetSocketAddress address) {
         ProtocolOptions options = clientTransport.getProtocolOptions();
 
         //channel共享handler
@@ -62,21 +63,17 @@ public final class TcpClient extends Client<TcpClientTransport> {
                     connection.addHandlerLast(new ProtocolDecoder(options))
                             .addHandlerLast(protocolEncoder)
                             .addHandlerLast(ClientHandler.INSTANCE);
-
-                    Session session = new Session(options, connection);
-
-                    onConnected(session);
-                    return session;
+                    return connection;
                 });
     }
 
     @Override
-    protected Mono<Session> connector() {
+    protected Mono<Connection> connector() {
         return connector;
     }
 
     @Override
-    protected String remoteDesc() {
+    protected String remoteAddress() {
         return address.toString();
     }
 }

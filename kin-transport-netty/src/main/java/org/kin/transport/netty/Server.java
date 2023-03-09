@@ -40,7 +40,7 @@ public abstract class Server<PT extends ProtocolTransport<PT>> implements Dispos
     @SuppressWarnings({"unchecked"})
     protected void onClientConnected(Session session) {
         PayloadProcessor payloadProcessor = serverTransport.getPayloadProcessor();
-        session.getConnection()
+        session.connection()
                 .inbound()
                 .receiveObject()
                 .flatMap(o -> {

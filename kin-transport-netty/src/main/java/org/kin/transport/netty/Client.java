@@ -1,6 +1,5 @@
 package org.kin.transport.netty;
 
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.handler.codec.EncoderException;
 import org.jctools.queues.MpscLinkedQueue;
 import org.kin.framework.JvmCloseCleaner;
@@ -11,12 +10,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+import reactor.netty.Connection;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Consumer;
 
 /**
@@ -26,10 +25,6 @@ import java.util.function.Consumer;
  * @date 2023/1/20
  */
 public abstract class Client<PT extends ProtocolTransport<PT>> implements Disposable, LoggerOprs {
-    /** 原子更新session字段 */
-    @SuppressWarnings("rawtypes")
-    private static final AtomicReferenceFieldUpdater<Client, Session> SESSION_UPDATER =
-            AtomicReferenceFieldUpdater.newUpdater(Client.class, Session.class, "session");
     /** 重连scheduler */
     private static final Scheduler RECONNECT_SCHEDULER = Schedulers.newSingle("kin-client-reconnect", true);
 
@@ -42,25 +37,26 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
     /** client断开连接期间堆积的协议, 并非保证exactly once, 已经flush的协议可能会丢失 */
     private final MpscLinkedQueue<OutboundPayload> waitingPayloads = new MpscLinkedQueue<>();
     /** 会话 */
-    private volatile Session session;
+    private final Session session;
     /** client是否closed */
     private volatile boolean disposed;
 
     protected Client(PT clientTransport) {
         this.clientTransport = clientTransport;
+        this.session = new Session(clientTransport.getProtocolOptions());
     }
 
     /**
-     * 获取connect逻辑
+     * 返回构建connection逻辑
      *
-     * @return connect逻辑
+     * @return 构建connection逻辑
      */
-    protected abstract Mono<Session> connector();
+    protected abstract Mono<Connection> connector();
 
     /**
      * @return remote描述
      */
-    protected abstract String remoteDesc();
+    protected abstract String remoteAddress();
 
     /**
      * @return client命名
@@ -73,9 +69,9 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
      * 连接成功绑定inbound payload逻辑处理
      */
     @SuppressWarnings({"unchecked"})
-    protected void onConnected(Session session) {
+    protected void onConnected(Connection connection, int retryTimes) {
         PayloadProcessor payloadProcessor = clientTransport.getPayloadProcessor();
-        session.getConnection()
+        Disposable inboundProcessDisposable = connection
                 .inbound()
                 .receiveObject()
                 .flatMap(o -> {
@@ -99,16 +95,22 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
                 .flatMap(bp -> payloadProcessor.process(session, bp))
                 .onErrorContinue((throwable, o) -> log().error("{} process payload error, {}\r\n{}", clientName(), o, throwable))
                 .subscribe();
-    }
 
-    /**
-     * 连接成功并更新好{@link #session}后执行操作
-     */
-    private void afterConnected() {
+        //自定义connection断开逻辑
+        connection.onDispose(() -> {
+            inboundProcessDisposable.dispose();
+            //尝试重连
+            log().info("{} prepare to reconnect to remote '{}'", clientName(), remoteAddress());
+            tryReconnect(retryTimes);
+        });
+
+        //替换session里面的connection实例
+        session.bind(connection);
+
         //尝试重发断连时堆积payload
         OutboundPayload outboundPayload;
         while (Objects.nonNull((outboundPayload = waitingPayloads.poll()))) {
-            writeOrCache(outboundPayload).subscribe();
+            writeOrCache(session, outboundPayload).subscribe();
         }
     }
 
@@ -122,43 +124,29 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
     /**
      * client重连逻辑
      */
-    @SuppressWarnings("unchecked")
-    protected void tryReconnect(int times) {
+    protected void tryReconnect(int retryTimes) {
         if (disposed) {
             return;
         }
 
-        Session session = SESSION_UPDATER.get(this);
-        if (Objects.nonNull(session) && session.isActive()) {
+        if (session.isActive()) {
             //session存活
             return;
         }
 
-        //初始间隔为1s, 最大间隔3s
-        int nextTimes = times + 1;
-        Mono.delay(Duration.ofSeconds(Math.min(3L, times)), RECONNECT_SCHEDULER)
+        //初始间隔为0s, 最大间隔3s
+        int nextRetryTimes = retryTimes + 1;
+        Mono.delay(Duration.ofSeconds(Math.min(3L, retryTimes)), RECONNECT_SCHEDULER)
                 .flatMap(t -> connector())
-                .subscribe(s -> {
-                    s.getConnection().onDispose(() -> {
-                        if (disposed) {
-                            return;
-                        }
-
-                        log().info("{} prepare to reconnect to remote '{}'", clientName(), remoteDesc());
-                        tryReconnect(nextTimes);
-                    });
-                    //更新session实例
-                    SESSION_UPDATER.set(this, s);
-
-                    afterConnected();
-                }, t -> handleErrorOnConnecting(t, nextTimes));
+                .subscribe(connection -> onConnected(connection, nextRetryTimes),
+                        t -> handleErrorOnConnecting(t, nextRetryTimes));
     }
 
     /**
      * 处理connect过程的异常
      */
     private void handleErrorOnConnecting(Throwable t, int times) {
-        log().error("{} connect to remote '{}' error", clientName(), remoteDesc(), t);
+        log().error("{} connect to remote '{}' error", clientName(), remoteAddress(), t);
         tryReconnect(times);
     }
 
@@ -167,26 +155,8 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
      *
      * @return 会话
      */
-    @SuppressWarnings("unchecked")
     public Mono<Session> session() {
-        //用于首次connect时, 创建等待complete signal的{@link Mono}, 后续都会取到一个session实例, 但是已经disposed
-        return Mono.justOrEmpty(SESSION_UPDATER.get(this));
-    }
-
-    /**
-     * 构造{@link OutboundPayload}
-     */
-    private OutboundPayload newOutboundPayload(Session session, Consumer<OutboundPayload> encoder) {
-        OutboundPayload outboundPayload;
-        if (Objects.nonNull(session)) {
-            outboundPayload = session.newOutboundPayload();
-        } else {
-            //连接未建立 or 连接断开
-            outboundPayload = new OutboundPayload(PooledByteBufAllocator.DEFAULT.directBuffer());
-        }
-        encoder.accept(outboundPayload);
-
-        return outboundPayload;
+        return Mono.just(session);
     }
 
     /**
@@ -196,7 +166,7 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
      * @return complete signal
      */
     public Mono<Void> write(Consumer<OutboundPayload> encoder) {
-        return session().flatMap(s -> session.write(newOutboundPayload(s, encoder)));
+        return session().flatMap(s -> s.write(encoder));
     }
 
     /**
@@ -207,7 +177,7 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
      * @return complete signal
      */
     public Mono<Void> write(Consumer<OutboundPayload> encoder, ChannelOperationListener<Session> listener) {
-        return session().flatMap(s -> session.write(newOutboundPayload(s, encoder), listener));
+        return session().flatMap(s -> s.write(encoder, listener));
     }
 
     /**
@@ -217,7 +187,11 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
      * @return complete signal
      */
     public Mono<Void> writeOrCache(Consumer<OutboundPayload> encoder) {
-        return session().flatMap(s -> writeOrCache(newOutboundPayload(s, encoder)));
+        return session().flatMap(s -> {
+            OutboundPayload outboundPayload = s.newOutboundPayload();
+            encoder.accept(outboundPayload);
+            return writeOrCache(s, outboundPayload);
+        });
     }
 
     /**
@@ -226,7 +200,7 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
      * @param outboundPayload outbound payload
      * @return complete signal
      */
-    private Mono<Void> writeOrCache(OutboundPayload outboundPayload) {
+    private Mono<Void> writeOrCache(Session session, OutboundPayload outboundPayload) {
         return session.write(outboundPayload, new ChannelOperationListener<Session>() {
             @Override
             public void onFailure(Session session, Throwable cause) {
@@ -248,14 +222,11 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
 
     public void dispose(@Nullable Disposable disposable) {
         disposed = true;
-        Session session = SESSION_UPDATER.get(this);
-        if (Objects.nonNull(session)) {
-            if (Objects.nonNull(disposable)) {
-                //自定义dispose逻辑
-                session.getConnection().onDispose(disposable);
-            }
-            session.dispose();
+        if (Objects.nonNull(disposable)) {
+            //自定义dispose逻辑
+            session.connection().onDispose(disposable);
         }
+        session.dispose();
     }
 
     @Override
