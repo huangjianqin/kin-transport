@@ -55,14 +55,7 @@ public final class Session implements Disposable {
     }
 
     /**
-     * 构建无连接的session, 常用于client端建立connection或建立自动重连的connection
-     */
-    public Session(ProtocolOptions options) {
-        this.options = options;
-    }
-
-    /**
-     * 基于已建立的connection构建session, 常用于server维护client session
+     * 基于已建立的connection构建session
      */
     public Session(ProtocolOptions options, Connection connection) {
         this.options = options;
@@ -94,10 +87,6 @@ public final class Session implements Disposable {
      * 获取{@link Connection}实例绑定的netty channel
      */
     public Channel channel() {
-        if (Objects.isNull(connection)) {
-            return null;
-        }
-
         return connection.channel();
     }
 
