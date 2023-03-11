@@ -55,7 +55,7 @@ public final class Session implements Disposable {
     }
 
     /**
-     * 基于已建立的connection构建session
+     * 基于已建立的connection构建session实例
      */
     public Session(ProtocolOptions options, Connection connection) {
         this.options = options;
@@ -63,7 +63,8 @@ public final class Session implements Disposable {
     }
 
     /**
-     * 底层连接建立时调用, 以绑定已连接的connection
+     * 底层连接建立时调用, 以绑定新connection
+     * 往往用于旧连接断开, 新连接建立成功后, 替换session实例的底层connection
      */
     public void bind(Connection connection) {
         Connection oldConnection = this.connection;
