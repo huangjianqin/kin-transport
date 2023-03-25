@@ -51,7 +51,8 @@ public class ProtocolDecoder extends ReplayingDecoder<ProtocolDecoder.State> {
                 case BODY:
                     int bodySize = checkBodySize(header.getBodySize());
                     ByteBuf bodyByteBuf = byteBuf.readRetainedSlice(bodySize);
-                    out.add(new ByteBufPayload(bodyByteBuf));
+                    //reactor netty会对inbound obj进行release, 所以这里有必要retain一下
+                    out.add(ByteBufPayload.create(bodyByteBuf).retain());
                     checkpoint(State.PROTOCOL_LENGTH);
             }
         }

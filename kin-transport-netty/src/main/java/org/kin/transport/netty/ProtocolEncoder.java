@@ -6,6 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.EncoderException;
+import io.netty.util.ReferenceCountUtil;
 
 /**
  * @author huangjianqin
@@ -21,12 +22,12 @@ public class ProtocolEncoder extends ChannelOutboundHandlerAdapter {
     }
 
     @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        try {
-            if (msg instanceof ByteBufPayload) {
-                ByteBufPayload byteBufPayload = (ByteBufPayload) msg;
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+        if (msg instanceof ByteBufPayload) {
+            try {
+                ByteBufPayload payload = (ByteBufPayload) msg;
 
-                ByteBuf byteBuf = byteBufPayload.getData();
+                ByteBuf byteBuf = payload.data();
                 //当前可读字节数, 包含header
                 int length = byteBuf.readableBytes();
 
@@ -42,16 +43,13 @@ public class ProtocolEncoder extends ChannelOutboundHandlerAdapter {
                 byteBuf.resetWriterIndex();
 
                 ctx.write(byteBuf, promise);
-
-                if (byteBufPayload instanceof OutboundPayload) {
-                    //记录此次response的bytes大小, 以便下次一次性分配足够大的ByteBuf, 减少copy次数
-                    ((OutboundPayload) byteBufPayload).recordPayloadSize();
-                }
-            } else {
-                ctx.write(msg, promise);
+            } catch (Throwable t) {
+                throw new EncoderException(t);
+            } finally {
+                ReferenceCountUtil.safeRelease((msg));
             }
-        } catch (Throwable t) {
-            throw new EncoderException(t);
+        } else {
+            ctx.write(msg, promise);
         }
     }
 }

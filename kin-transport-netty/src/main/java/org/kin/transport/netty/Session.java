@@ -9,6 +9,7 @@ import io.netty.channel.EventLoop;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import org.kin.transport.netty.utils.AdaptiveOutputByteBufAllocator;
+import org.kin.transport.netty.utils.ByteBufUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.Disposable;
@@ -20,7 +21,6 @@ import javax.annotation.Nullable;
 import java.net.SocketAddress;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * 会话
@@ -92,55 +92,79 @@ public final class Session implements Disposable {
     }
 
     /**
-     * write out
+     * send object
      *
      * @param encoder 协议对象 -> bytes payload逻辑
      */
-    public Mono<Void> write(@Nonnull Consumer<OutboundPayload> encoder) {
-        OutboundPayload outboundPayload = newOutboundPayload();
-        encoder.accept(outboundPayload);
-        return write(outboundPayload);
+    public <T> Mono<Void> sendObject(@Nonnull T obj, @Nonnull ObjectEncoder<T> encoder) {
+        ByteBufPayload outboundPayload = newOutboundPayload();
+        encoder.encode(obj, outboundPayload);
+        return send0(outboundPayload);
     }
 
     /**
-     * write out
+     * send bytebuf
+     *
+     * @param data data
      */
-    public Mono<Void> write(@Nonnull OutboundPayload payload) {
+    public Mono<Void> send(@Nonnull ByteBuf data) {
+        return send0(newOutboundPayload(data));
+    }
+
+    /**
+     * send
+     *
+     * @param payload 保证底层bytebuf拥有(header(预占)+传输内容)bytes
+     */
+    private Mono<Void> send0(@Nonnull ByteBufPayload payload) {
         if (!isActive()) {
             return Mono.error(new TransportException("channel inactive, " + channel()));
         }
 
-        return write0(payload);
+        return send1(payload);
     }
 
     /**
-     * write out
+     * send
      */
-    private Mono<Void> write0(@Nonnull OutboundPayload payload) {
+    private Mono<Void> send1(@Nonnull ByteBufPayload payload) {
+        payload.touch(this);
         //sendObject相当于channel.writeAndFlush
         return connection.outbound().sendObject(payload).then();
     }
 
     /**
-     * write out
+     * send object
      *
      * @param encoder 协议对象 -> bytes payload逻辑
      */
-    public Mono<Void> write(@Nonnull Consumer<OutboundPayload> encoder, @Nonnull ChannelOperationListener<Session> listener) {
-        OutboundPayload outboundPayload = newOutboundPayload();
-        encoder.accept(outboundPayload);
-        return write(outboundPayload, listener);
+    public <T> Mono<Void> sendObject(@Nonnull T obj, @Nonnull ObjectEncoder<T> encoder,
+                                     @Nonnull ChannelOperationListener<Session> listener) {
+        ByteBufPayload outboundPayload = newOutboundPayload();
+        encoder.encode(obj, outboundPayload);
+        return send0(outboundPayload, listener);
     }
 
     /**
-     * write out
+     * send bytebuf
+     *
+     * @param data data
      */
-    public Mono<Void> write(@Nonnull OutboundPayload payload, @Nonnull ChannelOperationListener<Session> listener) {
+    public Mono<Void> send(@Nonnull ByteBuf data, @Nonnull ChannelOperationListener<Session> listener) {
+        return send0(newOutboundPayload(data), listener);
+    }
+
+    /**
+     * send
+     *
+     * @param payload 保证底层bytebuf拥有(header(预占)+传输内容)bytes
+     */
+    private Mono<Void> send0(@Nonnull ByteBufPayload payload, @Nonnull ChannelOperationListener<Session> listener) {
         Mono<Void> result;
         if (!isActive()) {
             result = Mono.error(new TransportException("channel inactive, " + channel()));
         } else {
-            result = write0(payload);
+            result = send1(payload);
         }
 
         return result.doOnSuccess(v -> listener.onSuccess(this))
@@ -148,26 +172,37 @@ public final class Session implements Disposable {
     }
 
     /**
-     * write out and close session
+     * send and close session
      *
      * @param encoder 协议对象 -> bytes payload逻辑
      */
-    public Mono<Void> writeAndClose(@Nonnull Consumer<OutboundPayload> encoder) {
-        OutboundPayload outboundPayload = newOutboundPayload();
-        encoder.accept(outboundPayload);
-        return writeAndClose(outboundPayload);
+    public <T> Mono<Void> sendObjectAndClose(@Nonnull T obj, @Nonnull ObjectEncoder<T> encoder) {
+        ByteBufPayload outboundPayload = newOutboundPayload();
+        encoder.encode(obj, outboundPayload);
+        return sendAndClose0(outboundPayload);
     }
 
     /**
-     * write out and close session
+     * send and close session
+     *
+     * @param data data
      */
-    public Mono<Void> writeAndClose(@Nonnull OutboundPayload payload) {
+    public Mono<Void> sendAndClose(@Nonnull ByteBuf data) {
+        return sendAndClose0(newOutboundPayload(data));
+    }
+
+    /**
+     * send and close session
+     *
+     * @param payload 保证底层bytebuf拥有(header(预占)+传输内容)bytes
+     */
+    private Mono<Void> sendAndClose0(@Nonnull ByteBufPayload payload) {
         if (!isActive()) {
             return Mono.empty();
         }
 
         channel().eventLoop().schedule(this::dispose, 300, TimeUnit.MILLISECONDS);
-        return write(payload, new ChannelOperationListener<Session>() {
+        return send0(payload, new ChannelOperationListener<Session>() {
             @Override
             public void onSuccess(Session session) {
                 dispose();
@@ -208,7 +243,7 @@ public final class Session implements Disposable {
     /**
      * 获取底层连接{@link Channel#alloc()}, 如果connection未建立, 则返回{@link io.netty.buffer.PooledByteBufAllocator#DEFAULT}
      */
-    private ByteBufAllocator getChannelAlloc() {
+    public ByteBufAllocator alloc() {
         if (isActive()) {
             return channel().alloc();
         } else {
@@ -219,11 +254,20 @@ public final class Session implements Disposable {
     /**
      * 分配新的自适应大小的outbound bytebuf
      */
-    public OutboundPayload newOutboundPayload() {
-        ByteBuf byteBuf = adaptiveHandle.allocate(getChannelAlloc())
+    private ByteBufPayload newOutboundPayload() {
+        ByteBuf byteBuf = adaptiveHandle.allocate(alloc())
                 .ensureWritable(options.getHeaderSize())
                 .writerIndex(options.getHeaderSize());
-        return new OutboundPayload(adaptiveHandle, byteBuf);
+        return ByteBufPayload.create(byteBuf.retain(), adaptiveHandle);
+    }
+
+    /**
+     * 分配新的自适应大小的outbound bytebuf
+     *
+     * @param data data
+     */
+    private ByteBufPayload newOutboundPayload(@Nonnull ByteBuf data) {
+        return ByteBufPayload.create(ByteBufUtils.rightShift(data, options.getHeaderSize()).retain(), adaptiveHandle);
     }
 
     /**

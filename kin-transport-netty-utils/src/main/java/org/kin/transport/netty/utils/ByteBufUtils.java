@@ -99,4 +99,25 @@ public final class ByteBufUtils {
                 //取底层ByteBuffer, 因为操作底层ByteBuffer时, 不会影响包装ByteBuf的writerIndex, 这里使用原来的writerIndex, 保证获取到的底层ByteBuffer与扩容前的position值一致(仅仅容量变大了)
                 .nioBuffer(byteBuf.writerIndex(), byteBuf.writableBytes());
     }
+
+    /**
+     * {@link ByteBuf}实例bytes右移n位, 保证readerIndex不变, writerIndex在最末尾
+     */
+    public static ByteBuf rightShift(ByteBuf byteBuf, int size) {
+        //保证有足够空间容纳header
+        int readableBytes = byteBuf.readableBytes();
+        byteBuf.ensureWritable(readableBytes + size);
+        //将readable bytes右移, 保证头部有size位byte
+        int readerIndex = byteBuf.readerIndex();
+        int readerEndIndex = readerIndex + readableBytes;
+        int writerIndex = byteBuf.writerIndex();
+        int writerStartIndex = writerIndex + size;
+        for (int i = 0; i < readableBytes; i++) {
+            byteBuf.setByte(--writerStartIndex, byteBuf.getByte(--readerEndIndex));
+        }
+        //修正writerIndex
+        byteBuf.writerIndex(writerIndex + size);
+
+        return byteBuf;
+    }
 }

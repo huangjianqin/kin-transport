@@ -1,10 +1,8 @@
 package org.kin.transport.netty;
 
-import io.netty.handler.codec.EncoderException;
-import org.jctools.queues.MpscLinkedQueue;
+import io.netty.buffer.ByteBuf;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.log.LoggerOprs;
-import org.kin.framework.utils.ExceptionUtils;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -13,12 +11,12 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import reactor.netty.Connection;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.function.Consumer;
 
 /**
  * client抽象, 统一payload处理流程, 重连逻辑
@@ -41,8 +39,6 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
 
     /** client配置 */
     protected final PT clientTransport;
-    /** client断开连接期间堆积的协议, 并非保证exactly once, 已经flush的协议可能会丢失 */
-    private final MpscLinkedQueue<OutboundPayload> waitingPayloads = new MpscLinkedQueue<>();
     /**
      * 会话sink, 用于连接还没建立且writeXX调用时, 注册subscriber, 等连接建立成功后, 发送请求
      * 首次连接成功后, emit {@link Session}实例, 有且仅有一次, 因为重来不会创建多个新的{@link Session}实例
@@ -134,12 +130,6 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
             //替换session里面的connection实例
             session.bind(connection);
         }
-
-        //尝试重发断连时堆积payload
-        OutboundPayload outboundPayload;
-        while (Objects.nonNull((outboundPayload = waitingPayloads.poll()))) {
-            writeOrCache(session, outboundPayload).subscribe();
-        }
     }
 
     /**
@@ -189,59 +179,45 @@ public abstract class Client<PT extends ProtocolTransport<PT>> implements Dispos
     }
 
     /**
-     * client write outbound, 如果失败, 则丢失
+     * client send payload, 如果失败, 则丢失
      *
      * @param encoder 协议对象 -> bytes payload逻辑
      * @return complete signal
      */
-    public Mono<Void> write(Consumer<OutboundPayload> encoder) {
-        return session().flatMap(s -> s.write(encoder));
+    public <T> Mono<Void> sendObject(@Nonnull T obj, @Nonnull ObjectEncoder<T> encoder) {
+        return session().flatMap(s -> s.sendObject(obj, encoder));
     }
 
     /**
-     * client write outbound, 如果失败, 则丢失
+     * client send payload, 如果失败, 则丢失
      *
      * @param encoder  协议对象 -> bytes payload逻辑
      * @param listener netty channel operation callback
      * @return complete signal
      */
-    public Mono<Void> write(Consumer<OutboundPayload> encoder, ChannelOperationListener<Session> listener) {
-        return session().flatMap(s -> s.write(encoder, listener));
+    public <T> Mono<Void> sendObject(@Nonnull T obj, @Nonnull ObjectEncoder<T> encoder,
+                                     @Nonnull ChannelOperationListener<Session> listener) {
+        return session().flatMap(s -> s.sendObject(obj, encoder, listener));
     }
 
     /**
-     * client write outbound, 如果失败, 则缓存, 当重连成功时, 重发
+     * client send bytebuf, 如果失败, 则丢失
      *
-     * @param encoder 协议对象 -> bytes payload逻辑
      * @return complete signal
      */
-    public Mono<Void> writeOrCache(Consumer<OutboundPayload> encoder) {
-        return session().flatMap(s -> {
-            OutboundPayload outboundPayload = s.newOutboundPayload();
-            encoder.accept(outboundPayload);
-            return writeOrCache(s, outboundPayload);
-        });
+    public Mono<Void> send(@Nonnull ByteBuf byteBuf) {
+        return session().flatMap(s -> s.send(byteBuf));
     }
 
     /**
-     * client write outbound, 如果失败, 则缓存, 当重连成功时, 重发
+     * client send bytebuf, 如果失败, 则丢失
+     * <p>
+     * \     * @param listener netty channel operation callback
      *
-     * @param outboundPayload outbound payload
      * @return complete signal
      */
-    private Mono<Void> writeOrCache(Session session, OutboundPayload outboundPayload) {
-        return session.write(outboundPayload, new ChannelOperationListener<Session>() {
-            @Override
-            public void onFailure(Session session, Throwable cause) {
-                //过滤某些异常
-                if (cause instanceof EncoderException) {
-                    //payload无法encode, ignore
-                    ExceptionUtils.throwExt(cause);
-                    return;
-                }
-                waitingPayloads.add(outboundPayload);
-            }
-        });
+    public Mono<Void> send(@Nonnull ByteBuf byteBuf, @Nonnull ChannelOperationListener<Session> listener) {
+        return session().flatMap(s -> s.send(byteBuf, listener));
     }
 
     @Override
