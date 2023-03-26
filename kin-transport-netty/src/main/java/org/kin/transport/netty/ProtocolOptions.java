@@ -28,7 +28,7 @@ public class ProtocolOptions {
         Preconditions.checkArgument(maxBodySize <= Protocols.MAX_BODY_SIZE, "max body size must be lower than " + Protocols.MAX_BODY_SIZE);
         this.magic = magic;
         this.maxBodySize = maxBodySize;
-        this.headerSize = magic.length + Protocols.PROTOCOL_LENGTH_BYTES;
+        this.headerSize = magic.length + Protocols.PROTOCOL_LENGTH_MARK_BYTES;
         this.useCompositeBuf = useCompositeBuf;
     }
 

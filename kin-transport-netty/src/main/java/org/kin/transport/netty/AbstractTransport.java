@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extends Transport<PT> {
+public abstract class AbstractTransport<PT extends AbstractTransport<PT>> extends Transport<PT> {
     /** 默认魔数 */
     private static final byte[] DEFAULT_MAGIC = "kin-transport".getBytes(StandardCharsets.UTF_8);
 
@@ -28,7 +28,7 @@ public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extend
     /** 定义前置handler */
     private PreHandlerInitializer preHandlerInitializer = PreHandlerInitializer.DEFAULT;
 
-    protected ProtocolTransport() {
+    protected AbstractTransport() {
     }
 
     public ProtocolOptions getProtocolOptions() {

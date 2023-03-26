@@ -11,7 +11,7 @@ public final class Protocols {
     }
 
     /** 协议内容长度, 占4个字节 */
-    public static final int PROTOCOL_LENGTH_BYTES = 4;
+    public static final int PROTOCOL_LENGTH_MARK_BYTES = 4;
     /** 支持的最大数据内容长度, (2^30-1) */
     public static final int MAX_BODY_SIZE = 0x3fffffff;
     /** 支持的最大魔数bytes长度, 256B */

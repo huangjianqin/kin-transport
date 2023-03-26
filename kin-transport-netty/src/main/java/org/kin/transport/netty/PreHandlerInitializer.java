@@ -16,11 +16,11 @@ import java.util.List;
 public interface PreHandlerInitializer {
     PreHandlerInitializer DEFAULT = new PreHandlerInitializer() {
         @Override
-        public <PT extends ProtocolTransport<PT>> List<ChannelHandler> preHandlers(PT transport) {
+        public <PT extends AbstractTransport<PT>> List<ChannelHandler> preHandlers(PT transport) {
             return Collections.emptyList();
         }
     };
 
     /** 定义前置handler */
-    <ATT extends ProtocolTransport<ATT>> List<ChannelHandler> preHandlers(ATT transport);
+    <ATT extends AbstractTransport<ATT>> List<ChannelHandler> preHandlers(ATT transport);
 }

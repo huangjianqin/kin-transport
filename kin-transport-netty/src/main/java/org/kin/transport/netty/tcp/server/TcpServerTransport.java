@@ -3,7 +3,7 @@ package org.kin.transport.netty.tcp.server;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
-import org.kin.transport.netty.ProtocolTransport;
+import org.kin.transport.netty.AbstractTransport;
 
 /**
  * 创建{@link TcpServer}的入口
@@ -11,7 +11,7 @@ import org.kin.transport.netty.ProtocolTransport;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public final class TcpServerTransport extends ProtocolTransport<TcpServerTransport> {
+public final class TcpServerTransport extends AbstractTransport<TcpServerTransport> {
 
     public static TcpServerTransport create() {
         return new TcpServerTransport();
