@@ -5,7 +5,7 @@ import org.kin.transport.netty.Client;
 import org.kin.transport.netty.ProtocolDecoder;
 import org.kin.transport.netty.ProtocolEncoder;
 import org.kin.transport.netty.ProtocolOptions;
-import org.kin.transport.netty.handler.ClientHandler;
+import org.kin.transport.netty.tcp.handler.ClientHandler;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.netty.ConnectionObserver;

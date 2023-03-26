@@ -1,4 +1,4 @@
-package org.kin.transport.netty.handler;
+package org.kin.transport.netty.tcp.handler;
 
 import io.netty.channel.*;
 import io.netty.handler.timeout.IdleState;

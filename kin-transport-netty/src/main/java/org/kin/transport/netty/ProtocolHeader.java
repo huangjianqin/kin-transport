@@ -12,7 +12,7 @@ public final class ProtocolHeader {
     /**
      * 协议内容长度
      *
-     * @see ProtocolOptions#PROTOCOL_LENGTH_BYTES
+     * @see Protocols#PROTOCOL_LENGTH_MARK_BYTES
      */
     private int length;
 
