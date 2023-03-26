@@ -2,7 +2,10 @@ package org.kin.transport.netty.ws.client;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
-import org.kin.transport.netty.*;
+import org.kin.transport.netty.Client;
+import org.kin.transport.netty.ProtocolDecoder;
+import org.kin.transport.netty.ProtocolEncoder;
+import org.kin.transport.netty.ProtocolOptions;
 import org.kin.transport.netty.handler.ClientHandler;
 import org.kin.transport.netty.handler.WebSocketClientHandler;
 import org.kin.transport.netty.ws.BinaryWebSocketFrameEncoder;
@@ -42,7 +45,7 @@ public final class WebSocketClient extends Client<WebsocketClientTransport> {
 
         //channel共享handler
         ProtocolEncoder protocolEncoder = new ProtocolEncoder(options);
-        PreHandlerInitializer preHandlerInitializer = clientTransport.getPreHandlerCustomizer();
+        List<ChannelHandler> preHandlers = clientTransport.getPreHandlers();
 
         //监听connection状态变化
         ConnectionObserver connectionObserver = (connection, newState) -> {
@@ -65,8 +68,7 @@ public final class WebSocketClient extends Client<WebsocketClientTransport> {
                 .map(connection -> {
                     log().info("{} connect to remote({}) success", clientName(), uri);
                     //pre handlers
-                    List<ChannelHandler> preChannelHandlers = preHandlerInitializer.preHandlers(clientTransport);
-                    for (ChannelHandler preHandler : preChannelHandlers) {
+                    for (ChannelHandler preHandler : preHandlers) {
                         connection.addHandlerLast(preHandler);
                     }
                     //核心handler

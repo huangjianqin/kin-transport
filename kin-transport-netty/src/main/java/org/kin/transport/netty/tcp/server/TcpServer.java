@@ -32,15 +32,14 @@ public final class TcpServer extends Server<TcpServerTransport> {
         ProtocolOptions options = serverTransport.getProtocolOptions();
         //channel共享handler
         ProtocolEncoder protocolEncoder = new ProtocolEncoder(options);
-        PreHandlerInitializer preHandlerInitializer = serverTransport.getPreHandlerCustomizer();
+        List<ChannelHandler> preHandlers = serverTransport.getPreHandlers();
 
         tcpServer.doOnConnection(connection -> {
                     //在channel init中add last handler会导致所添加的handler在名为"reactor.right.reactiveBridge"的ChannelOperationsHandler实例后面, 那么NettyInbound则是最原始的bytes
                     //NettyInbound.receiveObject() signal是ChannelOperationsHandler实例触发
                     //而Connection的addHandlerLast会保证ChannelOperationsHandler实例是pipeline最后一个handler
                     //pre handlers
-                    List<ChannelHandler> preChannelHandlers = preHandlerInitializer.preHandlers(serverTransport);
-                    for (ChannelHandler preHandler : preChannelHandlers) {
+                    for (ChannelHandler preHandler : preHandlers) {
                         connection.addHandlerLast(preHandler);
                     }
                     //核心handler

@@ -9,7 +9,7 @@ import org.kin.framework.proxy.ProxyInvoker;
 import org.kin.framework.proxy.Proxys;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.SysUtils;
-import org.kin.transport.netty.ServerTransport;
+import org.kin.transport.netty.Transport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -31,7 +31,7 @@ import java.util.*;
  * @author huangjianqin
  * @date 2022/11/9
  */
-public final class HttpServerTransport extends ServerTransport<HttpServerTransport> {
+public final class HttpServerTransport extends Transport<HttpServerTransport> {
     private static final Logger log = LoggerFactory.getLogger(HttpServerTransport.class);
 
     /** key -> url, value -> 对应的{@link  HttpRequestHandler} */
@@ -235,7 +235,7 @@ public final class HttpServerTransport extends ServerTransport<HttpServerTranspo
      *
      * @param port server端口
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked"})
     public org.kin.transport.netty.http.server.HttpServer bind(int port, HttpProtocol protocol) {
         Preconditions.checkArgument(port > 0, "http server port must be greater than 0");
 
@@ -257,6 +257,7 @@ public final class HttpServerTransport extends ServerTransport<HttpServerTranspo
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.SO_REUSEADDR, true)
+                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 //打印底层event和二进制内容
 //                .wiretap(false)
@@ -271,7 +272,8 @@ public final class HttpServerTransport extends ServerTransport<HttpServerTranspo
                 //自定义event loop
                 .runOn(loopResources);
 
-        nettyHttpServer = (HttpServer) customServerTransport(nettyHttpServer);
+        nettyHttpServer = applyOptions(nettyHttpServer);
+        nettyHttpServer = applyChildOptions(nettyHttpServer);
 
         Scheduler finalBsScheduler = bsScheduler;
 

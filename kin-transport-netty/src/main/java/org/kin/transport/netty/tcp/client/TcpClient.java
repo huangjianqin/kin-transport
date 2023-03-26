@@ -1,7 +1,10 @@
 package org.kin.transport.netty.tcp.client;
 
 import io.netty.channel.ChannelHandler;
-import org.kin.transport.netty.*;
+import org.kin.transport.netty.Client;
+import org.kin.transport.netty.ProtocolDecoder;
+import org.kin.transport.netty.ProtocolEncoder;
+import org.kin.transport.netty.ProtocolOptions;
 import org.kin.transport.netty.handler.ClientHandler;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
@@ -38,7 +41,7 @@ public final class TcpClient extends Client<TcpClientTransport> {
 
         //channel共享handler
         ProtocolEncoder protocolEncoder = new ProtocolEncoder(options);
-        PreHandlerInitializer preHandlerInitializer = clientTransport.getPreHandlerCustomizer();
+        List<ChannelHandler> preHandlers = clientTransport.getPreHandlers();
 
         //监听connection状态变化
         ConnectionObserver connectionObserver = (connection, newState) -> {
@@ -55,8 +58,7 @@ public final class TcpClient extends Client<TcpClientTransport> {
                     //注意, 下面逻辑不能在TcpClient.doOnConnected(...)进行, TcpClient.doOnConnected(...)的逻辑执行会比TcpClient.connect()后
                     log().info("{} connect to remote({}) success", clientName(), address);
                     //pre handlers
-                    List<ChannelHandler> preChannelHandlers = preHandlerInitializer.preHandlers(clientTransport);
-                    for (ChannelHandler preHandler : preChannelHandlers) {
+                    for (ChannelHandler preHandler : preHandlers) {
                         connection.addHandlerLast(preHandler);
                     }
                     //核心handler

@@ -42,6 +42,9 @@ public final class TcpServerTransport extends AbstractTransport<TcpServerTranspo
 //                .wiretap(false)
                 .metrics(true);
 
+        tcpServer = applyOptions(tcpServer);
+        tcpServer = applyChildOptions(tcpServer);
+
         return new TcpServer(this, tcpServer, port);
     }
 }

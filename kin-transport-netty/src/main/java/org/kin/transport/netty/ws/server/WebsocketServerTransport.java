@@ -79,6 +79,9 @@ public final class WebsocketServerTransport extends AbstractTransport<WebsocketS
                 //最多最存在512个待处理的http request
                 .maxKeepAliveRequests(16);
 
+        httpServer = applyChildOptions(httpServer);
+        httpServer = applyOptions(httpServer);
+
         return new WebSocketServer(this, httpServer, port);
     }
 

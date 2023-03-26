@@ -67,6 +67,8 @@ public final class TcpClientTransport extends AbstractTransport<TcpClientTranspo
                 .metrics(true)
                 .runOn(LOOP_RESOURCES);
 
+        tcpClient = applyOptions(tcpClient);
+
         return new org.kin.transport.netty.tcp.client.TcpClient(this, tcpClient, address);
     }
 

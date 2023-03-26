@@ -31,7 +31,7 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
      * 监听端口
      */
     private void onBind(WebsocketServerTransport serverTransport, HttpServer httpServer) {
-        PreHandlerInitializer preHandlerInitializer = serverTransport.getPreHandlerCustomizer();
+        List<ChannelHandler> preHandlers = serverTransport.getPreHandlers();
         ProtocolOptions options = serverTransport.getProtocolOptions();
         LoopResources loopResources = LoopResources.create("kin-ws-server-" + port, 2, SysUtils.CPU_NUM * 2, false);
         httpServer.runOn(loopResources)
@@ -40,8 +40,7 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
                             ProtocolEncoder protocolEncoder = new ProtocolEncoder(options);
                             wsIn.aggregateFrames()
                                     .withConnection(connection -> {
-                                        List<ChannelHandler> preChannelHandlers = preHandlerInitializer.preHandlers(serverTransport);
-                                        for (ChannelHandler preHandler : preChannelHandlers) {
+                                        for (ChannelHandler preHandler : preHandlers) {
                                             connection.addHandlerLast(preHandler);
                                         }
                                         //核心handler

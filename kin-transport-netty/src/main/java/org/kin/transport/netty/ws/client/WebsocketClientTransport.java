@@ -66,12 +66,13 @@ public final class WebsocketClientTransport extends AbstractTransport<WebsocketC
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.SO_REUSEADDR, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                // TODO: 2023/1/19 配置修改
                 //打印底层event和二进制内容
 //                .wiretap(false)
                 //client允许接受压缩就开启压缩
                 .compress(true)
                 .keepAlive(true);
+
+        httpClient = applyOptions(httpClient);
 
         return new WebSocketClient(this, httpClient, uri);
     }

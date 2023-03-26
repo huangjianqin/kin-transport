@@ -1,5 +1,7 @@
 package org.kin.transport.netty;
 
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import org.kin.framework.utils.ExceptionUtils;
@@ -8,7 +10,7 @@ import reactor.netty.tcp.SslProvider;
 import javax.net.ssl.SSLException;
 import java.io.File;
 import java.security.cert.CertificateException;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 传输层通用配置
@@ -16,7 +18,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2022/11/10
  */
-public abstract class Transport<T extends Transport> {
+public abstract class Transport<T extends Transport<T>> {
     /** ssl */
     protected boolean ssl;
     /** 证书 */
@@ -25,6 +27,14 @@ public abstract class Transport<T extends Transport> {
     protected File certKeyFile;
     /** CA根证书 */
     protected File caFile;
+    /** 定义前置handler */
+    private final List<ChannelHandler> preHandlers = new ArrayList<>();
+    /** 定义额外的netty child options */
+    @SuppressWarnings("rawtypes")
+    private final Map<ChannelOption, Object> childOptions = new HashMap<>();
+    /** 定义额外的netty options */
+    @SuppressWarnings("rawtypes")
+    private final Map<ChannelOption, Object> options = new HashMap<>();
 
     /**
      * 检查是否配上必要配置
@@ -52,6 +62,28 @@ public abstract class Transport<T extends Transport> {
         } catch (SSLException | CertificateException e) {
             ExceptionUtils.throwExt(e);
         }
+    }
+
+    /**
+     * 应用option
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected <NT extends reactor.netty.transport.Transport<?, ?>> NT applyOptions(NT transport) {
+        for (Map.Entry<ChannelOption, Object> entry : getOptions().entrySet()) {
+            transport = (NT) transport.option(entry.getKey(), entry.getValue());
+        }
+        return transport;
+    }
+
+    /**
+     * 应用child option
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected <ST extends reactor.netty.transport.ServerTransport<?, ?>> ST applyChildOptions(ST serverTransport) {
+        for (Map.Entry<ChannelOption, Object> entry : getChildOptions().entrySet()) {
+            serverTransport = (ST) serverTransport.childOption(entry.getKey(), entry.getValue());
+        }
+        return serverTransport;
     }
 
     //setter && getter
@@ -114,5 +146,59 @@ public abstract class Transport<T extends Transport> {
         }
         this.caFile = caFile;
         return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public T addHandler(ChannelHandler handler) {
+        preHandlers.add(handler);
+        return (T) this;
+    }
+
+    public T addHandlers(ChannelHandler... handler) {
+        return addHandlers(Arrays.asList(handler));
+    }
+
+    @SuppressWarnings("unchecked")
+    public T addHandlers(Collection<ChannelHandler> handlers) {
+        preHandlers.addAll(handlers);
+        return (T) this;
+    }
+
+    public List<ChannelHandler> getPreHandlers() {
+        return preHandlers;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <A> T childOption(ChannelOption<A> option, A value) {
+        childOptions.put(option, value);
+        return (T) this;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public T childOption(Map<ChannelOption, Object> childOptions) {
+        this.childOptions.putAll(childOptions);
+        return (T) this;
+    }
+
+    @SuppressWarnings("rawtypes")
+    public Map<ChannelOption, Object> getChildOptions() {
+        return childOptions;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <A> T option(ChannelOption<A> option, A value) {
+        options.put(option, value);
+        return (T) this;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public T option(Map<ChannelOption, Object> options) {
+        this.options.putAll(options);
+        return (T) this;
+    }
+
+    @SuppressWarnings("rawtypes")
+    public Map<ChannelOption, Object> getOptions() {
+        return options;
     }
 }

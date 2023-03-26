@@ -23,7 +23,7 @@ import org.kin.framework.utils.SysUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.kin.transport.netty.utils.NettySysProperties.*;
+import static org.kin.transport.netty.utils.NettyProperties.*;
 
 
 /**

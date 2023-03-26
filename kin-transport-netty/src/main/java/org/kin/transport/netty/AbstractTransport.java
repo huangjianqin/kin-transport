@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public abstract class AbstractTransport<PT extends AbstractTransport<PT>> extends Transport<PT> {
+public abstract class AbstractTransport<AT extends AbstractTransport<AT>> extends Transport<AT> {
     /** 默认魔数 */
     private static final byte[] DEFAULT_MAGIC = "kin-transport".getBytes(StandardCharsets.UTF_8);
 
@@ -25,8 +25,6 @@ public abstract class AbstractTransport<PT extends AbstractTransport<PT>> extend
     private boolean decoderUseCompositeBuf;
     /** payload逻辑处理 */
     private PayloadProcessor payloadProcessor;
-    /** 定义前置handler */
-    private PreHandlerInitializer preHandlerInitializer = PreHandlerInitializer.DEFAULT;
 
     protected AbstractTransport() {
     }
@@ -45,39 +43,33 @@ public abstract class AbstractTransport<PT extends AbstractTransport<PT>> extend
     }
 
     @SuppressWarnings("unchecked")
-    public PT magic(byte[] magic) {
+    public AT magic(byte[] magic) {
         this.magic = magic;
-        return (PT) this;
+        return (AT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public PT magic(String magicStr) {
+    public AT magic(String magicStr) {
         this.magic = magicStr.getBytes(StandardCharsets.UTF_8);
-        return (PT) this;
+        return (AT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public PT maxBodySize(int maxBodySize) {
+    public AT maxBodySize(int maxBodySize) {
         this.maxBodySize = maxBodySize;
-        return (PT) this;
+        return (AT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public PT decoderUseCompositeBuf(boolean decoderUseCompositeBuf) {
+    public AT decoderUseCompositeBuf(boolean decoderUseCompositeBuf) {
         this.decoderUseCompositeBuf = decoderUseCompositeBuf;
-        return (PT) this;
+        return (AT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public PT payloadProcessor(PayloadProcessor payloadProcessor) {
+    public AT payloadProcessor(PayloadProcessor payloadProcessor) {
         this.payloadProcessor = payloadProcessor;
-        return (PT) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    public PT preHandlerCustomizer(PreHandlerInitializer preHandlerInitializer) {
-        this.preHandlerInitializer = preHandlerInitializer;
-        return (PT) this;
+        return (AT) this;
     }
 
     //getter
@@ -95,9 +87,5 @@ public abstract class AbstractTransport<PT extends AbstractTransport<PT>> extend
 
     public PayloadProcessor getPayloadProcessor() {
         return payloadProcessor;
-    }
-
-    public PreHandlerInitializer getPreHandlerCustomizer() {
-        return preHandlerInitializer;
     }
 }
