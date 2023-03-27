@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public abstract class AbsLengthFieldBaseTransport<LBT extends AbsLengthFieldBaseTransport<LBT>> extends AbstractSocketTransport<LBT> {
+public abstract class AbstractProtocolTransport<PT extends AbstractProtocolTransport<PT>> extends AbstractSocketTransport<PT> {
     /** 默认魔数 */
     private static final byte[] DEFAULT_MAGIC = "kin-transport".getBytes(StandardCharsets.UTF_8);
 
@@ -26,7 +26,7 @@ public abstract class AbsLengthFieldBaseTransport<LBT extends AbsLengthFieldBase
     /** payload逻辑处理 */
     private PayloadProcessor payloadProcessor;
 
-    protected AbsLengthFieldBaseTransport() {
+    protected AbstractProtocolTransport() {
     }
 
     public ProtocolOptions getProtocolOptions() {
@@ -43,33 +43,33 @@ public abstract class AbsLengthFieldBaseTransport<LBT extends AbsLengthFieldBase
     }
 
     @SuppressWarnings("unchecked")
-    public LBT magic(byte[] magic) {
+    public PT magic(byte[] magic) {
         this.magic = magic;
-        return (LBT) this;
+        return (PT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public LBT magic(String magicStr) {
+    public PT magic(String magicStr) {
         this.magic = magicStr.getBytes(StandardCharsets.UTF_8);
-        return (LBT) this;
+        return (PT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public LBT maxBodySize(int maxBodySize) {
+    public PT maxBodySize(int maxBodySize) {
         this.maxBodySize = maxBodySize;
-        return (LBT) this;
+        return (PT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public LBT decoderUseCompositeBuf(boolean decoderUseCompositeBuf) {
+    public PT decoderUseCompositeBuf(boolean decoderUseCompositeBuf) {
         this.decoderUseCompositeBuf = decoderUseCompositeBuf;
-        return (LBT) this;
+        return (PT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public LBT payloadProcessor(PayloadProcessor payloadProcessor) {
+    public PT payloadProcessor(PayloadProcessor payloadProcessor) {
         this.payloadProcessor = payloadProcessor;
-        return (LBT) this;
+        return (PT) this;
     }
 
     //getter

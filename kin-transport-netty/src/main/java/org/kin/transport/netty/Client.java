@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * @author huangjianqin
  * @date 2023/1/20
  */
-public abstract class Client<PT extends AbsLengthFieldBaseTransport<PT>> implements Disposable, LoggerOprs {
+public abstract class Client<PT extends AbstractProtocolTransport<PT>> implements Disposable, LoggerOprs {
     /** 原子更新{@link #session}字段 */
     @SuppressWarnings("rawtypes")
     private static final AtomicReferenceFieldUpdater<Client, Session> SESSION_UPDATER =
