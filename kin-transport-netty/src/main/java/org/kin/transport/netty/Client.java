@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * @author huangjianqin
  * @date 2023/1/20
  */
-public abstract class Client<PT extends AbstractTransport<PT>> implements Disposable, LoggerOprs {
+public abstract class Client<PT extends AbsLengthFieldBaseTransport<PT>> implements Disposable, LoggerOprs {
     /** 原子更新{@link #session}字段 */
     @SuppressWarnings("rawtypes")
     private static final AtomicReferenceFieldUpdater<Client, Session> SESSION_UPDATER =
@@ -196,7 +196,7 @@ public abstract class Client<PT extends AbstractTransport<PT>> implements Dispos
      * @return complete signal
      */
     public <T> Mono<Void> sendObject(@Nonnull T obj, @Nonnull ObjectEncoder<T> encoder,
-                                     @Nonnull ChannelOperationListener<Session> listener) {
+                                     @Nonnull ChannelOperationListener listener) {
         return session().flatMap(s -> s.sendObject(obj, encoder, listener));
     }
 
@@ -216,7 +216,7 @@ public abstract class Client<PT extends AbstractTransport<PT>> implements Dispos
      *
      * @return complete signal
      */
-    public Mono<Void> send(@Nonnull ByteBuf byteBuf, @Nonnull ChannelOperationListener<Session> listener) {
+    public Mono<Void> send(@Nonnull ByteBuf byteBuf, @Nonnull ChannelOperationListener listener) {
         return session().flatMap(s -> s.send(byteBuf, listener));
     }
 

@@ -25,7 +25,7 @@ public class ProtocolDecoder extends ReplayingDecoder<ProtocolDecoder.State> {
     private final ProtocolHeader header;
 
     public ProtocolDecoder(ProtocolOptions options) {
-        super(State.PROTOCOL_LENGTH);
+        super(State.LENGTH_FIELD);
         this.options = options;
         this.header = new ProtocolHeader(this.options.getMagicSize());
         if (options.isUseCompositeBuf()) {
@@ -41,7 +41,7 @@ public class ProtocolDecoder extends ReplayingDecoder<ProtocolDecoder.State> {
             //缺点, 每个channel一个实例
             State state = state();
             switch (state) {
-                case PROTOCOL_LENGTH:
+                case LENGTH_FIELD:
                     header.length(byteBuf.readInt());
                     checkpoint(State.MAGIC);
                 case MAGIC:
@@ -53,7 +53,7 @@ public class ProtocolDecoder extends ReplayingDecoder<ProtocolDecoder.State> {
                     ByteBuf bodyByteBuf = byteBuf.readRetainedSlice(bodySize);
                     //reactor netty会对inbound obj进行release, 所以这里有必要retain一下
                     out.add(ByteBufPayload.create(bodyByteBuf).retain());
-                    checkpoint(State.PROTOCOL_LENGTH);
+                    checkpoint(State.LENGTH_FIELD);
             }
         }
     }
@@ -87,7 +87,7 @@ public class ProtocolDecoder extends ReplayingDecoder<ProtocolDecoder.State> {
      */
     enum State {
         /** 解析协议内容长度 */
-        PROTOCOL_LENGTH,
+        LENGTH_FIELD,
         /** 解析魔数 */
         MAGIC,
         /** 解析数据内容 */

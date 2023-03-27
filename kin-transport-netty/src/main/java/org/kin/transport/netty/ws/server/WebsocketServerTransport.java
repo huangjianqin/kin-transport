@@ -3,7 +3,7 @@ package org.kin.transport.netty.ws.server;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
-import org.kin.transport.netty.AbstractTransport;
+import org.kin.transport.netty.AbsLengthFieldBaseTransport;
 import org.kin.transport.netty.ws.WebSocketConstants;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.server.HttpServer;
@@ -16,7 +16,7 @@ import java.time.Duration;
  * @author huangjianqin
  * @date 2023/1/19
  */
-public final class WebsocketServerTransport extends AbstractTransport<WebsocketServerTransport> {
+public final class WebsocketServerTransport extends AbsLengthFieldBaseTransport<WebsocketServerTransport> {
     /** websocket 握手url */
     private String handshakeUrl = WebSocketConstants.WS_PATH;
 

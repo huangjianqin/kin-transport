@@ -8,25 +8,23 @@ import java.util.EventListener;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public interface ChannelOperationListener<C> extends EventListener {
+public interface ChannelOperationListener extends EventListener {
     /**
      * 操作成功
      *
-     * @param c 操作对象
-     * @throws Exception 异常
+     * @param session 连接会话
      */
-    default void onSuccess(C c) {
+    default void onSuccess(Session session) {
         //do nothing
     }
 
     /**
      * 操作失败
      *
-     * @param c     操作对象
-     * @param cause 异常
-     * @throws Exception 异常
+     * @param session 连接会话
+     * @param cause   异常
      */
-    default void onFailure(C c, Throwable cause) {
+    default void onFailure(Session session, Throwable cause) {
         //do nothing
     }
 }

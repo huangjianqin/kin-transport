@@ -1,6 +1,5 @@
 package org.kin.transport.netty;
 
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
@@ -10,7 +9,9 @@ import reactor.netty.tcp.SslProvider;
 import javax.net.ssl.SSLException;
 import java.io.File;
 import java.security.cert.CertificateException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * 传输层通用配置
@@ -18,7 +19,7 @@ import java.util.*;
  * @author huangjianqin
  * @date 2022/11/10
  */
-public abstract class Transport<T extends Transport<T>> {
+public abstract class AbstractTransport<T extends AbstractTransport<T>> {
     /** ssl */
     protected boolean ssl;
     /** 证书 */
@@ -27,8 +28,6 @@ public abstract class Transport<T extends Transport<T>> {
     protected File certKeyFile;
     /** CA根证书 */
     protected File caFile;
-    /** 定义前置handler */
-    private final List<ChannelHandler> preHandlers = new ArrayList<>();
     /** 定义额外的netty child options */
     @SuppressWarnings("rawtypes")
     private final Map<ChannelOption, Object> childOptions = new HashMap<>();
@@ -68,9 +67,9 @@ public abstract class Transport<T extends Transport<T>> {
      * 应用option
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected <NT extends reactor.netty.transport.Transport<?, ?>> NT applyOptions(NT transport) {
+    protected <V extends reactor.netty.transport.Transport<?, ?>> V applyOptions(V transport) {
         for (Map.Entry<ChannelOption, Object> entry : getOptions().entrySet()) {
-            transport = (NT) transport.option(entry.getKey(), entry.getValue());
+            transport = (V) transport.option(entry.getKey(), entry.getValue());
         }
         return transport;
     }
@@ -79,9 +78,9 @@ public abstract class Transport<T extends Transport<T>> {
      * 应用child option
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected <ST extends reactor.netty.transport.ServerTransport<?, ?>> ST applyChildOptions(ST serverTransport) {
+    protected <V extends reactor.netty.transport.ServerTransport<?, ?>> V applyChildOptions(V serverTransport) {
         for (Map.Entry<ChannelOption, Object> entry : getChildOptions().entrySet()) {
-            serverTransport = (ST) serverTransport.childOption(entry.getKey(), entry.getValue());
+            serverTransport = (V) serverTransport.childOption(entry.getKey(), entry.getValue());
         }
         return serverTransport;
     }
@@ -146,26 +145,6 @@ public abstract class Transport<T extends Transport<T>> {
         }
         this.caFile = caFile;
         return (T) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    public T addHandler(ChannelHandler handler) {
-        preHandlers.add(handler);
-        return (T) this;
-    }
-
-    public T addHandlers(ChannelHandler... handler) {
-        return addHandlers(Arrays.asList(handler));
-    }
-
-    @SuppressWarnings("unchecked")
-    public T addHandlers(Collection<ChannelHandler> handlers) {
-        preHandlers.addAll(handlers);
-        return (T) this;
-    }
-
-    public List<ChannelHandler> getPreHandlers() {
-        return preHandlers;
     }
 
     @SuppressWarnings("unchecked")

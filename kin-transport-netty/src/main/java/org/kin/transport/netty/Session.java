@@ -139,7 +139,7 @@ public final class Session implements Disposable {
      * @param encoder 协议对象 -> bytes payload逻辑
      */
     public <T> Mono<Void> sendObject(@Nonnull T obj, @Nonnull ObjectEncoder<T> encoder,
-                                     @Nonnull ChannelOperationListener<Session> listener) {
+                                     @Nonnull ChannelOperationListener listener) {
         ByteBufPayload outboundPayload = newOutboundPayload();
         encoder.encode(obj, outboundPayload);
         return send0(outboundPayload, listener);
@@ -150,7 +150,7 @@ public final class Session implements Disposable {
      *
      * @param data data
      */
-    public Mono<Void> send(@Nonnull ByteBuf data, @Nonnull ChannelOperationListener<Session> listener) {
+    public Mono<Void> send(@Nonnull ByteBuf data, @Nonnull ChannelOperationListener listener) {
         return send0(newOutboundPayload(data), listener);
     }
 
@@ -159,7 +159,7 @@ public final class Session implements Disposable {
      *
      * @param payload 保证底层bytebuf拥有(header(预占)+传输内容)bytes
      */
-    private Mono<Void> send0(@Nonnull ByteBufPayload payload, @Nonnull ChannelOperationListener<Session> listener) {
+    private Mono<Void> send0(@Nonnull ByteBufPayload payload, @Nonnull ChannelOperationListener listener) {
         Mono<Void> result;
         if (!isActive()) {
             result = Mono.error(new TransportException("channel inactive, " + channel()));
@@ -202,7 +202,7 @@ public final class Session implements Disposable {
         }
 
         channel().eventLoop().schedule(this::dispose, 300, TimeUnit.MILLISECONDS);
-        return send0(payload, new ChannelOperationListener<Session>() {
+        return send0(payload, new ChannelOperationListener() {
             @Override
             public void onSuccess(Session session) {
                 dispose();
