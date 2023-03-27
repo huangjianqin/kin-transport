@@ -11,8 +11,8 @@ import java.util.List;
  * 协议解析
  * <p>
  * 消息头组成:
- * 协议内容长度, int, 占4个字节
  * magic, bytes, 使用者配置而定
+ * 数据内容长度, int, 占4个字节
  * 数据内容
  *
  * @author huangjianqin
@@ -25,7 +25,7 @@ public class ProtocolDecoder extends ReplayingDecoder<ProtocolDecoder.State> {
     private final ProtocolHeader header;
 
     public ProtocolDecoder(ProtocolOptions options) {
-        super(State.LENGTH_FIELD);
+        super(State.MAGIC);
         this.options = options;
         this.header = new ProtocolHeader(this.options.getMagicSize());
         if (options.isUseCompositeBuf()) {
@@ -41,19 +41,22 @@ public class ProtocolDecoder extends ReplayingDecoder<ProtocolDecoder.State> {
             //缺点, 每个channel一个实例
             State state = state();
             switch (state) {
-                case LENGTH_FIELD:
-                    header.length(byteBuf.readInt());
-                    checkpoint(State.MAGIC);
                 case MAGIC:
                     byteBuf.readBytes(header.getMagicBytes());
                     isMagicMatch(header.getMagicBytes());
+                    checkpoint(State.BODY_SIZE);
+                case BODY_SIZE:
+                    int bodySize = checkBodySize(byteBuf.readInt());
+                    header.bodySize(bodySize);
                     checkpoint(State.BODY);
                 case BODY:
-                    int bodySize = checkBodySize(header.getBodySize());
-                    ByteBuf bodyByteBuf = byteBuf.readRetainedSlice(bodySize);
+                    ByteBuf bodyByteBuf = byteBuf.readRetainedSlice(header.getBodySize());
                     //reactor netty会对inbound obj进行release, 所以这里有必要retain一下
                     out.add(ByteBufPayload.create(bodyByteBuf).retain());
-                    checkpoint(State.LENGTH_FIELD);
+                    checkpoint(State.MAGIC);
+                    break;
+                default:
+                    throw new TransportException("unknown state: " + state);
             }
         }
     }
@@ -72,12 +75,12 @@ public class ProtocolDecoder extends ReplayingDecoder<ProtocolDecoder.State> {
     /**
      * 检查数据内容大小是否大于配置的最大大小
      *
-     * @param size 协议内容大小
-     * @return 协议内容大小
+     * @param size 数据内容大小
+     * @return 数据内容大小
      */
     private int checkBodySize(int size) {
         if (size > options.getMaxBodySize()) {
-            throw new TransportException(String.format("actual protocol content length(%d) is bigger than max body size(%d)", size, options.getMaxBodySize()));
+            throw new TransportException(String.format("actual body size(%d) is bigger than max body size(%d)", size, options.getMaxBodySize()));
         }
         return size;
     }
@@ -86,10 +89,10 @@ public class ProtocolDecoder extends ReplayingDecoder<ProtocolDecoder.State> {
      * 协议解析的不同阶段
      */
     enum State {
-        /** 解析协议内容长度 */
-        LENGTH_FIELD,
         /** 解析魔数 */
         MAGIC,
+        /** 解析数据内容大小 */
+        BODY_SIZE,
         /** 解析数据内容 */
         BODY
     }

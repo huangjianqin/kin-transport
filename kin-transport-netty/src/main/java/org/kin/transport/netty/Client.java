@@ -181,7 +181,7 @@ public abstract class Client<PT extends AbsLengthFieldBaseTransport<PT>> impleme
     /**
      * client send payload, 如果失败, 则丢失
      *
-     * @param encoder 协议对象 -> bytes payload逻辑
+     * @param encoder 数据对象 -> bytes payload逻辑
      * @return complete signal
      */
     public <T> Mono<Void> sendObject(@Nonnull T obj, @Nonnull ObjectEncoder<T> encoder) {
@@ -191,7 +191,7 @@ public abstract class Client<PT extends AbsLengthFieldBaseTransport<PT>> impleme
     /**
      * client send payload, 如果失败, 则丢失
      *
-     * @param encoder  协议对象 -> bytes payload逻辑
+     * @param encoder  数据对象 -> bytes payload逻辑
      * @param listener netty channel operation callback
      * @return complete signal
      */

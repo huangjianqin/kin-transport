@@ -15,7 +15,7 @@ public abstract class AbsLengthFieldBaseTransport<LBT extends AbsLengthFieldBase
 
     /** 魔数 */
     private byte[] magic = DEFAULT_MAGIC;
-    /** 协议内容最大长度, 默认16MB */
+    /** 数据内容最大长度, 默认16MB */
     private int maxBodySize = 16 * 1024 * 1024;
     /**
      * Cumulate {@link ByteBuf}s by add them to a CompositeByteBuf and so do no memory copy whenever possible.

@@ -29,16 +29,17 @@ public class ProtocolEncoder extends ChannelOutboundHandlerAdapter {
 
                 ByteBuf byteBuf = payload.data();
                 //当前可读字节数, 包含header
-                int length = byteBuf.readableBytes();
+                int readableBytes = byteBuf.readableBytes();
 
                 //记录当前write index
                 byteBuf.markWriterIndex();
                 //重置到header
-                byteBuf.writerIndex(byteBuf.writerIndex() - length);
-                //write protocol content
-                byteBuf.writeInt(length - Protocols.PROTOCOL_LENGTH_MARK_BYTES)
-                        //write header
-                        .writeBytes(options.getMagic());
+                byteBuf.writerIndex(byteBuf.writerIndex() - readableBytes);
+                //write header
+                //write magic
+                byteBuf.writeBytes(options.getMagic())
+                        //write body size
+                        .writeInt(readableBytes - options.getHeaderSize());
                 //回滚到之前的write index
                 byteBuf.resetWriterIndex();
 

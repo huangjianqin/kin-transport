@@ -94,7 +94,7 @@ public final class Session implements Disposable {
     /**
      * send object
      *
-     * @param encoder 协议对象 -> bytes payload逻辑
+     * @param encoder 数据对象 -> bytes payload逻辑
      */
     public <T> Mono<Void> sendObject(@Nonnull T obj, @Nonnull ObjectEncoder<T> encoder) {
         ByteBufPayload outboundPayload = newOutboundPayload();
@@ -136,7 +136,7 @@ public final class Session implements Disposable {
     /**
      * send object
      *
-     * @param encoder 协议对象 -> bytes payload逻辑
+     * @param encoder 数据对象 -> bytes payload逻辑
      */
     public <T> Mono<Void> sendObject(@Nonnull T obj, @Nonnull ObjectEncoder<T> encoder,
                                      @Nonnull ChannelOperationListener listener) {
@@ -174,7 +174,7 @@ public final class Session implements Disposable {
     /**
      * send and close session
      *
-     * @param encoder 协议对象 -> bytes payload逻辑
+     * @param encoder 数据对象 -> bytes payload逻辑
      */
     public <T> Mono<Void> sendObjectAndClose(@Nonnull T obj, @Nonnull ObjectEncoder<T> encoder) {
         ByteBufPayload outboundPayload = newOutboundPayload();

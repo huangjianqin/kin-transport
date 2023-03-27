@@ -14,7 +14,7 @@ public class ProtocolOptions {
     private final byte[] magic;
     /** 数据内容最大长度 */
     private final int maxBodySize;
-    /** 协议头部长度, 即协议内容长度+魔数bytes */
+    /** 协议头部长度, 即魔数bytes+协议数据长度bytes(4Byte) */
     private final int headerSize;
     /**
      * Cumulate {@link ByteBuf}s by add them to a CompositeByteBuf and so do no memory copy whenever possible.
@@ -25,10 +25,9 @@ public class ProtocolOptions {
 
     public ProtocolOptions(byte[] magic, int maxBodySize, boolean useCompositeBuf) {
         Preconditions.checkArgument(magic.length <= Protocols.MAX_MAGIC_SIZE, "max magic bytes size must be lower than " + Protocols.MAX_MAGIC_SIZE);
-        Preconditions.checkArgument(maxBodySize <= Protocols.MAX_BODY_SIZE, "max body size must be lower than " + Protocols.MAX_BODY_SIZE);
         this.magic = magic;
         this.maxBodySize = maxBodySize;
-        this.headerSize = magic.length + Protocols.PROTOCOL_LENGTH_MARK_BYTES;
+        this.headerSize = magic.length + Protocols.BODY_SIZE_MARK;
         this.useCompositeBuf = useCompositeBuf;
     }
 
