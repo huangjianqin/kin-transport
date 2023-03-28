@@ -14,7 +14,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/1/20
  */
-public abstract class Server<PT extends AbstractProtocolTransport<PT>> implements Disposable, LoggerOprs {
+public abstract class Server<PT extends ProtocolTransport<PT>> implements Disposable, LoggerOprs {
     /** server配置 */
     protected final PT serverTransport;
     /** 监听端口 */

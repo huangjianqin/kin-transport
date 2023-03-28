@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.StringUtils;
-import org.kin.transport.netty.AbstractProtocolTransport;
+import org.kin.transport.netty.ProtocolClientTransport;
 import org.kin.transport.netty.ws.WebSocketConstants;
 import reactor.netty.http.client.HttpClient;
 
@@ -16,7 +16,7 @@ import java.net.InetSocketAddress;
  * @author huangjianqin
  * @date 2023/1/19
  */
-public final class WebsocketClientTransport extends AbstractProtocolTransport<WebsocketClientTransport> {
+public final class WebsocketClientTransport extends ProtocolClientTransport<WebsocketClientTransport> {
     /** 连接超时, 秒, 默认5s */
     private int connectTimeoutSec = 5;
 

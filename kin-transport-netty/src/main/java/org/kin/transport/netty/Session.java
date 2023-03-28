@@ -47,10 +47,18 @@ public final class Session implements Disposable {
      */
     @Nullable
     public static Session current(Connection connection) {
-        if (!connection.channel().eventLoop().inEventLoop()) {
+        return current(connection.channel());
+    }
+
+    /**
+     * 获取{@code connection}绑定的session
+     */
+    @Nullable
+    public static Session current(Channel channel) {
+        if (!channel.eventLoop().inEventLoop()) {
             throw new TransportException("it is illegal to get session on non event loop");
         }
-        Attribute<Session> sessionAttribute = connection.channel().attr(SESSION_KEY);
+        Attribute<Session> sessionAttribute = channel.attr(SESSION_KEY);
         return sessionAttribute.get();
     }
 

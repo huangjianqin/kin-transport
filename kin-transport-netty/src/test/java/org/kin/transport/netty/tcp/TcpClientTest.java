@@ -1,8 +1,13 @@
 package org.kin.transport.netty.tcp;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.kin.framework.utils.TimeUtils;
+import org.kin.transport.netty.Client;
+import org.kin.transport.netty.ClientObserver;
 import org.kin.transport.netty.ObjectEncoder;
+import org.kin.transport.netty.Session;
 import org.kin.transport.netty.tcp.client.TcpClient;
 import org.kin.transport.netty.tcp.client.TcpClientTransport;
 import reactor.core.publisher.Mono;
@@ -26,6 +31,33 @@ public class TcpClientTest {
                 .payloadProcessor((session, payload) -> {
                     System.out.println(payload.data().toString(StandardCharsets.UTF_8));
                     return Mono.empty();
+                })
+                .addHandlers(new IdleStateHandler(5, 0, 0))
+                .observer(new ClientObserver() {
+                    @Override
+                    public void onExceptionCaught(Session session, Throwable cause) {
+                        System.out.println("client encounter exception!!!");
+                    }
+
+                    @Override
+                    public void onIdle(Session session, IdleStateEvent event) {
+                        System.out.println("client encounter idle event!!!");
+                    }
+
+                    @Override
+                    public void onUserEventTriggered(Session session, Object event) {
+                        System.out.println("client encounter user event!!!");
+                    }
+
+                    @Override
+                    public <C extends Client<?>> void onConnected(C client, Session session) {
+                        System.out.println("client connected!!!");
+                    }
+
+                    @Override
+                    public <C extends Client<?>> void onReconnected(C client, Session session) {
+                        System.out.println("client reconnected!!!");
+                    }
                 })
                 .connect(10000);
 

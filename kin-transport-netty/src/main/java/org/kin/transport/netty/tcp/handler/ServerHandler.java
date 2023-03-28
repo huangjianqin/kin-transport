@@ -1,9 +1,13 @@
 package org.kin.transport.netty.tcp.handler;
 
-import io.netty.channel.*;
-import io.netty.handler.timeout.IdleState;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelConfig;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.transport.netty.ServerObserver;
+import org.kin.transport.netty.Session;
 import org.kin.transport.netty.TransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +20,15 @@ import java.io.IOException;
  * @author huangjianqin
  * @date 2023/1/15
  */
-@ChannelHandler.Sharable
 public class ServerHandler extends ChannelInboundHandlerAdapter {
     private static final Logger log = LoggerFactory.getLogger(ServerHandler.class);
-    public static final ServerHandler INSTANCE = new ServerHandler();
+    /** 默认实现 */
+    public static final ServerHandler DEFAULT = new ServerHandler(ServerObserver.DEFAULT);
 
-    private ServerHandler() {
+    private final ServerObserver observer;
+
+    public ServerHandler(ServerObserver observer) {
+        this.observer = observer;
     }
 
     @Override
@@ -34,6 +41,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             ctx.close();
         } else {
             log.error("encounter exception:", cause);
+            observer.onExceptionCaught(Session.current(ctx.channel()), cause);
         }
     }
 
@@ -41,11 +49,10 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
-            if (event.state() == IdleState.READER_IDLE) {
-                throw new TransportException("channel read idle, " + ctx.channel());
-            } else {
-                super.userEventTriggered(ctx, evt);
-            }
+            log.warn("channel idle, {}, {}", event, ctx.channel());
+            observer.onIdle(Session.current(ctx.channel()), event);
+        } else {
+            observer.onUserEventTriggered(Session.current(ctx.channel()), evt);
         }
     }
 

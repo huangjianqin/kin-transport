@@ -19,7 +19,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2022/11/10
  */
-public abstract class AbstractTransport<T extends AbstractTransport<T>> {
+public abstract class Transport<T extends Transport<T>> {
     /** ssl */
     protected boolean ssl;
     /** 证书 */

@@ -1,10 +1,7 @@
 package org.kin.transport.netty.tcp.client;
 
 import io.netty.channel.ChannelHandler;
-import org.kin.transport.netty.Client;
-import org.kin.transport.netty.ProtocolDecoder;
-import org.kin.transport.netty.ProtocolEncoder;
-import org.kin.transport.netty.ProtocolOptions;
+import org.kin.transport.netty.*;
 import org.kin.transport.netty.tcp.handler.ClientHandler;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
@@ -51,6 +48,8 @@ public final class TcpClient extends Client<TcpClientTransport> {
             }
         };
 
+        ClientObserver observer = clientTransport.getObserver();
+
         return tcpClient
                 .observe(connectionObserver)
                 .connect()
@@ -64,7 +63,7 @@ public final class TcpClient extends Client<TcpClientTransport> {
                     //核心handler
                     connection.addHandlerLast(new ProtocolDecoder(options))
                             .addHandlerLast(protocolEncoder)
-                            .addHandlerLast(ClientHandler.INSTANCE);
+                            .addHandlerLast(new ClientHandler(observer));
                     return connection;
                 });
     }

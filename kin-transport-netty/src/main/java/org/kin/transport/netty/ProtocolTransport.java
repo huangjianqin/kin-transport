@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public abstract class AbstractProtocolTransport<PT extends AbstractProtocolTransport<PT>> extends AbstractSocketTransport<PT> {
+public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extends SocketTransport<PT> {
     /** 默认魔数 */
     private static final byte[] DEFAULT_MAGIC = "kin-transport".getBytes(StandardCharsets.UTF_8);
 
@@ -26,7 +26,7 @@ public abstract class AbstractProtocolTransport<PT extends AbstractProtocolTrans
     /** payload逻辑处理 */
     private PayloadProcessor payloadProcessor;
 
-    protected AbstractProtocolTransport() {
+    protected ProtocolTransport() {
     }
 
     public ProtocolOptions getProtocolOptions() {

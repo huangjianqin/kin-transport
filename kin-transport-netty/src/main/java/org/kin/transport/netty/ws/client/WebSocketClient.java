@@ -2,10 +2,7 @@ package org.kin.transport.netty.ws.client;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
-import org.kin.transport.netty.Client;
-import org.kin.transport.netty.ProtocolDecoder;
-import org.kin.transport.netty.ProtocolEncoder;
-import org.kin.transport.netty.ProtocolOptions;
+import org.kin.transport.netty.*;
 import org.kin.transport.netty.tcp.handler.ClientHandler;
 import org.kin.transport.netty.ws.BinaryWebSocketFrameEncoder;
 import org.kin.transport.netty.ws.handler.WebSocketClientHandler;
@@ -55,6 +52,8 @@ public final class WebSocketClient extends Client<WebsocketClientTransport> {
             }
         };
 
+        ClientObserver observer = clientTransport.getObserver();
+
         return httpClient
                 .observe(connectionObserver)
                 .websocket(WebsocketClientSpec.builder()
@@ -79,7 +78,7 @@ public final class WebSocketClient extends Client<WebsocketClientTransport> {
                             //统一协议解析和处理
                             .addHandlerLast(new ProtocolDecoder(options))
                             .addHandlerLast(protocolEncoder)
-                            .addHandlerLast(ClientHandler.INSTANCE);
+                            .addHandlerLast(new ClientHandler(observer));
                     return connection;
                 });
     }

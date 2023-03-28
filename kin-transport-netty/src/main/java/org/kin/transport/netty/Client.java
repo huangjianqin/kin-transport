@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * @author huangjianqin
  * @date 2023/1/20
  */
-public abstract class Client<PT extends AbstractProtocolTransport<PT>> implements Disposable, LoggerOprs {
+public abstract class Client<PT extends ProtocolClientTransport<PT>> implements Disposable, LoggerOprs {
     /** 原子更新{@link #session}字段 */
     @SuppressWarnings("rawtypes")
     private static final AtomicReferenceFieldUpdater<Client, Session> SESSION_UPDATER =
@@ -121,6 +121,8 @@ public abstract class Client<PT extends AbstractProtocolTransport<PT>> implement
         });
 
         Session session = SESSION_UPDATER.get(this);
+        //标识是否是重连
+        boolean isReconnect = false;
         if (Objects.isNull(session)) {
             //new session
             session = new Session(clientTransport.getProtocolOptions(), connection);
@@ -129,6 +131,16 @@ public abstract class Client<PT extends AbstractProtocolTransport<PT>> implement
         } else {
             //替换session里面的connection实例
             session.bind(connection);
+            isReconnect = true;
+        }
+
+        ClientObserver observer = clientTransport.getObserver();
+        if (!isReconnect) {
+            //首次连接成功
+            observer.onConnected(this, session);
+        } else {
+            //重连成功
+            observer.onReconnected(this, session);
         }
     }
 

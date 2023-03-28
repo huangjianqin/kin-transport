@@ -31,9 +31,15 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
      * 监听端口
      */
     private void onBind(WebsocketServerTransport serverTransport, HttpServer httpServer) {
-        List<ChannelHandler> preHandlers = serverTransport.getPreHandlers();
-        ProtocolOptions options = serverTransport.getProtocolOptions();
+        //event loop
         LoopResources loopResources = LoopResources.create("kin-ws-server-" + port, 2, SysUtils.CPU_NUM * 2, false);
+
+        ProtocolOptions options = serverTransport.getProtocolOptions();
+        //前置handler
+        List<ChannelHandler> preHandlers = serverTransport.getPreHandlers();
+
+        ServerObserver observer = serverTransport.getObserver();
+
         httpServer.runOn(loopResources)
                 .route(hsr -> hsr.ws(serverTransport.getHandshakeUrl(), (wsIn, wsOut) -> {
                             //channel共享handler
@@ -51,8 +57,11 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
                                                 //统一协议解析和处理
                                                 .addHandlerLast(new ProtocolDecoder(options))
                                                 .addHandlerLast(protocolEncoder)
-                                                .addHandlerLast(ServerHandler.INSTANCE);
-                                        onClientConnected(new Session(options, connection));
+                                                .addHandlerLast(new ServerHandler(observer));
+                                        Session session = new Session(options, connection);
+                                        onClientConnected(session);
+
+                                        observer.onClientConnected(WebSocketServer.this, session);
                                     });
                             return Mono.never();
                         },
@@ -65,6 +74,8 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
                 .doOnUnbound(d -> {
                     d.onDispose(loopResources);
                     d.onDispose(() -> log().info("{}(port:{}) closed", serverName(), port));
+
+                    observer.onBound(WebSocketServer.this);
                 })
                 .bind()
                 .cast(DisposableServer.class)

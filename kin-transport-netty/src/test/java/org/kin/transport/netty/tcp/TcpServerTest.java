@@ -1,8 +1,13 @@
 package org.kin.transport.netty.tcp;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.transport.netty.ObjectEncoder;
+import org.kin.transport.netty.Server;
+import org.kin.transport.netty.ServerObserver;
+import org.kin.transport.netty.Session;
 import org.kin.transport.netty.tcp.server.TcpServer;
 import org.kin.transport.netty.tcp.server.TcpServerTransport;
 
@@ -28,6 +33,33 @@ public class TcpServerTest {
                         return session.sendObject(req, DEFAULT_ENCODER);
                     } finally {
                         ReferenceCountUtil.safeRelease(payload);
+                    }
+                })
+                .addHandlers(new IdleStateHandler(5, 0, 0))
+                .observer(new ServerObserver() {
+                    @Override
+                    public void onExceptionCaught(Session session, Throwable cause) {
+                        System.out.println("server encounter exception!!!");
+                    }
+
+                    @Override
+                    public void onIdle(Session session, IdleStateEvent event) {
+                        System.out.println("server encounter idle event!!!");
+                    }
+
+                    @Override
+                    public void onUserEventTriggered(Session session, Object event) {
+                        System.out.println("server encounter user event!!!");
+                    }
+
+                    @Override
+                    public <S extends Server<?>> void onBound(S server) {
+                        System.out.println("server bound!!!");
+                    }
+
+                    @Override
+                    public <S extends Server<?>> void onClientConnected(S server, Session session) {
+                        System.out.println("server accept client connect!!!");
                     }
                 })
                 .bind(10000);

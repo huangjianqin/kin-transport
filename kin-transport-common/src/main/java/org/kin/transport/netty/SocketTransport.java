@@ -11,7 +11,7 @@ import java.util.List;
  * @author huangjianqin
  * @date 2023/3/27
  */
-public abstract class AbstractSocketTransport<ST extends AbstractSocketTransport<ST>> extends AbstractTransport<ST> {
+public abstract class SocketTransport<ST extends SocketTransport<ST>> extends Transport<ST> {
     /** 定义前置handler */
     private final List<ChannelHandler> preHandlers = new ArrayList<>();
 
