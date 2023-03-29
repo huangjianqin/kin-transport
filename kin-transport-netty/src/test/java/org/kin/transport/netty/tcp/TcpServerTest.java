@@ -61,11 +61,17 @@ public class TcpServerTest {
                     public <S extends Server<?>> void onClientConnected(S server, Session session) {
                         System.out.println("server accept client connect!!!");
                     }
+
+                    @Override
+                    public <S extends Server<?>> void onUnbound(S server) {
+                        System.out.println("server unbound!!!");
+                    }
                 })
                 .bind(10000);
 
-        Thread.currentThread().join();
-        System.out.println("tcp server closing");
+        Thread.sleep(12_000);
+//        Thread.currentThread().join();
+        System.out.println("tcp server unbinding");
         server.dispose();
     }
 }

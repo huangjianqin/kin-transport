@@ -2,6 +2,8 @@ package org.kin.transport.netty;
 
 import io.netty.handler.timeout.IdleStateEvent;
 
+import javax.annotation.Nullable;
+
 /**
  * client lifecycle listener
  *
@@ -60,6 +62,16 @@ public interface ClientLifecycle {
      * @param session client session
      */
     default <C extends Client<?>> void onReconnected(C client, Session session) {
+        //default do nothing
+    }
+
+    /**
+     * client disconnected时触发
+     *
+     * @param client  client实例
+     * @param session client session
+     */
+    default <C extends Client<?>> void onDisconnected(C client, @Nullable Session session) {
         //default do nothing
     }
 }

@@ -242,6 +242,7 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
 
         Session session = SESSION_UPDATER.get(this);
         if (Objects.nonNull(session)) {
+            session.connection().onDispose(() -> clientTransport.getLifecycle().onDisconnected(this, session));
             if (Objects.nonNull(disposable)) {
                 //自定义dispose逻辑
                 session.connection().onDispose(disposable);
@@ -249,6 +250,7 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
             session.dispose();
         } else {
             //连接还没建立就dispose, 直接complete sink
+            clientTransport.getLifecycle().onDisconnected(this, null);
             sessionSink.emitEmpty(RetryNonSerializedEmitFailureHandler.RETRY_NON_SERIALIZED);
         }
     }

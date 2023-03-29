@@ -12,6 +12,7 @@ import org.kin.transport.netty.tcp.client.TcpClient;
 import org.kin.transport.netty.tcp.client.TcpClientTransport;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -58,17 +59,22 @@ public class TcpClientTest {
                     public <C extends Client<?>> void onReconnected(C client, Session session) {
                         System.out.println("client reconnected!!!");
                     }
+
+                    @Override
+                    public <C extends Client<?>> void onDisconnected(C client, @Nullable Session session) {
+                        System.out.println("client disconnected!!!");
+                    }
                 })
                 .connect(10000);
 
-        for (int i = 0; i < 1_000; i++) {
+        for (int i = 0; i < 10; i++) {
             client.sendObject(i, DEFAULT_ENCODER)
                     .subscribe();
             Thread.sleep(1_000);
         }
 
 //        Thread.currentThread().join();
-        System.out.println("tcp client closing");
+        System.out.println("tcp client disconnecting");
         client.dispose();
         System.exit(0);
     }

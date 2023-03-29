@@ -57,6 +57,7 @@ public final class TcpServer extends Server<TcpServerTransport> {
                 .doOnBound(d -> {
                     //定义tcp server close逻辑
                     d.onDispose(loopResources);
+                    d.onDispose(() -> lifecycle.onUnbound(TcpServer.this));
                     d.onDispose(() -> log().info("{}(port:{}) closed", serverName(), port));
 
                     lifecycle.onBound(TcpServer.this);

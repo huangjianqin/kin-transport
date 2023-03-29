@@ -73,6 +73,7 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
                                 .build()))
                 .doOnUnbound(d -> {
                     d.onDispose(loopResources);
+                    d.onDispose(() -> lifecycle.onUnbound(WebSocketServer.this));
                     d.onDispose(() -> log().info("{}(port:{}) closed", serverName(), port));
 
                     lifecycle.onBound(WebSocketServer.this);

@@ -61,4 +61,13 @@ public interface ServerLifecycle {
     default <S extends Server<?>> void onClientConnected(S server, Session session) {
         //default do nothing
     }
+
+    /**
+     * server unbound时触发
+     *
+     * @param server server实例
+     */
+    default <S extends Server<?>> void onUnbound(S server) {
+        //default do nothing
+    }
 }

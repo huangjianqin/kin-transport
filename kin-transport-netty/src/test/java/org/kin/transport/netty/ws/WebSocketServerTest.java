@@ -1,8 +1,13 @@
 package org.kin.transport.netty.ws;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.transport.netty.ObjectEncoder;
+import org.kin.transport.netty.Server;
+import org.kin.transport.netty.ServerLifecycle;
+import org.kin.transport.netty.Session;
 import org.kin.transport.netty.ws.server.WebSocketServer;
 import org.kin.transport.netty.ws.server.WebsocketServerTransport;
 
@@ -30,10 +35,43 @@ public class WebSocketServerTest {
                         ReferenceCountUtil.safeRelease(payload);
                     }
                 })
+                .addHandlers(new IdleStateHandler(5, 0, 0))
+                .lifecycle(new ServerLifecycle() {
+                    @Override
+                    public void onExceptionCaught(Session session, Throwable cause) {
+                        System.out.println("server encounter exception!!!");
+                    }
+
+                    @Override
+                    public void onIdle(Session session, IdleStateEvent event) {
+                        System.out.println("server encounter idle event!!!");
+                    }
+
+                    @Override
+                    public void onUserEventTriggered(Session session, Object event) {
+                        System.out.println("server encounter user event!!!");
+                    }
+
+                    @Override
+                    public <S extends Server<?>> void onBound(S server) {
+                        System.out.println("server bound!!!");
+                    }
+
+                    @Override
+                    public <S extends Server<?>> void onClientConnected(S server, Session session) {
+                        System.out.println("server accept client connect!!!");
+                    }
+
+                    @Override
+                    public <S extends Server<?>> void onUnbound(S server) {
+                        System.out.println("server unbound!!!");
+                    }
+                })
                 .bind(10000);
 
-        Thread.currentThread().join();
-        System.out.println("websocket server closing");
+        Thread.sleep(12_000);
+//        Thread.currentThread().join();
+        System.out.println("websocket server unbinding");
         server.dispose();
     }
 }
