@@ -4,7 +4,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.transport.netty.ClientObserver;
+import org.kin.transport.netty.ClientLifecycle;
 import org.kin.transport.netty.Session;
 import org.kin.transport.netty.TransportException;
 import org.slf4j.Logger;
@@ -20,12 +20,12 @@ import java.io.IOException;
  */
 public class ClientHandler extends ChannelInboundHandlerAdapter {
     private static final Logger log = LoggerFactory.getLogger(ClientHandler.class);
-    public static final ClientHandler INSTANCE = new ClientHandler(ClientObserver.DEFAULT);
+    public static final ClientHandler INSTANCE = new ClientHandler(ClientLifecycle.DEFAULT);
 
-    private final ClientObserver observer;
+    private final ClientLifecycle lifecycle;
 
-    public ClientHandler(ClientObserver observer) {
-        this.observer = observer;
+    public ClientHandler(ClientLifecycle lifecycle) {
+        this.lifecycle = lifecycle;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             ctx.close();
         } else {
             log.error("encounter exception:", cause);
-            observer.onExceptionCaught(Session.current(ctx.channel()), cause);
+            lifecycle.onExceptionCaught(Session.current(ctx.channel()), cause);
         }
     }
 
@@ -47,9 +47,9 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             log.warn("channel idle, {}, {}", event, ctx.channel());
-            observer.onIdle(Session.current(ctx.channel()), event);
+            lifecycle.onIdle(Session.current(ctx.channel()), event);
         } else {
-            observer.onUserEventTriggered(Session.current(ctx.channel()), evt);
+            lifecycle.onUserEventTriggered(Session.current(ctx.channel()), evt);
         }
     }
 }

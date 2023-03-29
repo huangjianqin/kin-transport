@@ -5,16 +5,16 @@ package org.kin.transport.netty;
  * @date 2023/3/28
  */
 public abstract class ProtocolClientTransport<PCT extends ProtocolClientTransport<PCT>> extends ProtocolTransport<PCT> {
-    private ClientObserver observer = ClientObserver.DEFAULT;
+    private ClientLifecycle lifecycle = ClientLifecycle.DEFAULT;
 
     //setter && getter
-    public ClientObserver getObserver() {
-        return observer;
+    public ClientLifecycle getLifecycle() {
+        return lifecycle;
     }
 
     @SuppressWarnings("unchecked")
-    public PCT observer(ClientObserver observer) {
-        this.observer = observer;
+    public PCT lifecycle(ClientLifecycle lifecycle) {
+        this.lifecycle = lifecycle;
         return (PCT) this;
     }
 }

@@ -6,7 +6,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.transport.netty.ObjectEncoder;
 import org.kin.transport.netty.Server;
-import org.kin.transport.netty.ServerObserver;
+import org.kin.transport.netty.ServerLifecycle;
 import org.kin.transport.netty.Session;
 import org.kin.transport.netty.tcp.server.TcpServer;
 import org.kin.transport.netty.tcp.server.TcpServerTransport;
@@ -36,7 +36,7 @@ public class TcpServerTest {
                     }
                 })
                 .addHandlers(new IdleStateHandler(5, 0, 0))
-                .observer(new ServerObserver() {
+                .lifecycle(new ServerLifecycle() {
                     @Override
                     public void onExceptionCaught(Session session, Throwable cause) {
                         System.out.println("server encounter exception!!!");

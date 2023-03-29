@@ -38,7 +38,7 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
         //前置handler
         List<ChannelHandler> preHandlers = serverTransport.getPreHandlers();
 
-        ServerObserver observer = serverTransport.getObserver();
+        ServerLifecycle lifecycle = serverTransport.getLifecycle();
 
         httpServer.runOn(loopResources)
                 .route(hsr -> hsr.ws(serverTransport.getHandshakeUrl(), (wsIn, wsOut) -> {
@@ -57,11 +57,11 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
                                                 //统一协议解析和处理
                                                 .addHandlerLast(new ProtocolDecoder(options))
                                                 .addHandlerLast(protocolEncoder)
-                                                .addHandlerLast(new ServerHandler(observer));
+                                                .addHandlerLast(new ServerHandler(lifecycle));
                                         Session session = new Session(options, connection);
                                         onClientConnected(session);
 
-                                        observer.onClientConnected(WebSocketServer.this, session);
+                                        lifecycle.onClientConnected(WebSocketServer.this, session);
                                     });
                             return Mono.never();
                         },
@@ -75,7 +75,7 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
                     d.onDispose(loopResources);
                     d.onDispose(() -> log().info("{}(port:{}) closed", serverName(), port));
 
-                    observer.onBound(WebSocketServer.this);
+                    lifecycle.onBound(WebSocketServer.this);
                 })
                 .bind()
                 .cast(DisposableServer.class)

@@ -6,16 +6,16 @@ package org.kin.transport.netty;
  */
 public abstract class ProtocolServerTransport<PST extends ProtocolServerTransport<PST>> extends ProtocolTransport<PST> {
     /**  */
-    private ServerObserver observer = ServerObserver.DEFAULT;
+    private ServerLifecycle lifecycle = ServerLifecycle.DEFAULT;
 
     //setter && getter
-    public ServerObserver getObserver() {
-        return observer;
+    public ServerLifecycle getLifecycle() {
+        return lifecycle;
     }
 
     @SuppressWarnings("unchecked")
-    public PST observer(ServerObserver observer) {
-        this.observer = observer;
+    public PST lifecycle(ServerLifecycle lifecycle) {
+        this.lifecycle = lifecycle;
         return (PST) this;
     }
 }

@@ -8,9 +8,9 @@ import io.netty.handler.timeout.IdleStateEvent;
  * @author huangjianqin
  * @date 2023/3/28
  */
-public interface ClientObserver {
+public interface ClientLifecycle {
     /** 默认实现 */
-    ClientObserver DEFAULT = new ClientObserver() {
+    ClientLifecycle DEFAULT = new ClientLifecycle() {
     };
 
     /**

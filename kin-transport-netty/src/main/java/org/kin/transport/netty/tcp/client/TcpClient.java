@@ -48,7 +48,7 @@ public final class TcpClient extends Client<TcpClientTransport> {
             }
         };
 
-        ClientObserver observer = clientTransport.getObserver();
+        ClientLifecycle lifecycle = clientTransport.getLifecycle();
 
         return tcpClient
                 .observe(connectionObserver)
@@ -63,7 +63,7 @@ public final class TcpClient extends Client<TcpClientTransport> {
                     //核心handler
                     connection.addHandlerLast(new ProtocolDecoder(options))
                             .addHandlerLast(protocolEncoder)
-                            .addHandlerLast(new ClientHandler(observer));
+                            .addHandlerLast(new ClientHandler(lifecycle));
                     return connection;
                 });
     }

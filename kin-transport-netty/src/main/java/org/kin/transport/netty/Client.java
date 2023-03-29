@@ -134,13 +134,13 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
             isReconnect = true;
         }
 
-        ClientObserver observer = clientTransport.getObserver();
+        ClientLifecycle lifecycle = clientTransport.getLifecycle();
         if (!isReconnect) {
             //首次连接成功
-            observer.onConnected(this, session);
+            lifecycle.onConnected(this, session);
         } else {
             //重连成功
-            observer.onReconnected(this, session);
+            lifecycle.onReconnected(this, session);
         }
     }
 

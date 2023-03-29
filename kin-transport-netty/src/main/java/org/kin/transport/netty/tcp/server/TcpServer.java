@@ -35,7 +35,7 @@ public final class TcpServer extends Server<TcpServerTransport> {
         //前置handler
         List<ChannelHandler> preHandlers = serverTransport.getPreHandlers();
 
-        ServerObserver observer = serverTransport.getObserver();
+        ServerLifecycle lifecycle = serverTransport.getLifecycle();
 
         tcpServer.doOnConnection(connection -> {
                     //在channel init中add last handler会导致所添加的handler在名为"reactor.right.reactiveBridge"的ChannelOperationsHandler实例后面, 那么NettyInbound则是最原始的bytes
@@ -48,18 +48,18 @@ public final class TcpServer extends Server<TcpServerTransport> {
                     //核心handler
                     connection.addHandlerLast(new ProtocolDecoder(options))
                             .addHandlerLast(protocolEncoder)
-                            .addHandlerLast(new ServerHandler(observer));
+                            .addHandlerLast(new ServerHandler(lifecycle));
                     Session session = new Session(options, connection);
                     onClientConnected(session);
 
-                    observer.onClientConnected(TcpServer.this, session);
+                    lifecycle.onClientConnected(TcpServer.this, session);
                 })
                 .doOnBound(d -> {
                     //定义tcp server close逻辑
                     d.onDispose(loopResources);
                     d.onDispose(() -> log().info("{}(port:{}) closed", serverName(), port));
 
-                    observer.onBound(TcpServer.this);
+                    lifecycle.onBound(TcpServer.this);
                 })
                 .bind()
                 .cast(DisposableServer.class)
