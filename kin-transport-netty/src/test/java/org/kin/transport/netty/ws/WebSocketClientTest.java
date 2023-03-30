@@ -5,7 +5,7 @@ import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.kin.framework.utils.TimeUtils;
 import org.kin.transport.netty.Client;
-import org.kin.transport.netty.ClientLifecycle;
+import org.kin.transport.netty.ClientObserver;
 import org.kin.transport.netty.ObjectEncoder;
 import org.kin.transport.netty.Session;
 import org.kin.transport.netty.ws.client.WebSocketClient;
@@ -34,7 +34,7 @@ public class WebSocketClientTest {
                     return Mono.empty();
                 })
                 .addHandlers(new IdleStateHandler(5, 0, 0))
-                .lifecycle(new ClientLifecycle() {
+                .observer(new ClientObserver() {
                     @Override
                     public void onExceptionCaught(Session session, Throwable cause) {
                         System.out.println("client encounter exception!!!");

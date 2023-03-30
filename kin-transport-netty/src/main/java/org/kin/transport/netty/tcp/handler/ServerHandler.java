@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.transport.netty.ServerLifecycle;
+import org.kin.transport.netty.ServerObserver;
 import org.kin.transport.netty.Session;
 import org.kin.transport.netty.TransportException;
 import org.slf4j.Logger;
@@ -23,12 +23,12 @@ import java.io.IOException;
 public class ServerHandler extends ChannelInboundHandlerAdapter {
     private static final Logger log = LoggerFactory.getLogger(ServerHandler.class);
     /** 默认实现 */
-    public static final ServerHandler DEFAULT = new ServerHandler(ServerLifecycle.DEFAULT);
+    public static final ServerHandler DEFAULT = new ServerHandler(ServerObserver.DEFAULT);
 
-    private final ServerLifecycle lifecycle;
+    private final ServerObserver observer;
 
-    public ServerHandler(ServerLifecycle lifecycle) {
-        this.lifecycle = lifecycle;
+    public ServerHandler(ServerObserver observer) {
+        this.observer = observer;
     }
 
     @Override
@@ -41,7 +41,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             ctx.close();
         } else {
             log.error("encounter exception:", cause);
-            lifecycle.onExceptionCaught(Session.current(ctx.channel()), cause);
+            observer.onExceptionCaught(Session.current(ctx.channel()), cause);
         }
     }
 
@@ -50,9 +50,9 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             log.warn("channel idle, {}, {}", event, ctx.channel());
-            lifecycle.onIdle(Session.current(ctx.channel()), event);
+            observer.onIdle(Session.current(ctx.channel()), event);
         } else {
-            lifecycle.onUserEventTriggered(Session.current(ctx.channel()), evt);
+            observer.onUserEventTriggered(Session.current(ctx.channel()), evt);
         }
     }
 

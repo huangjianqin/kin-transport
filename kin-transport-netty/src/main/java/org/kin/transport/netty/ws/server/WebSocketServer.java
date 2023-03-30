@@ -38,7 +38,7 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
         //前置handler
         List<ChannelHandler> preHandlers = serverTransport.getPreHandlers();
 
-        ServerLifecycle lifecycle = serverTransport.getLifecycle();
+        ServerObserver observer = serverTransport.getObserver();
 
         httpServer.runOn(loopResources)
                 .route(hsr -> hsr.ws(serverTransport.getHandshakeUrl(), (wsIn, wsOut) -> {
@@ -57,11 +57,11 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
                                                 //统一协议解析和处理
                                                 .addHandlerLast(new ProtocolDecoder(options))
                                                 .addHandlerLast(protocolEncoder)
-                                                .addHandlerLast(new ServerHandler(lifecycle));
+                                                .addHandlerLast(new ServerHandler(observer));
                                         Session session = new Session(options, connection);
                                         onClientConnected(session);
 
-                                        lifecycle.onClientConnected(WebSocketServer.this, session);
+                                        observer.onClientConnected(WebSocketServer.this, session);
                                     });
                             return Mono.never();
                         },
@@ -73,10 +73,10 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
                                 .build()))
                 .doOnUnbound(d -> {
                     d.onDispose(loopResources);
-                    d.onDispose(() -> lifecycle.onUnbound(WebSocketServer.this));
+                    d.onDispose(() -> observer.onUnbound(WebSocketServer.this));
                     d.onDispose(() -> log().info("{}(port:{}) closed", serverName(), port));
 
-                    lifecycle.onBound(WebSocketServer.this);
+                    observer.onBound(WebSocketServer.this);
                 })
                 .bind()
                 .cast(DisposableServer.class)

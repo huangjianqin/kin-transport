@@ -52,7 +52,7 @@ public final class WebSocketClient extends Client<WebsocketClientTransport> {
             }
         };
 
-        ClientLifecycle lifecycle = clientTransport.getLifecycle();
+        ClientObserver observer = clientTransport.getObserver();
 
         return httpClient
                 .observe(connectionObserver)
@@ -78,7 +78,7 @@ public final class WebSocketClient extends Client<WebsocketClientTransport> {
                             //统一协议解析和处理
                             .addHandlerLast(new ProtocolDecoder(options))
                             .addHandlerLast(protocolEncoder)
-                            .addHandlerLast(new ClientHandler(lifecycle));
+                            .addHandlerLast(new ClientHandler(observer));
                     return connection;
                 });
     }

@@ -2,15 +2,17 @@ package org.kin.transport.netty;
 
 import io.netty.handler.timeout.IdleStateEvent;
 
+import javax.annotation.Nullable;
+
 /**
- * server lifecycle listener
+ * client lifecycle listener
  *
  * @author huangjianqin
- * @date 2023/3/27
+ * @date 2023/3/28
  */
-public interface ServerLifecycle {
+public interface ClientObserver {
     /** 默认实现 */
-    ServerLifecycle DEFAULT = new ServerLifecycle() {
+    ClientObserver DEFAULT = new ClientObserver() {
     };
 
     /**
@@ -44,30 +46,32 @@ public interface ServerLifecycle {
     }
 
     /**
-     * server bound时触发
-     *
-     * @param server server实例
-     */
-    default <S extends Server<?>> void onBound(S server) {
-        //default do nothing
-    }
-
-    /**
      * client connected时触发
      *
-     * @param server  server实例
+     * @param client  client实例
      * @param session client session
      */
-    default <S extends Server<?>> void onClientConnected(S server, Session session) {
+    default <C extends Client<?>> void onConnected(C client, Session session) {
         //default do nothing
     }
 
     /**
-     * server unbound时触发
+     * client reconnected时触发
      *
-     * @param server server实例
+     * @param client  client实例
+     * @param session client session
      */
-    default <S extends Server<?>> void onUnbound(S server) {
+    default <C extends Client<?>> void onReconnected(C client, Session session) {
+        //default do nothing
+    }
+
+    /**
+     * client disconnected时触发
+     *
+     * @param client  client实例
+     * @param session client session
+     */
+    default <C extends Client<?>> void onDisconnected(C client, @Nullable Session session) {
         //default do nothing
     }
 }
