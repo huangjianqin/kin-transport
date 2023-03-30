@@ -72,8 +72,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             特别是一些使用连接池的应用, 如果将连接归还给连接池后, 一定要记着auto read一定是打开的.
             不然就会有大量的连接处于CLOSE_WAIT状态.
 
-            高水位线: ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK
-            低水位线: ChannelOption.WRITE_BUFFER_LOW_WATER_MARK
+            高(低)水位线: ChannelOption.WRITE_BUFFER_WATER_MARK
          */
         if (!ch.isWritable()) {
             // 当前channel的缓冲区(OutboundBuffer)大小超过了WRITE_BUFFER_HIGH_WATER_MARK
