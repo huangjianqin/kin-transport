@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.util.AbstractReferenceCounted;
 import io.netty.util.IllegalReferenceCountException;
 import io.netty.util.Recycler;
-import org.kin.transport.netty.utils.AdaptiveOutputByteBufAllocator;
 
 import java.util.Objects;
 

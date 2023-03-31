@@ -8,7 +8,6 @@ import io.netty.channel.ChannelConfig;
 import io.netty.channel.EventLoop;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
-import org.kin.transport.netty.utils.AdaptiveOutputByteBufAllocator;
 import org.kin.transport.netty.utils.ByteBufUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
