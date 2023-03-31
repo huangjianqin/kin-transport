@@ -1,11 +1,11 @@
-package org.kin.transport.netty.ws.server;
+package org.kin.transport.netty.websocket.server;
 
 import io.netty.channel.ChannelHandler;
 import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.*;
-import org.kin.transport.netty.tcp.handler.ServerHandler;
-import org.kin.transport.netty.ws.BinaryWebSocketFrameEncoder;
-import org.kin.transport.netty.ws.handler.WebSocketServerHandler;
+import org.kin.transport.netty.handler.ServerHandler;
+import org.kin.transport.netty.websocket.handler.BinaryWebSocketFrameEncoder;
+import org.kin.transport.netty.websocket.handler.WebSocketFrameServerHandler;
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
@@ -20,8 +20,8 @@ import java.util.List;
  * @author huangjianqin
  * @date 2023/1/19
  */
-public final class WebSocketServer extends Server<WebsocketServerTransport> {
-    WebSocketServer(WebsocketServerTransport serverTransport, HttpServer httpServer, int port) {
+public final class WebSocketServer extends Server<WebSocketServerTransport> {
+    WebSocketServer(WebSocketServerTransport serverTransport, HttpServer httpServer, int port) {
         super(serverTransport, port);
 
         onBind(serverTransport, httpServer);
@@ -30,7 +30,7 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
     /**
      * 监听端口
      */
-    private void onBind(WebsocketServerTransport serverTransport, HttpServer httpServer) {
+    private void onBind(WebSocketServerTransport serverTransport, HttpServer httpServer) {
         //event loop
         LoopResources loopResources = LoopResources.create("kin-ws-server-" + port, 2, SysUtils.CPU_NUM * 2, false);
 
@@ -42,8 +42,6 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
 
         httpServer.runOn(loopResources)
                 .route(hsr -> hsr.ws(serverTransport.getHandshakeUrl(), (wsIn, wsOut) -> {
-                            //channel共享handler
-                            ProtocolEncoder protocolEncoder = new ProtocolEncoder(options);
                             wsIn.aggregateFrames()
                                     .withConnection(connection -> {
                                         for (ChannelHandler preHandler : preHandlers) {
@@ -52,11 +50,11 @@ public final class WebSocketServer extends Server<WebsocketServerTransport> {
                                         //核心handler
                                         connection
                                                 //websocket额外handler
-                                                .addHandlerLast(WebSocketServerHandler.INSTANCE)
+                                                .addHandlerLast(WebSocketFrameServerHandler.INSTANCE)
                                                 .addHandlerLast(BinaryWebSocketFrameEncoder.INSTANCE)
                                                 //统一协议解析和处理
                                                 .addHandlerLast(new ProtocolDecoder(options))
-                                                .addHandlerLast(protocolEncoder)
+                                                .addHandlerLast(new ProtocolEncoder(options))
                                                 .addHandlerLast(new ServerHandler(observer));
                                         Session session = new Session(options, connection);
                                         onClientConnected(session);

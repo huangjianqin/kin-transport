@@ -1,11 +1,11 @@
-package org.kin.transport.netty.ws.client;
+package org.kin.transport.netty.websocket.client;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.StringUtils;
 import org.kin.transport.netty.ProtocolClientTransport;
-import org.kin.transport.netty.ws.WebSocketConstants;
+import org.kin.transport.netty.websocket.WebSocketConstants;
 import reactor.netty.http.client.HttpClient;
 
 import java.net.InetSocketAddress;
@@ -16,15 +16,15 @@ import java.net.InetSocketAddress;
  * @author huangjianqin
  * @date 2023/1/19
  */
-public final class WebsocketClientTransport extends ProtocolClientTransport<WebsocketClientTransport> {
+public final class WebSocketClientTransport extends ProtocolClientTransport<WebSocketClientTransport> {
     /** 连接超时, 秒, 默认5s */
     private int connectTimeoutSec = 5;
 
-    public static WebsocketClientTransport create() {
-        return new WebsocketClientTransport();
+    public static WebSocketClientTransport create() {
+        return new WebSocketClientTransport();
     }
 
-    private WebsocketClientTransport() {
+    private WebSocketClientTransport() {
     }
 
     /**
@@ -82,7 +82,7 @@ public final class WebsocketClientTransport extends ProtocolClientTransport<Webs
         return connectTimeoutSec;
     }
 
-    public WebsocketClientTransport connectTimeoutSec(int connectTimeoutSec) {
+    public WebSocketClientTransport connectTimeoutSec(int connectTimeoutSec) {
         this.connectTimeoutSec = connectTimeoutSec;
         return this;
     }

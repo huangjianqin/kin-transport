@@ -1,4 +1,4 @@
-package org.kin.transport.netty.ws;
+package org.kin.transport.netty.websocket.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;

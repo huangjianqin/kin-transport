@@ -1,4 +1,4 @@
-package org.kin.transport.netty.ws;
+package org.kin.transport.netty.websocket;
 
 /**
  * websocket 常量

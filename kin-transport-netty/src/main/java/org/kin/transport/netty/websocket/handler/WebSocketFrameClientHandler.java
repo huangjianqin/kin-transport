@@ -1,4 +1,4 @@
-package org.kin.transport.netty.ws.handler;
+package org.kin.transport.netty.websocket.handler;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -18,17 +18,17 @@ import org.kin.framework.log.LoggerOprs;
  * @date 2023/1/19
  */
 @ChannelHandler.Sharable
-public class WebSocketClientHandler extends ChannelInboundHandlerAdapter implements LoggerOprs {
-    public static final WebSocketClientHandler INSTANCE = new WebSocketClientHandler();
+public class WebSocketFrameClientHandler extends ChannelInboundHandlerAdapter implements LoggerOprs {
+    public static final WebSocketFrameClientHandler INSTANCE = new WebSocketFrameClientHandler();
 
-    private WebSocketClientHandler() {
+    private WebSocketFrameClientHandler() {
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object in) {
         if (in instanceof FullHttpResponse) {
             FullHttpResponse response = (FullHttpResponse) in;
-            log().error("Unexpected FullHttpResponse (getStatus={}, content={})",
+            log().error("unexpected FullHttpResponse (getStatus={}, content={})",
                     response.status(), response.content().toString(CharsetUtil.UTF_8));
             return;
         }

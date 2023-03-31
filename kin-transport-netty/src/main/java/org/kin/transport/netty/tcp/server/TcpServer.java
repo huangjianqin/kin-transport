@@ -3,7 +3,7 @@ package org.kin.transport.netty.tcp.server;
 import io.netty.channel.ChannelHandler;
 import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.*;
-import org.kin.transport.netty.tcp.handler.ServerHandler;
+import org.kin.transport.netty.handler.ServerHandler;
 import reactor.netty.DisposableServer;
 import reactor.netty.resources.LoopResources;
 
@@ -30,8 +30,6 @@ public final class TcpServer extends Server<TcpServerTransport> {
         LoopResources loopResources = LoopResources.create("kin-tcp-server-" + port, 2, SysUtils.DOUBLE_CPU, false);
 
         ProtocolOptions options = serverTransport.getProtocolOptions();
-        //channel共享handler
-        ProtocolEncoder protocolEncoder = new ProtocolEncoder(options);
         //前置handler
         List<ChannelHandler> preHandlers = serverTransport.getPreHandlers();
 
@@ -47,7 +45,7 @@ public final class TcpServer extends Server<TcpServerTransport> {
                     }
                     //核心handler
                     connection.addHandlerLast(new ProtocolDecoder(options))
-                            .addHandlerLast(protocolEncoder)
+                            .addHandlerLast(new ProtocolEncoder(options))
                             .addHandlerLast(new ServerHandler(observer));
                     Session session = new Session(options, connection);
                     onClientConnected(session);

@@ -1,10 +1,10 @@
-package org.kin.transport.netty.ws.server;
+package org.kin.transport.netty.websocket.server;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import org.kin.transport.netty.ProtocolServerTransport;
-import org.kin.transport.netty.ws.WebSocketConstants;
+import org.kin.transport.netty.websocket.WebSocketConstants;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.server.HttpServer;
 
@@ -16,15 +16,15 @@ import java.time.Duration;
  * @author huangjianqin
  * @date 2023/1/19
  */
-public final class WebsocketServerTransport extends ProtocolServerTransport<WebsocketServerTransport> {
+public final class WebSocketServerTransport extends ProtocolServerTransport<WebSocketServerTransport> {
     /** websocket 握手url */
     private String handshakeUrl = WebSocketConstants.WS_PATH;
 
-    public static WebsocketServerTransport create() {
-        return new WebsocketServerTransport();
+    public static WebSocketServerTransport create() {
+        return new WebSocketServerTransport();
     }
 
-    private WebsocketServerTransport() {
+    private WebSocketServerTransport() {
     }
 
     /**
@@ -90,7 +90,7 @@ public final class WebsocketServerTransport extends ProtocolServerTransport<Webs
         return handshakeUrl;
     }
 
-    public WebsocketServerTransport handshakeUrl(String handshakeUrl) {
+    public WebSocketServerTransport handshakeUrl(String handshakeUrl) {
         this.handshakeUrl = handshakeUrl;
         return this;
     }

@@ -1,4 +1,4 @@
-package org.kin.transport.netty.ws;
+package org.kin.transport.netty.websocket;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -8,8 +8,8 @@ import org.kin.transport.netty.Client;
 import org.kin.transport.netty.ClientObserver;
 import org.kin.transport.netty.ObjectEncoder;
 import org.kin.transport.netty.Session;
-import org.kin.transport.netty.ws.client.WebSocketClient;
-import org.kin.transport.netty.ws.client.WebsocketClientTransport;
+import org.kin.transport.netty.websocket.client.WebSocketClient;
+import org.kin.transport.netty.websocket.client.WebSocketClientTransport;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nullable;
@@ -28,7 +28,7 @@ public class WebSocketClientTest {
     };
 
     public static void main(String[] args) throws InterruptedException {
-        WebSocketClient client = WebsocketClientTransport.create()
+        WebSocketClient client = WebSocketClientTransport.create()
                 .payloadProcessor((session, payload) -> {
                     System.out.println(payload.data().toString(StandardCharsets.UTF_8));
                     return Mono.empty();

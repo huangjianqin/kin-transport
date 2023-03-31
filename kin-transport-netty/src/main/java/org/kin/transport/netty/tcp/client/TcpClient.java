@@ -2,7 +2,7 @@ package org.kin.transport.netty.tcp.client;
 
 import io.netty.channel.ChannelHandler;
 import org.kin.transport.netty.*;
-import org.kin.transport.netty.tcp.handler.ClientHandler;
+import org.kin.transport.netty.handler.ClientHandler;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.netty.ConnectionObserver;
@@ -36,8 +36,6 @@ public final class TcpClient extends Client<TcpClientTransport> {
     private Mono<Connection> connect(TcpClientTransport clientTransport, reactor.netty.tcp.TcpClient tcpClient, InetSocketAddress address) {
         ProtocolOptions options = clientTransport.getProtocolOptions();
 
-        //channel共享handler
-        ProtocolEncoder protocolEncoder = new ProtocolEncoder(options);
         List<ChannelHandler> preHandlers = clientTransport.getPreHandlers();
 
         //监听connection状态变化
@@ -62,7 +60,7 @@ public final class TcpClient extends Client<TcpClientTransport> {
                     }
                     //核心handler
                     connection.addHandlerLast(new ProtocolDecoder(options))
-                            .addHandlerLast(protocolEncoder)
+                            .addHandlerLast(new ProtocolEncoder(options))
                             .addHandlerLast(new ClientHandler(observer));
                     return connection;
                 });

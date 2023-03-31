@@ -1,4 +1,4 @@
-package org.kin.transport.netty.ws.handler;
+package org.kin.transport.netty.websocket.handler;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -16,10 +16,10 @@ import org.kin.framework.log.LoggerOprs;
  * @date 2020/8/21
  */
 @ChannelHandler.Sharable
-public class WebSocketServerHandler extends ChannelInboundHandlerAdapter implements LoggerOprs {
-    public static final WebSocketServerHandler INSTANCE = new WebSocketServerHandler();
+public class WebSocketFrameServerHandler extends ChannelInboundHandlerAdapter implements LoggerOprs {
+    public static final WebSocketFrameServerHandler INSTANCE = new WebSocketFrameServerHandler();
 
-    private WebSocketServerHandler() {
+    private WebSocketFrameServerHandler() {
     }
 
     @Override

@@ -1,4 +1,4 @@
-package org.kin.transport.netty.ws;
+package org.kin.transport.netty.websocket;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -8,8 +8,8 @@ import org.kin.transport.netty.ObjectEncoder;
 import org.kin.transport.netty.Server;
 import org.kin.transport.netty.ServerObserver;
 import org.kin.transport.netty.Session;
-import org.kin.transport.netty.ws.server.WebSocketServer;
-import org.kin.transport.netty.ws.server.WebsocketServerTransport;
+import org.kin.transport.netty.websocket.server.WebSocketServer;
+import org.kin.transport.netty.websocket.server.WebSocketServerTransport;
 
 import java.nio.charset.StandardCharsets;
 
@@ -24,7 +24,7 @@ public class WebSocketServerTest {
     };
 
     public static void main(String[] args) throws InterruptedException {
-        WebSocketServer server = WebsocketServerTransport.create()
+        WebSocketServer server = WebSocketServerTransport.create()
                 .payloadProcessor((session, payload) -> {
                     try {
                         String req = payload.data().toString(StandardCharsets.UTF_8);
