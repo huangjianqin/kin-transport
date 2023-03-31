@@ -9,7 +9,7 @@ import org.kin.framework.proxy.ProxyInvoker;
 import org.kin.framework.proxy.Proxys;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.SysUtils;
-import org.kin.transport.netty.Transport;
+import org.kin.transport.netty.ServerTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -31,7 +31,7 @@ import java.util.*;
  * @author huangjianqin
  * @date 2022/11/9
  */
-public final class HttpServerTransport extends Transport<HttpServerTransport> {
+public final class HttpServerTransport extends ServerTransport<HttpServerTransport> {
     private static final Logger log = LoggerFactory.getLogger(HttpServerTransport.class);
 
     /** key -> url, value -> 对应的{@link  HttpRequestHandler} */

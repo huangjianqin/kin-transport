@@ -28,9 +28,6 @@ public abstract class Transport<T extends Transport<T>> {
     protected File certKeyFile;
     /** CA根证书 */
     protected File caFile;
-    /** 定义额外的netty child options */
-    @SuppressWarnings("rawtypes")
-    private final Map<ChannelOption, Object> childOptions = new HashMap<>();
     /** 定义额外的netty options */
     @SuppressWarnings("rawtypes")
     private final Map<ChannelOption, Object> options = new HashMap<>();
@@ -72,17 +69,6 @@ public abstract class Transport<T extends Transport<T>> {
             transport = (V) transport.option(entry.getKey(), entry.getValue());
         }
         return transport;
-    }
-
-    /**
-     * 应用child option
-     */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    protected <V extends reactor.netty.transport.ServerTransport<?, ?>> V applyChildOptions(V serverTransport) {
-        for (Map.Entry<ChannelOption, Object> entry : getChildOptions().entrySet()) {
-            serverTransport = (V) serverTransport.childOption(entry.getKey(), entry.getValue());
-        }
-        return serverTransport;
     }
 
     //setter && getter
@@ -145,23 +131,6 @@ public abstract class Transport<T extends Transport<T>> {
         }
         this.caFile = caFile;
         return (T) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    public <A> T childOption(ChannelOption<A> option, A value) {
-        childOptions.put(option, value);
-        return (T) this;
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public T childOption(Map<ChannelOption, Object> childOptions) {
-        this.childOptions.putAll(childOptions);
-        return (T) this;
-    }
-
-    @SuppressWarnings("rawtypes")
-    public Map<ChannelOption, Object> getChildOptions() {
-        return childOptions;
     }
 
     @SuppressWarnings("unchecked")

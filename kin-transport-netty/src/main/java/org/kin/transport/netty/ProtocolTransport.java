@@ -2,14 +2,19 @@ package org.kin.transport.netty;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author huangjianqin
  * @date 2023/1/15
  */
-public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extends SocketTransport<PT> {
+public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extends Transport<PT> {
     /** 默认魔数 */
     private static final byte[] DEFAULT_MAGIC = "kin-transport".getBytes(StandardCharsets.UTF_8);
 
@@ -25,6 +30,8 @@ public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extend
     private boolean decoderUseCompositeBuf;
     /** payload逻辑处理 */
     private PayloadProcessor payloadProcessor;
+    /** 定义前置handler */
+    private final List<ChannelHandler> preHandlers = new ArrayList<>();
 
     protected ProtocolTransport() {
     }
@@ -72,6 +79,22 @@ public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extend
         return (PT) this;
     }
 
+    @SuppressWarnings("unchecked")
+    public PT addHandler(ChannelHandler handler) {
+        preHandlers.add(handler);
+        return (PT) this;
+    }
+
+    public PT addHandlers(ChannelHandler... handler) {
+        return addHandlers(Arrays.asList(handler));
+    }
+
+    @SuppressWarnings("unchecked")
+    public PT addHandlers(Collection<ChannelHandler> handlers) {
+        preHandlers.addAll(handlers);
+        return (PT) this;
+    }
+
     //getter
     public byte[] getMagic() {
         return magic;
@@ -88,4 +111,9 @@ public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extend
     public PayloadProcessor getPayloadProcessor() {
         return payloadProcessor;
     }
+
+    public List<ChannelHandler> getPreHandlers() {
+        return preHandlers;
+    }
+
 }

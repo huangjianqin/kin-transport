@@ -7,10 +7,9 @@ import java.util.Map;
 
 /**
  * @author huangjianqin
- * @date 2023/3/28
+ * @date 2023/4/1
  */
-public abstract class ProtocolServerTransport<PST extends ProtocolServerTransport<PST>> extends ProtocolTransport<PST> {
-    private ServerObserver observer = ServerObserver.DEFAULT;
+public abstract class ServerTransport<ST extends ServerTransport<ST>> extends Transport<ST> {
     /** 定义额外的netty child options */
     @SuppressWarnings("rawtypes")
     private final Map<ChannelOption, Object> childOptions = new HashMap<>();
@@ -28,29 +27,19 @@ public abstract class ProtocolServerTransport<PST extends ProtocolServerTranspor
 
     //setter && getter
     @SuppressWarnings("unchecked")
-    public <A> PST childOption(ChannelOption<A> option, A value) {
+    public <A> ST childOption(ChannelOption<A> option, A value) {
         childOptions.put(option, value);
-        return (PST) this;
+        return (ST) this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public PST childOption(Map<ChannelOption, Object> childOptions) {
+    public ST childOption(Map<ChannelOption, Object> childOptions) {
         this.childOptions.putAll(childOptions);
-        return (PST) this;
+        return (ST) this;
     }
 
     @SuppressWarnings("rawtypes")
     public Map<ChannelOption, Object> getChildOptions() {
         return childOptions;
-    }
-
-    public ServerObserver getObserver() {
-        return observer;
-    }
-
-    @SuppressWarnings("unchecked")
-    public PST observer(ServerObserver observer) {
-        this.observer = observer;
-        return (PST) this;
     }
 }
