@@ -1,5 +1,6 @@
 package org.kin.transport.netty;
 
+import com.google.common.base.Preconditions;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
@@ -21,13 +22,13 @@ import java.util.Objects;
  */
 public abstract class Transport<T extends Transport<T>> {
     /** ssl */
-    protected boolean ssl;
+    private boolean ssl;
     /** 证书 */
-    protected File certFile;
+    private File certFile;
     /** 证书密钥 */
-    protected File certKeyFile;
+    private File certKeyFile;
     /** CA根证书 */
-    protected File caFile;
+    private File caFile;
     /** 定义额外的netty options */
     @SuppressWarnings("rawtypes")
     private final Map<ChannelOption, Object> options = new HashMap<>();
@@ -36,7 +37,11 @@ public abstract class Transport<T extends Transport<T>> {
      * 检查是否配上必要配置
      */
     protected void checkRequire() {
-
+        if (ssl) {
+            Preconditions.checkNotNull(certFile, "certFile must be not blank if open ssl");
+            Preconditions.checkNotNull(certKeyFile, "certKeyFile must be not blank if open ssl");
+            Preconditions.checkNotNull(caFile, "caFile must be not blank if open ssl");
+        }
     }
 
     /**

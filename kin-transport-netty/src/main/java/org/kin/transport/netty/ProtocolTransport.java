@@ -47,6 +47,7 @@ public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extend
     protected void check() {
         //检查
         Preconditions.checkNotNull(payloadProcessor, "payload processor must be not null");
+        checkRequire();
     }
 
     @SuppressWarnings("unchecked")

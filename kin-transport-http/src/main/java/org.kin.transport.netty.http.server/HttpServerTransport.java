@@ -238,6 +238,7 @@ public final class HttpServerTransport extends ServerTransport<HttpServerTranspo
     @SuppressWarnings({"unchecked"})
     public org.kin.transport.netty.http.server.HttpServer bind(int port, HttpProtocol protocol) {
         Preconditions.checkArgument(port > 0, "http server port must be greater than 0");
+        checkRequire();
 
         reactor.netty.http.server.HttpServer nettyHttpServer = HttpServer.create();
 
