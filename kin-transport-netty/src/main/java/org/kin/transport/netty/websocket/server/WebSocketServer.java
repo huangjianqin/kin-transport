@@ -1,6 +1,5 @@
 package org.kin.transport.netty.websocket.server;
 
-import io.netty.channel.ChannelHandler;
 import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.*;
 import org.kin.transport.netty.handler.ServerHandler;
@@ -11,8 +10,6 @@ import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 import reactor.netty.http.server.WebsocketServerSpec;
 import reactor.netty.resources.LoopResources;
-
-import java.util.List;
 
 /**
  * 基于websocket的{@link Server}实现
@@ -35,8 +32,7 @@ public final class WebSocketServer extends Server<WebSocketServerTransport> {
         LoopResources loopResources = LoopResources.create("kin-ws-server-" + port, 2, SysUtils.CPU_NUM * 2, false);
 
         ProtocolOptions options = serverTransport.getProtocolOptions();
-        //前置handler
-        List<ChannelHandler> preHandlers = serverTransport.getPreHandlers();
+        ChannelInitializer channelInitializer = serverTransport.getChannelInitializer();
 
         ServerObserver observer = serverTransport.getObserver();
 
@@ -44,9 +40,7 @@ public final class WebSocketServer extends Server<WebSocketServerTransport> {
                 .route(hsr -> hsr.ws(serverTransport.getHandshakeUrl(), (wsIn, wsOut) -> {
                             wsIn.aggregateFrames()
                                     .withConnection(connection -> {
-                                        for (ChannelHandler preHandler : preHandlers) {
-                                            connection.addHandlerLast(preHandler);
-                                        }
+                                        channelInitializer.initChannel(connection);
                                         //核心handler
                                         connection
                                                 //websocket额外handler

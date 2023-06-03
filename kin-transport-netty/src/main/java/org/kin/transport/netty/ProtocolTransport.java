@@ -2,13 +2,8 @@ package org.kin.transport.netty;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandler;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author huangjianqin
@@ -30,8 +25,8 @@ public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extend
     private boolean decoderUseCompositeBuf;
     /** payload逻辑处理 */
     private PayloadProcessor payloadProcessor;
-    /** 定义前置handler */
-    private final List<ChannelHandler> preHandlers = new ArrayList<>();
+    /** channel initializer */
+    private ChannelInitializer channelInitializer = ChannelInitializer.DEFAULT;
 
     protected ProtocolTransport() {
     }
@@ -81,18 +76,8 @@ public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extend
     }
 
     @SuppressWarnings("unchecked")
-    public PT addHandler(ChannelHandler handler) {
-        preHandlers.add(handler);
-        return (PT) this;
-    }
-
-    public PT addHandlers(ChannelHandler... handler) {
-        return addHandlers(Arrays.asList(handler));
-    }
-
-    @SuppressWarnings("unchecked")
-    public PT addHandlers(Collection<ChannelHandler> handlers) {
-        preHandlers.addAll(handlers);
+    public PT channelInitializer(ChannelInitializer channelInitializer) {
+        this.channelInitializer = channelInitializer;
         return (PT) this;
     }
 
@@ -113,8 +98,7 @@ public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extend
         return payloadProcessor;
     }
 
-    public List<ChannelHandler> getPreHandlers() {
-        return preHandlers;
+    public ChannelInitializer getChannelInitializer() {
+        return channelInitializer;
     }
-
 }

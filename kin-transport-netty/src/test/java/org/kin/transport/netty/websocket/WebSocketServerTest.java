@@ -3,7 +3,6 @@ package org.kin.transport.netty.websocket;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.ReferenceCountUtil;
 import org.kin.transport.netty.ObjectEncoder;
 import org.kin.transport.netty.Server;
 import org.kin.transport.netty.ServerObserver;
@@ -11,6 +10,7 @@ import org.kin.transport.netty.Session;
 import org.kin.transport.netty.websocket.server.WebSocketServer;
 import org.kin.transport.netty.websocket.server.WebSocketServerTransport;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -23,19 +23,15 @@ public class WebSocketServerTest {
         byteBuf.writeBytes(("hi " + obj).getBytes(StandardCharsets.UTF_8));
     };
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException {
         WebSocketServer server = WebSocketServerTransport.create()
                 .payloadProcessor((session, payload) -> {
-                    try {
-                        String req = payload.data().toString(StandardCharsets.UTF_8);
-                        System.out.println(req);
+                    String req = payload.data().toString(StandardCharsets.UTF_8);
+                    System.out.println(req);
 
-                        return session.sendObject(req, DEFAULT_ENCODER);
-                    } finally {
-                        ReferenceCountUtil.safeRelease(payload);
-                    }
+                    return session.sendObject(req, DEFAULT_ENCODER);
                 })
-                .addHandlers(new IdleStateHandler(5, 0, 0))
+                .channelInitializer(conn -> conn.addHandlerLast(new IdleStateHandler(5, 0, 0)))
                 .observer(new ServerObserver() {
                     @Override
                     public void onExceptionCaught(Session session, Throwable cause) {
@@ -69,7 +65,7 @@ public class WebSocketServerTest {
                 })
                 .bind(10000);
 
-        Thread.sleep(12_000);
+        System.in.read();
 //        Thread.currentThread().join();
         System.out.println("websocket server unbinding");
         server.dispose();

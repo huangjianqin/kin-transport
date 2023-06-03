@@ -1,6 +1,7 @@
 package org.kin.transport.netty;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCountUtil;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.log.LoggerOprs;
 import reactor.core.Disposable;
@@ -104,8 +105,14 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
                     return true;
                 })
                 .cast(ByteBufPayload.class)
-                .flatMap(bp -> payloadProcessor.process(SESSION_UPDATER.get(this), bp))
-                .onErrorContinue((throwable, o) -> log().error("{} process payload error, {}\r\n{}", clientName(), o, throwable))
+                .flatMap(bp -> {
+                    try {
+                        return payloadProcessor.process(SESSION_UPDATER.get(this), bp);
+                    } finally {
+                        ReferenceCountUtil.safeRelease(bp);
+                    }
+                })
+                .onErrorContinue((throwable, o) -> log().error("{} process payload error, {}", clientName(), o, throwable))
                 .subscribe();
 
         //自定义connection断开逻辑

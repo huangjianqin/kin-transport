@@ -1,5 +1,6 @@
 package org.kin.transport.netty;
 
+import io.netty.util.ReferenceCountUtil;
 import org.kin.framework.log.LoggerOprs;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -61,9 +62,15 @@ public abstract class Server<PT extends ProtocolTransport<PT>> implements Dispos
                     return true;
                 })
                 .cast(ByteBufPayload.class)
-                .flatMap(bp -> payloadProcessor.process(session, bp))
+                .flatMap(bp -> {
+                    try {
+                        return payloadProcessor.process(session, bp).thenReturn(bp);
+                    } finally {
+                        ReferenceCountUtil.safeRelease(bp);
+                    }
+                })
                 .onErrorContinue((throwable, o) -> {
-                    log().error("{} process payload error, {}\r\n{}", serverName(), o, throwable);
+                    log().error("{} process payload error, {}", serverName(), o, throwable);
                 })
                 .subscribe();
     }

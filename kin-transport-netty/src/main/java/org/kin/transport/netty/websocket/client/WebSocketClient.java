@@ -1,6 +1,5 @@
 package org.kin.transport.netty.websocket.client;
 
-import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import org.kin.transport.netty.*;
 import org.kin.transport.netty.handler.ClientHandler;
@@ -11,8 +10,6 @@ import reactor.netty.Connection;
 import reactor.netty.ConnectionObserver;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
-
-import java.util.List;
 
 /**
  * 基于websocket的{@link Client}实现类
@@ -40,7 +37,7 @@ public final class WebSocketClient extends Client<WebSocketClientTransport> {
     private Mono<Connection> connect(WebSocketClientTransport clientTransport, HttpClient httpClient, String uri) {
         ProtocolOptions options = clientTransport.getProtocolOptions();
 
-        List<ChannelHandler> preHandlers = clientTransport.getPreHandlers();
+        ChannelInitializer channelInitializer = clientTransport.getChannelInitializer();
 
         //监听connection状态变化
         ConnectionObserver connectionObserver = (connection, newState) -> {
@@ -64,10 +61,8 @@ public final class WebSocketClient extends Client<WebSocketClientTransport> {
                 .connect()
                 .map(connection -> {
                     log().info("{} connect to remote({}) success", clientName(), uri);
-                    //pre handlers
-                    for (ChannelHandler preHandler : preHandlers) {
-                        connection.addHandlerLast(preHandler);
-                    }
+
+                    channelInitializer.initChannel(connection);
                     //核心handler
                     connection
                             //websocket额外handler

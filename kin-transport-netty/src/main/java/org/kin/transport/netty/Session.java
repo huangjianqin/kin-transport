@@ -265,7 +265,7 @@ public final class Session implements Disposable {
         ByteBuf byteBuf = adaptiveHandle.allocate(alloc())
                 .ensureWritable(options.getHeaderSize())
                 .writerIndex(options.getHeaderSize());
-        return ByteBufPayload.create(byteBuf.retain(), adaptiveHandle);
+        return ByteBufPayload.create(byteBuf, adaptiveHandle);
     }
 
     /**
@@ -274,7 +274,7 @@ public final class Session implements Disposable {
      * @param data data
      */
     private ByteBufPayload newOutboundPayload(@Nonnull ByteBuf data) {
-        return ByteBufPayload.create(ByteBufUtils.rightShift(data, options.getHeaderSize()).retain(), adaptiveHandle);
+        return ByteBufPayload.create(ByteBufUtils.rightShift(data, options.getHeaderSize()), adaptiveHandle);
     }
 
     /**

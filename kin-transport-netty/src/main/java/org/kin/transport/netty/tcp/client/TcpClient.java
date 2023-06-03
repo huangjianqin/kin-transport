@@ -1,6 +1,5 @@
 package org.kin.transport.netty.tcp.client;
 
-import io.netty.channel.ChannelHandler;
 import org.kin.transport.netty.*;
 import org.kin.transport.netty.handler.ClientHandler;
 import reactor.core.publisher.Mono;
@@ -8,7 +7,6 @@ import reactor.netty.Connection;
 import reactor.netty.ConnectionObserver;
 
 import java.net.InetSocketAddress;
-import java.util.List;
 
 /**
  * 基于TCP的{@link Client}实现类
@@ -36,7 +34,7 @@ public final class TcpClient extends Client<TcpClientTransport> {
     private Mono<Connection> connect(TcpClientTransport clientTransport, reactor.netty.tcp.TcpClient tcpClient, InetSocketAddress address) {
         ProtocolOptions options = clientTransport.getProtocolOptions();
 
-        List<ChannelHandler> preHandlers = clientTransport.getPreHandlers();
+        ChannelInitializer channelInitializer = clientTransport.getChannelInitializer();
 
         //监听connection状态变化
         ConnectionObserver connectionObserver = (connection, newState) -> {
@@ -54,10 +52,8 @@ public final class TcpClient extends Client<TcpClientTransport> {
                 .map(connection -> {
                     //注意, 下面逻辑不能在TcpClient.doOnConnected(...)进行, TcpClient.doOnConnected(...)的逻辑执行会比TcpClient.connect()后
                     log().info("{} connect to remote({}) success", clientName(), address);
-                    //pre handlers
-                    for (ChannelHandler preHandler : preHandlers) {
-                        connection.addHandlerLast(preHandler);
-                    }
+
+                    channelInitializer.initChannel(connection);
                     //核心handler
                     connection.addHandlerLast(new ProtocolDecoder(options))
                             .addHandlerLast(new ProtocolEncoder(options))

@@ -33,7 +33,7 @@ public class TcpClientTest {
                     System.out.println(payload.data().toString(StandardCharsets.UTF_8));
                     return Mono.empty();
                 })
-                .addHandlers(new IdleStateHandler(5, 0, 0))
+                .channelInitializer(conn -> conn.addHandlerLast(new IdleStateHandler(5, 0, 0)))
                 .observer(new ClientObserver() {
                     @Override
                     public void onExceptionCaught(Session session, Throwable cause) {

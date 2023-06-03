@@ -43,7 +43,8 @@ public class ProtocolEncoder extends ChannelOutboundHandlerAdapter {
                 //回滚到之前的write index
                 byteBuf.resetWriterIndex();
 
-                ctx.write(byteBuf, promise);
+                //cte write完成会对bytebuf进行release一次
+                ctx.write(byteBuf.retain(), promise);
             } catch (Throwable t) {
                 throw new EncoderException(t);
             } finally {

@@ -1,13 +1,10 @@
 package org.kin.transport.netty.tcp.server;
 
-import io.netty.channel.ChannelHandler;
 import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.*;
 import org.kin.transport.netty.handler.ServerHandler;
 import reactor.netty.DisposableServer;
 import reactor.netty.resources.LoopResources;
-
-import java.util.List;
 
 /**
  * 基于TCP的{@link Server}实现类
@@ -30,8 +27,7 @@ public final class TcpServer extends Server<TcpServerTransport> {
         LoopResources loopResources = LoopResources.create("kin-tcp-server-" + port, 2, SysUtils.DOUBLE_CPU, false);
 
         ProtocolOptions options = serverTransport.getProtocolOptions();
-        //前置handler
-        List<ChannelHandler> preHandlers = serverTransport.getPreHandlers();
+        ChannelInitializer channelInitializer = serverTransport.getChannelInitializer();
 
         ServerObserver observer = serverTransport.getObserver();
 
@@ -39,10 +35,7 @@ public final class TcpServer extends Server<TcpServerTransport> {
                     //在channel init中add last handler会导致所添加的handler在名为"reactor.right.reactiveBridge"的ChannelOperationsHandler实例后面, 那么NettyInbound则是最原始的bytes
                     //NettyInbound.receiveObject() signal是ChannelOperationsHandler实例触发
                     //而Connection的addHandlerLast会保证ChannelOperationsHandler实例是pipeline最后一个handler
-                    //pre handlers
-                    for (ChannelHandler preHandler : preHandlers) {
-                        connection.addHandlerLast(preHandler);
-                    }
+                    channelInitializer.initChannel(connection);
                     //核心handler
                     connection.addHandlerLast(new ProtocolDecoder(options))
                             .addHandlerLast(new ProtocolEncoder(options))
