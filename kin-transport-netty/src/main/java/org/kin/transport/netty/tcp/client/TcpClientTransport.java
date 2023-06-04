@@ -3,6 +3,7 @@ package org.kin.transport.netty.tcp.client;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
+import io.netty.util.NetUtil;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.ProtocolClientTransport;
@@ -39,7 +40,14 @@ public final class TcpClientTransport extends ProtocolClientTransport<TcpClientT
      * tcp connect
      */
     public org.kin.transport.netty.tcp.client.TcpClient connect(int port) {
-        return connect(new InetSocketAddress(port));
+        return connect(NetUtil.LOCALHOST.getHostAddress(), port);
+    }
+
+    /**
+     * tcp connect
+     */
+    public org.kin.transport.netty.tcp.client.TcpClient connect(String host, int port) {
+        return connect(new InetSocketAddress(host, port));
     }
 
     /**

@@ -3,6 +3,8 @@ package org.kin.transport.netty.websocket.server;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
+import io.netty.util.NetUtil;
+import org.kin.framework.utils.StringUtils;
 import org.kin.transport.netty.ProtocolServerTransport;
 import org.kin.transport.netty.websocket.WebSocketConstants;
 import reactor.netty.http.HttpProtocol;
@@ -38,22 +40,44 @@ public final class WebSocketServerTransport extends ProtocolServerTransport<WebS
      * 监听端口, 以http1.1握手
      */
     public WebSocketServer bind(int port) {
-        return bind(port, HttpProtocol.HTTP11);
+        return bind(NetUtil.LOCALHOST.getHostAddress(), port, HttpProtocol.HTTP11);
     }
 
     /**
      * 监听端口, 以http2握手
      */
     public WebSocketServer bind2(int port) {
-        return bind(port, HttpProtocol.H2);
+        return bind(NetUtil.LOCALHOST.getHostAddress(), port, HttpProtocol.H2);
     }
 
     /**
      * 监听端口
      */
-    public WebSocketServer bind(int port, HttpProtocol protocol) {
+    public WebSocketServer bind(String host) {
+        return bind(host, 8080);
+    }
+
+    /**
+     * 监听端口, 以http1.1握手
+     */
+    public WebSocketServer bind(String host, int port) {
+        return bind(host, port, HttpProtocol.HTTP11);
+    }
+
+    /**
+     * 监听端口, 以http2握手
+     */
+    public WebSocketServer bind2(String host, int port) {
+        return bind(host, port, HttpProtocol.H2);
+    }
+
+    /**
+     * 监听端口
+     */
+    public WebSocketServer bind(String host, int port, HttpProtocol protocol) {
         check();
         Preconditions.checkArgument(port > 0, "websocket server port must be greater than 0");
+        Preconditions.checkArgument(StringUtils.isNotBlank(host), "websocket server host must be not blank");
 
         HttpServer httpServer = HttpServer.create();
 
@@ -62,7 +86,7 @@ public final class WebSocketServerTransport extends ProtocolServerTransport<WebS
             httpServer = httpServer.secure(this::secure);
         }
 
-        httpServer = httpServer.port(port)
+        httpServer = httpServer.host(host).port(port)
                 .protocol(protocol)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)

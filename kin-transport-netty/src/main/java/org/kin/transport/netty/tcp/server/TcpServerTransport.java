@@ -3,6 +3,8 @@ package org.kin.transport.netty.tcp.server;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
+import io.netty.util.NetUtil;
+import org.kin.framework.utils.StringUtils;
 import org.kin.transport.netty.ProtocolServerTransport;
 
 /**
@@ -21,11 +23,19 @@ public final class TcpServerTransport extends ProtocolServerTransport<TcpServerT
     }
 
     /**
-     * 绑定tcp端口
+     * listen
      */
     public TcpServer bind(int port) {
+        return bind(NetUtil.LOCALHOST.getHostAddress(), port);
+    }
+
+    /**
+     * listen
+     */
+    public TcpServer bind(String host, int port) {
         check();
         Preconditions.checkArgument(port > 0, "tcp server port must be greater than 0");
+        Preconditions.checkArgument(StringUtils.isNotBlank(host), "tcp server host must be not blank");
 
         //tcp
         reactor.netty.tcp.TcpServer tcpServer = reactor.netty.tcp.TcpServer.create();
@@ -33,7 +43,7 @@ public final class TcpServerTransport extends ProtocolServerTransport<TcpServerT
             tcpServer = tcpServer.secure(this::secure);
         }
 
-        tcpServer = tcpServer.port(port)
+        tcpServer = tcpServer.host(host).port(port)
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
