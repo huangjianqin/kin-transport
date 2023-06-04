@@ -5,6 +5,8 @@ import org.kin.transport.netty.*;
 import org.kin.transport.netty.handler.ServerHandler;
 import org.kin.transport.netty.websocket.handler.BinaryWebSocketFrameEncoder;
 import org.kin.transport.netty.websocket.handler.WebSocketFrameServerHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
@@ -18,6 +20,8 @@ import reactor.netty.resources.LoopResources;
  * @date 2023/1/19
  */
 public final class WebSocketServer extends Server<WebSocketServerTransport> {
+    private static final Logger log = LoggerFactory.getLogger(WebSocketServer.class);
+
     WebSocketServer(WebSocketServerTransport serverTransport, HttpServer httpServer, int port) {
         super(serverTransport, port);
 
@@ -66,7 +70,7 @@ public final class WebSocketServer extends Server<WebSocketServerTransport> {
                 .doOnUnbound(d -> {
                     d.onDispose(loopResources);
                     d.onDispose(() -> observer.onUnbound(WebSocketServer.this));
-                    d.onDispose(() -> log().info("{}(port:{}) closed", serverName(), port));
+                    d.onDispose(() -> log.info("{}(port:{}) closed", serverName(), port));
 
                     observer.onBound(WebSocketServer.this);
                 })
@@ -74,8 +78,8 @@ public final class WebSocketServer extends Server<WebSocketServerTransport> {
                 .cast(DisposableServer.class)
                 //subscribe开始bind
                 .subscribe(ds -> {
-                    log().info("{} stated on port({})", serverName(), port);
+                    log.info("{} stated on port({})", serverName(), port);
                     disposable = ds;
-                }, t -> log().error("{} encounter error when starting", serverName(), t));
+                }, t -> log.error("{} encounter error when starting", serverName(), t));
     }
 }

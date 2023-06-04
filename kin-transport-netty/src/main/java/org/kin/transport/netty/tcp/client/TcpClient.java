@@ -2,6 +2,8 @@ package org.kin.transport.netty.tcp.client;
 
 import org.kin.transport.netty.*;
 import org.kin.transport.netty.handler.ClientHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.netty.ConnectionObserver;
@@ -15,6 +17,8 @@ import java.net.InetSocketAddress;
  * @date 2023/1/15
  */
 public final class TcpClient extends Client<TcpClientTransport> {
+    private static final Logger log = LoggerFactory.getLogger(TcpClient.class);
+
     /** remote address */
     private final InetSocketAddress address;
     /** tcp connect逻辑 */
@@ -39,7 +43,7 @@ public final class TcpClient extends Client<TcpClientTransport> {
         //监听connection状态变化
         ConnectionObserver connectionObserver = (connection, newState) -> {
             if (!isDisposed() && newState == ConnectionObserver.State.DISCONNECTING) {
-                log().info("channel closed, {}", connection.channel());
+                log.info("channel closed, {}", connection.channel());
                 connection.dispose();
             }
         };
@@ -51,7 +55,7 @@ public final class TcpClient extends Client<TcpClientTransport> {
                 .connect()
                 .map(connection -> {
                     //注意, 下面逻辑不能在TcpClient.doOnConnected(...)进行, TcpClient.doOnConnected(...)的逻辑执行会比TcpClient.connect()后
-                    log().info("{} connect to remote({}) success", clientName(), address);
+                    log.info("{} connect to remote({}) success", clientName(), address);
 
                     channelInitializer.initChannel(connection);
                     //核心handler

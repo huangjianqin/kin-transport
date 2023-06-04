@@ -3,7 +3,8 @@ package org.kin.transport.netty;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.framework.log.LoggerOprs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -25,7 +26,9 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * @author huangjianqin
  * @date 2023/1/20
  */
-public abstract class Client<PT extends ProtocolClientTransport<PT>> implements Disposable, LoggerOprs {
+public abstract class Client<PT extends ProtocolClientTransport<PT>> implements Disposable {
+    private static final Logger log = LoggerFactory.getLogger(Client.class);
+
     /** 原子更新{@link #session}字段 */
     @SuppressWarnings("rawtypes")
     private static final AtomicReferenceFieldUpdater<Client, Session> SESSION_UPDATER =
@@ -98,7 +101,7 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
                 .filter(o -> {
                     //过滤非法payload
                     if (!(o instanceof ByteBufPayload)) {
-                        log().warn("unexpected payload type received: {}, channel: {}.", o.getClass(), SESSION_UPDATER.get(this).channel());
+                        log.warn("unexpected payload type received: {}, channel: {}.", o.getClass(), SESSION_UPDATER.get(this).channel());
                         return false;
                     }
 
@@ -112,7 +115,7 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
                         ReferenceCountUtil.safeRelease(bp);
                     }
                 })
-                .onErrorContinue((throwable, o) -> log().error("{} process payload error, {}", clientName(), o, throwable))
+                .onErrorContinue((throwable, o) -> log.error("{} process payload error, {}", clientName(), o, throwable))
                 .subscribe();
 
         //自定义connection断开逻辑
@@ -123,7 +126,7 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
 
             inboundProcessDisposable.dispose();
             //尝试重连
-            log().info("{} prepare to reconnect to remote '{}'", clientName(), remoteAddress());
+            log.info("{} prepare to reconnect to remote '{}'", clientName(), remoteAddress());
             tryReconnect(retryTimes);
         });
 
@@ -184,7 +187,7 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
      * 处理connect过程的异常
      */
     private void handleErrorOnConnecting(Throwable t, int times) {
-        log().error("{} connect to remote '{}' error", clientName(), remoteAddress(), t);
+        log.error("{} connect to remote '{}' error", clientName(), remoteAddress(), t);
         tryReconnect(times);
     }
 

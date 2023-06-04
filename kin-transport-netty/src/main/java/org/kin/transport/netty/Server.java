@@ -1,7 +1,8 @@
 package org.kin.transport.netty;
 
 import io.netty.util.ReferenceCountUtil;
-import org.kin.framework.log.LoggerOprs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.netty.DisposableServer;
@@ -15,7 +16,8 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/1/20
  */
-public abstract class Server<PT extends ProtocolTransport<PT>> implements Disposable, LoggerOprs {
+public abstract class Server<PT extends ProtocolTransport<PT>> implements Disposable {
+    private static final Logger log = LoggerFactory.getLogger(Server.class);
     /** server配置 */
     protected final PT serverTransport;
     /** 监听端口 */
@@ -55,7 +57,7 @@ public abstract class Server<PT extends ProtocolTransport<PT>> implements Dispos
                 .filter(o -> {
                     //过滤非法payload
                     if (!(o instanceof ByteBufPayload)) {
-                        log().warn("unexpected payload type received: {}, channel: {}.", o.getClass(), session.channel());
+                        log.warn("unexpected payload type received: {}, channel: {}.", o.getClass(), session.channel());
                         return false;
                     }
 
@@ -70,7 +72,7 @@ public abstract class Server<PT extends ProtocolTransport<PT>> implements Dispos
                     }
                 })
                 .onErrorContinue((throwable, o) -> {
-                    log().error("{} process payload error, {}", serverName(), o, throwable);
+                    log.error("{} process payload error, {}", serverName(), o, throwable);
                 })
                 .subscribe();
     }

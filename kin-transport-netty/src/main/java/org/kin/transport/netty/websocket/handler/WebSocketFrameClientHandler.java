@@ -9,7 +9,8 @@ import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.CharsetUtil;
-import org.kin.framework.log.LoggerOprs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * websocket client端inbound handler
@@ -18,7 +19,9 @@ import org.kin.framework.log.LoggerOprs;
  * @date 2023/1/19
  */
 @ChannelHandler.Sharable
-public class WebSocketFrameClientHandler extends ChannelInboundHandlerAdapter implements LoggerOprs {
+public class WebSocketFrameClientHandler extends ChannelInboundHandlerAdapter {
+    private static final Logger log = LoggerFactory.getLogger(WebSocketFrameClientHandler.class);
+
     public static final WebSocketFrameClientHandler INSTANCE = new WebSocketFrameClientHandler();
 
     private WebSocketFrameClientHandler() {
@@ -28,17 +31,17 @@ public class WebSocketFrameClientHandler extends ChannelInboundHandlerAdapter im
     public void channelRead(ChannelHandlerContext ctx, Object in) {
         if (in instanceof FullHttpResponse) {
             FullHttpResponse response = (FullHttpResponse) in;
-            log().error("unexpected FullHttpResponse (getStatus={}, content={})",
+            log.error("unexpected FullHttpResponse (getStatus={}, content={})",
                     response.status(), response.content().toString(CharsetUtil.UTF_8));
             return;
         }
 
         if (in instanceof WebSocketFrame) {
             if (in instanceof PongWebSocketFrame) {
-                log().debug("websocket client received pong");
+                log.debug("websocket client received pong");
                 return;
             } else if (in instanceof CloseWebSocketFrame) {
-                log().info("websocket client receive CloseWebSocketFrame, prepare to close");
+                log.info("websocket client receive CloseWebSocketFrame, prepare to close");
                 ctx.channel().close();
                 return;
             } else if (in instanceof BinaryWebSocketFrame) {

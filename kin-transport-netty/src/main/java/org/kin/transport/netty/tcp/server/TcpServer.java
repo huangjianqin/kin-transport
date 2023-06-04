@@ -3,6 +3,8 @@ package org.kin.transport.netty.tcp.server;
 import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.*;
 import org.kin.transport.netty.handler.ServerHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.netty.DisposableServer;
 import reactor.netty.resources.LoopResources;
 
@@ -13,6 +15,8 @@ import reactor.netty.resources.LoopResources;
  * @date 2023/1/15
  */
 public final class TcpServer extends Server<TcpServerTransport> {
+    private static final Logger log = LoggerFactory.getLogger(TcpServer.class);
+
     TcpServer(TcpServerTransport serverTransport, reactor.netty.tcp.TcpServer tcpServer, int port) {
         super(serverTransport, port);
 
@@ -49,7 +53,7 @@ public final class TcpServer extends Server<TcpServerTransport> {
                     //定义tcp server close逻辑
                     d.onDispose(loopResources);
                     d.onDispose(() -> observer.onUnbound(TcpServer.this));
-                    d.onDispose(() -> log().info("{}(port:{}) closed", serverName(), port));
+                    d.onDispose(() -> log.info("{}(port:{}) closed", serverName(), port));
 
                     observer.onBound(TcpServer.this);
                 })
@@ -57,8 +61,8 @@ public final class TcpServer extends Server<TcpServerTransport> {
                 .cast(DisposableServer.class)
                 //这里才subscribe, 真正启动tcp server
                 .subscribe(ds -> {
-                    log().info("{} started on port({})", serverName(), port);
+                    log.info("{} started on port({})", serverName(), port);
                     disposable = ds;
-                }, t -> log().error("{} encounter error when starting", serverName(), t));
+                }, t -> log.error("{} encounter error when starting", serverName(), t));
     }
 }

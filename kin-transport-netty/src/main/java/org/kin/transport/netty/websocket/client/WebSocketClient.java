@@ -5,6 +5,8 @@ import org.kin.transport.netty.*;
 import org.kin.transport.netty.handler.ClientHandler;
 import org.kin.transport.netty.websocket.handler.BinaryWebSocketFrameEncoder;
 import org.kin.transport.netty.websocket.handler.WebSocketFrameClientHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.netty.ConnectionObserver;
@@ -18,6 +20,7 @@ import reactor.netty.http.client.WebsocketClientSpec;
  * @date 2023/1/19
  */
 public final class WebSocketClient extends Client<WebSocketClientTransport> {
+    private static final Logger log = LoggerFactory.getLogger(WebSocketClient.class);
     /** handshake uri */
     private final String uri;
     /** websocket connect逻辑 */
@@ -42,7 +45,7 @@ public final class WebSocketClient extends Client<WebSocketClientTransport> {
         //监听connection状态变化
         ConnectionObserver connectionObserver = (connection, newState) -> {
             if (!isDisposed() && newState == ConnectionObserver.State.DISCONNECTING) {
-                log().info("channel closed, {}", connection.channel());
+                log.info("channel closed, {}", connection.channel());
                 connection.dispose();
             }
         };
@@ -60,7 +63,7 @@ public final class WebSocketClient extends Client<WebSocketClientTransport> {
                 .uri(uri)
                 .connect()
                 .map(connection -> {
-                    log().info("{} connect to remote({}) success", clientName(), uri);
+                    log.info("{} connect to remote({}) success", clientName(), uri);
 
                     channelInitializer.initChannel(connection);
                     //核心handler

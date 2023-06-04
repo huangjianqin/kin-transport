@@ -5,7 +5,8 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
-import org.kin.framework.log.LoggerOprs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 
@@ -16,7 +17,9 @@ import java.net.URI;
  * @author huangjianqin
  * @date 2020/8/21
  */
-public class WebSocketClientHandler extends ChannelInboundHandlerAdapter implements LoggerOprs {
+public class WebSocketClientHandler extends ChannelInboundHandlerAdapter {
+    private static final Logger log = LoggerFactory.getLogger(WebSocketClientHandler.class);
+
     /** ws握手 */
     private final WebSocketClientHandshaker handshaker;
     /** ws握手future */
@@ -53,10 +56,10 @@ public class WebSocketClientHandler extends ChannelInboundHandlerAdapter impleme
             try {
                 //握手成功
                 handshaker.finishHandshake(ch, (FullHttpResponse) in);
-                log().info("websocket client handshake success");
+                log.info("websocket client handshake success");
                 handshakeFuture.setSuccess();
             } catch (WebSocketHandshakeException e) {
-                log().error("websocket client handshake failure");
+                log.error("websocket client handshake failure");
                 handshakeFuture.setFailure(e);
                 //握手失败, 关闭channel
                 ctx.channel().close();
@@ -68,16 +71,16 @@ public class WebSocketClientHandler extends ChannelInboundHandlerAdapter impleme
 
         if (in instanceof FullHttpResponse) {
             FullHttpResponse response = (FullHttpResponse) in;
-            log().error("Unexpected FullHttpResponse (getStatus={}, content={})",
+            log.error("Unexpected FullHttpResponse (getStatus={}, content={})",
                     response.status(), response.content().toString(CharsetUtil.UTF_8));
             return;
         }
 
         if (in instanceof WebSocketFrame) {
             if (in instanceof PongWebSocketFrame) {
-                log().debug("websocket client received pong");
+                log.debug("websocket client received pong");
             } else if (in instanceof CloseWebSocketFrame) {
-                log().info("websocket client received closing");
+                log.info("websocket client received closing");
                 ctx.channel().close();
             } else if (in instanceof BinaryWebSocketFrame) {
                 ctx.fireChannelRead(((BinaryWebSocketFrame) in).content());
