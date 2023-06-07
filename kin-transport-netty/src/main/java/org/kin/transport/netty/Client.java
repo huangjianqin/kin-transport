@@ -234,8 +234,8 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
     /**
      * client send bytebuf, 如果失败, 则丢失
      * <p>
-     * \     * @param listener netty channel operation callback
      *
+     * @param listener netty channel operation callback
      * @return complete signal
      */
     public Mono<Void> send(@Nonnull ByteBuf byteBuf, @Nonnull ChannelOperationListener listener) {
