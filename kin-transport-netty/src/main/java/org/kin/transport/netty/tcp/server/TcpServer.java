@@ -62,7 +62,7 @@ public final class TcpServer extends Server<TcpServerTransport> {
                 //这里才subscribe, 真正启动tcp server
                 .subscribe(ds -> {
                     log.info("{} started on port({})", serverName(), port);
-                    disposable = ds;
+                    onBound(ds);
                 }, t -> log.error("{} encounter error when starting", serverName(), t));
     }
 }

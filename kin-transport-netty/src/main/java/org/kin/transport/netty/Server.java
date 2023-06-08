@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public abstract class Server<PT extends ProtocolTransport<PT>> implements Dispos
     /** 监听端口 */
     protected final int port;
     /** server disposable */
-    protected volatile DisposableServer disposable;
+    private volatile DisposableServer disposable;
 
     protected Server(PT serverTransport, int port) {
         this.serverTransport = serverTransport;
@@ -33,7 +34,7 @@ public abstract class Server<PT extends ProtocolTransport<PT>> implements Dispos
     /**
      * @return server命名
      */
-    protected String serverName() {
+    protected final String serverName() {
         return getClass().getSimpleName();
     }
 
@@ -41,7 +42,7 @@ public abstract class Server<PT extends ProtocolTransport<PT>> implements Dispos
      * client连接成功逻辑处理
      */
     @SuppressWarnings({"unchecked"})
-    protected void onClientConnected(Session session) {
+    protected final void onClientConnected(Session session) {
         PayloadProcessor payloadProcessor = serverTransport.getPayloadProcessor();
         session.connection()
                 .inbound()
@@ -77,12 +78,32 @@ public abstract class Server<PT extends ProtocolTransport<PT>> implements Dispos
                 .subscribe();
     }
 
+    /**
+     * process after server bound
+     */
+    protected final void onBound(DisposableServer disposable) {
+        this.disposable = disposable;
+    }
+
     @Override
-    public void dispose() {
+    public final void dispose() {
         if (Objects.isNull(disposable) || disposable.isDisposed()) {
             return;
         }
 
         disposable.dispose();
+    }
+
+    /**
+     * 返回disposed signal mono
+     *
+     * @return disposed signal mono
+     */
+    public final Mono<Void> onDispose() {
+        if (Objects.isNull(disposable)) {
+            return Mono.empty();
+        }
+
+        return disposable.onDispose();
     }
 }

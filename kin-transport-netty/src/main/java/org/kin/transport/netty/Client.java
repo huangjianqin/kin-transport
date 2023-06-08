@@ -77,7 +77,7 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
     /**
      * @return client命名
      */
-    protected String clientName() {
+    protected final String clientName() {
         return getClass().getSimpleName();
     }
 
@@ -85,7 +85,7 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
      * 连接成功绑定inbound payload逻辑处理
      */
     @SuppressWarnings({"unchecked"})
-    protected void onConnected(Connection connection, int retryTimes) {
+    protected final void onConnected(Connection connection, int retryTimes) {
         PayloadProcessor payloadProcessor = clientTransport.getPayloadProcessor();
         Disposable inboundProcessDisposable = connection
                 .inbound()
@@ -157,14 +157,14 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
     /**
      * client重连逻辑
      */
-    protected void tryReconnect() {
+    protected final void tryReconnect() {
         tryReconnect(0);
     }
 
     /**
      * client重连逻辑
      */
-    protected void tryReconnect(int retryTimes) {
+    protected final void tryReconnect(int retryTimes) {
         if (disposed) {
             return;
         }
@@ -196,7 +196,7 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
      *
      * @return 会话
      */
-    public Mono<Session> session() {
+    public final Mono<Session> session() {
         return sessionSink.asMono();
     }
 
@@ -243,11 +243,15 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
     }
 
     @Override
-    public void dispose() {
+    public final void dispose() {
         dispose(null);
     }
 
-    public void dispose(@Nullable Disposable disposable) {
+    public final void dispose(@Nullable Disposable disposable) {
+        if (isDisposed()) {
+            return;
+        }
+
         disposed = true;
 
         Session session = SESSION_UPDATER.get(this);
@@ -265,8 +269,27 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
         }
     }
 
+    /**
+     * 返回disposed signal mono
+     *
+     * @return disposed signal mono
+     */
+    public final Mono<Void> onDispose() {
+        if (isDisposed()) {
+            return Mono.empty();
+        }
+
+        Session session = SESSION_UPDATER.get(this);
+        if (Objects.nonNull(session)) {
+            return session.connection().onDispose();
+        } else {
+            //连接还没建立就dispose, 直接complete sink
+            return Mono.empty();
+        }
+    }
+
     @Override
-    public boolean isDisposed() {
+    public final boolean isDisposed() {
         return disposed;
     }
 }

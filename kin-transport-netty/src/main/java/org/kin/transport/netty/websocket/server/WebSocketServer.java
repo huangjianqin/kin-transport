@@ -79,7 +79,7 @@ public final class WebSocketServer extends Server<WebSocketServerTransport> {
                 //subscribe开始bind
                 .subscribe(ds -> {
                     log.info("{} stated on port({})", serverName(), port);
-                    disposable = ds;
+                    onBound(ds);
                 }, t -> log.error("{} encounter error when starting", serverName(), t));
     }
 }
