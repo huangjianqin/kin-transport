@@ -55,7 +55,7 @@ public final class TcpServerTransport extends ProtocolServerTransport<TcpServerT
         tcpServer = applyOptions(tcpServer);
         tcpServer = applyChildOptions(tcpServer);
 
-        return new TcpServer(this, tcpServer, port);
+        return new TcpServer(this, tcpServer, host, port);
     }
 
     /**

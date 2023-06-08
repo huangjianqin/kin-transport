@@ -21,13 +21,16 @@ public abstract class Server<S extends Server<S, PT>, PT extends ProtocolTranspo
     private static final Logger log = LoggerFactory.getLogger(Server.class);
     /** server配置 */
     protected final PT serverTransport;
+    /** 监听host */
+    protected final String host;
     /** 监听端口 */
     protected final int port;
     /** server disposable */
     private volatile DisposableServer disposable;
 
-    protected Server(PT serverTransport, int port) {
+    protected Server(PT serverTransport, String host, int port) {
         this.serverTransport = serverTransport;
+        this.host = host;
         this.port = port;
     }
 

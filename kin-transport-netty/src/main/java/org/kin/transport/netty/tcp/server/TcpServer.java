@@ -21,8 +21,8 @@ public final class TcpServer extends Server<TcpServer, TcpServerTransport> {
     /** 标识server是否已调用{@link #bind()} */
     private volatile boolean bound;
 
-    TcpServer(TcpServerTransport serverTransport, reactor.netty.tcp.TcpServer tcpServer, int port) {
-        super(serverTransport, port);
+    TcpServer(TcpServerTransport serverTransport, reactor.netty.tcp.TcpServer tcpServer, String host, int port) {
+        super(serverTransport, host, port);
         this.tcpServer = tcpServer;
     }
 
@@ -68,7 +68,7 @@ public final class TcpServer extends Server<TcpServer, TcpServerTransport> {
                     //定义tcp server close逻辑
                     d.onDispose(loopResources);
                     d.onDispose(() -> observer.onUnbound(TcpServer.this));
-                    d.onDispose(() -> log.info("{}(port:{}) closed", serverName(), port));
+                    d.onDispose(() -> log.info("{}({}:{}) closed", serverName(), host, port));
 
                     observer.onBound(TcpServer.this);
                 })
@@ -76,7 +76,7 @@ public final class TcpServer extends Server<TcpServer, TcpServerTransport> {
                 .cast(DisposableServer.class)
                 //这里才subscribe, 真正启动tcp server
                 .subscribe(ds -> {
-                    log.info("{} started on port({})", serverName(), port);
+                    log.info("{} started on {}:{}", serverName(), host, port);
                     onBound(ds);
                 }, t -> log.error("{} encounter error when starting", serverName(), t));
     }

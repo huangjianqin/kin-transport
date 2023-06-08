@@ -92,7 +92,7 @@ public final class WebSocketServerTransport extends ProtocolServerTransport<WebS
         httpServer = applyChildOptions(httpServer);
         httpServer = applyOptions(httpServer);
 
-        return new WebSocketServer(this, httpServer, port);
+        return new WebSocketServer(this, httpServer, host, port);
     }
 
     /**

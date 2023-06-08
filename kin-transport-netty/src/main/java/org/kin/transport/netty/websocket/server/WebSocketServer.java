@@ -27,8 +27,8 @@ public final class WebSocketServer extends Server<WebSocketServer, WebSocketServ
     /** 标识server是否已执行{@link #bind()} */
     private volatile boolean bound;
 
-    WebSocketServer(WebSocketServerTransport serverTransport, HttpServer httpServer, int port) {
-        super(serverTransport, port);
+    WebSocketServer(WebSocketServerTransport serverTransport, HttpServer httpServer, String host, int port) {
+        super(serverTransport, host, port);
         this.httpServer = httpServer;
     }
 
@@ -86,7 +86,7 @@ public final class WebSocketServer extends Server<WebSocketServer, WebSocketServ
                 .doOnUnbound(d -> {
                     d.onDispose(loopResources);
                     d.onDispose(() -> observer.onUnbound(WebSocketServer.this));
-                    d.onDispose(() -> log.info("{}(port:{}) closed", serverName(), port));
+                    d.onDispose(() -> log.info("{}({}:{}) closed", serverName(), host, port));
 
                     observer.onBound(WebSocketServer.this);
                 })
@@ -94,7 +94,7 @@ public final class WebSocketServer extends Server<WebSocketServer, WebSocketServ
                 .cast(DisposableServer.class)
                 //subscribe开始bind
                 .subscribe(ds -> {
-                    log.info("{} stated on port({})", serverName(), port);
+                    log.info("{} stated on {}:{}", serverName(), host, port);
                     onBound(ds);
                 }, t -> log.error("{} encounter error when starting", serverName(), t));
     }
