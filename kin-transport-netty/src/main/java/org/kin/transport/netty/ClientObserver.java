@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
  * @author huangjianqin
  * @date 2023/3/28
  */
-public interface ClientObserver {
+public interface ClientObserver<C extends Client<C, ? extends ProtocolClientTransport<?>>> {
     /** 默认实现 */
     ClientObserver DEFAULT = new ClientObserver() {
     };
@@ -51,7 +51,7 @@ public interface ClientObserver {
      * @param client  client实例
      * @param session client session
      */
-    default <C extends Client<?>> void onConnected(C client, Session session) {
+    default void onConnected(C client, Session session) {
         //default do nothing
     }
 
@@ -61,7 +61,7 @@ public interface ClientObserver {
      * @param client  client实例
      * @param session client session
      */
-    default <C extends Client<?>> void onReconnected(C client, Session session) {
+    default void onReconnected(C client, Session session) {
         //default do nothing
     }
 
@@ -71,7 +71,7 @@ public interface ClientObserver {
      * @param client  client实例
      * @param session client session
      */
-    default <C extends Client<?>> void onDisconnected(C client, @Nullable Session session) {
+    default void onDisconnected(C client, @Nullable Session session) {
         //default do nothing
     }
 }

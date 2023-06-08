@@ -8,7 +8,7 @@ import io.netty.handler.timeout.IdleStateEvent;
  * @author huangjianqin
  * @date 2023/3/27
  */
-public interface ServerObserver {
+public interface ServerObserver<S extends Server<S, ? extends ProtocolTransport<?>>> {
     /** 默认实现 */
     ServerObserver DEFAULT = new ServerObserver() {
     };
@@ -48,7 +48,7 @@ public interface ServerObserver {
      *
      * @param server server实例
      */
-    default <S extends Server<?>> void onBound(S server) {
+    default void onBound(S server) {
         //default do nothing
     }
 
@@ -58,7 +58,7 @@ public interface ServerObserver {
      * @param server  server实例
      * @param session client session
      */
-    default <S extends Server<?>> void onClientConnected(S server, Session session) {
+    default void onClientConnected(S server, Session session) {
         //default do nothing
     }
 
@@ -67,7 +67,7 @@ public interface ServerObserver {
      *
      * @param server server实例
      */
-    default <S extends Server<?>> void onUnbound(S server) {
+    default void onUnbound(S server) {
         //default do nothing
     }
 }

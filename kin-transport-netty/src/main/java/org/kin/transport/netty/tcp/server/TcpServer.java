@@ -14,18 +14,33 @@ import reactor.netty.resources.LoopResources;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public final class TcpServer extends Server<TcpServerTransport> {
+public final class TcpServer extends Server<TcpServer, TcpServerTransport> {
     private static final Logger log = LoggerFactory.getLogger(TcpServer.class);
+    /** reactor netty tcp server */
+    private final reactor.netty.tcp.TcpServer tcpServer;
+    /** 标识server是否已调用{@link #bind()} */
+    private volatile boolean bound;
 
     TcpServer(TcpServerTransport serverTransport, reactor.netty.tcp.TcpServer tcpServer, int port) {
         super(serverTransport, port);
+        this.tcpServer = tcpServer;
+    }
 
+    @Override
+    public TcpServer bind() {
+        if (bound) {
+            return this;
+        }
+
+        bound = true;
         onBind(serverTransport, tcpServer);
+        return this;
     }
 
     /**
      * 监听端口
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void onBind(TcpServerTransport serverTransport, reactor.netty.tcp.TcpServer tcpServer) {
         //event loop
         LoopResources loopResources = LoopResources.create("kin-tcp-server-" + port, 2, SysUtils.DOUBLE_CPU, false);

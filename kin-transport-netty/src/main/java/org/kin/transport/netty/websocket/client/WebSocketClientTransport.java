@@ -30,8 +30,8 @@ public final class WebSocketClientTransport extends ProtocolClientTransport<WebS
     /**
      * 构建websocket client实例
      */
-    public WebSocketClient connect(int port) {
-        return connect(new InetSocketAddress("0.0.0.0", port));
+    public WebSocketClient create(int port) {
+        return create(new InetSocketAddress("0.0.0.0", port));
     }
 
     /**
@@ -39,9 +39,9 @@ public final class WebSocketClientTransport extends ProtocolClientTransport<WebS
      *
      * @param address remote的host:port并且handshake uri=/
      */
-    public WebSocketClient connect(InetSocketAddress address) {
+    public WebSocketClient create(InetSocketAddress address) {
         String prefix = isSsl() ? WebSocketConstants.SSL_WS_PREFIX : WebSocketConstants.WS_PREFIX;
-        return connect(prefix.concat(":/").concat(address.toString()));
+        return create(prefix.concat(":/").concat(address.toString()));
     }
 
     /**
@@ -49,7 +49,7 @@ public final class WebSocketClientTransport extends ProtocolClientTransport<WebS
      *
      * @param uri handshake uri
      */
-    public WebSocketClient connect(String uri) {
+    public WebSocketClient create(String uri) {
         check();
         Preconditions.checkArgument(StringUtils.isNotBlank(uri), "websocket handshake uri must be not blank");
         Preconditions.checkArgument(connectTimeoutSec > 0, "client connect timeout must be greater than 0");
@@ -75,6 +75,31 @@ public final class WebSocketClientTransport extends ProtocolClientTransport<WebS
         httpClient = applyOptions(httpClient);
 
         return new WebSocketClient(this, httpClient, uri);
+    }
+
+    /**
+     * websocket connect
+     */
+    public WebSocketClient connect(int port) {
+        return create(port).connect();
+    }
+
+    /**
+     * websocket connect
+     *
+     * @param address remote的host:port并且handshake uri=/
+     */
+    public WebSocketClient connect(InetSocketAddress address) {
+        return create(address).connect();
+    }
+
+    /**
+     * websocket connect
+     *
+     * @param uri handshake uri
+     */
+    public WebSocketClient connect(String uri) {
+        return create(uri).connect();
     }
 
     //setter && getter

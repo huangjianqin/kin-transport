@@ -23,16 +23,16 @@ public final class TcpServerTransport extends ProtocolServerTransport<TcpServerT
     }
 
     /**
-     * listen
+     * create
      */
-    public TcpServer bind(int port) {
-        return bind(NetUtil.LOCALHOST.getHostAddress(), port);
+    public TcpServer create(int port) {
+        return create(NetUtil.LOCALHOST.getHostAddress(), port);
     }
 
     /**
-     * listen
+     * create
      */
-    public TcpServer bind(String host, int port) {
+    public TcpServer create(String host, int port) {
         check();
         Preconditions.checkArgument(port > 0, "tcp server port must be greater than 0");
         Preconditions.checkArgument(StringUtils.isNotBlank(host), "tcp server host must be not blank");
@@ -56,5 +56,19 @@ public final class TcpServerTransport extends ProtocolServerTransport<TcpServerT
         tcpServer = applyChildOptions(tcpServer);
 
         return new TcpServer(this, tcpServer, port);
+    }
+
+    /**
+     * listen
+     */
+    public TcpServer bind(int port) {
+        return create(NetUtil.LOCALHOST.getHostAddress(), port).bind();
+    }
+
+    /**
+     * listen
+     */
+    public TcpServer bind(String host, int port) {
+        return create(host, port).bind();
     }
 }

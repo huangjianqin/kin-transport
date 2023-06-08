@@ -19,18 +19,34 @@ import reactor.netty.resources.LoopResources;
  * @author huangjianqin
  * @date 2023/1/19
  */
-public final class WebSocketServer extends Server<WebSocketServerTransport> {
+public final class WebSocketServer extends Server<WebSocketServer, WebSocketServerTransport> {
     private static final Logger log = LoggerFactory.getLogger(WebSocketServer.class);
+
+    /** reactor netty http server */
+    private final HttpServer httpServer;
+    /** 标识server是否已执行{@link #bind()} */
+    private volatile boolean bound;
 
     WebSocketServer(WebSocketServerTransport serverTransport, HttpServer httpServer, int port) {
         super(serverTransport, port);
+        this.httpServer = httpServer;
+    }
 
+    @Override
+    public WebSocketServer bind() {
+        if (bound) {
+            return this;
+        }
+
+        bound = true;
         onBind(serverTransport, httpServer);
+        return this;
     }
 
     /**
      * 监听端口
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void onBind(WebSocketServerTransport serverTransport, HttpServer httpServer) {
         //event loop
         LoopResources loopResources = LoopResources.create("kin-ws-server-" + port, 2, SysUtils.CPU_NUM * 2, false);

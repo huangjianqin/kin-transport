@@ -17,7 +17,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/1/20
  */
-public abstract class Server<PT extends ProtocolTransport<PT>> implements Disposable {
+public abstract class Server<S extends Server<S, PT>, PT extends ProtocolTransport<PT>> implements Disposable {
     private static final Logger log = LoggerFactory.getLogger(Server.class);
     /** server配置 */
     protected final PT serverTransport;
@@ -30,6 +30,13 @@ public abstract class Server<PT extends ProtocolTransport<PT>> implements Dispos
         this.serverTransport = serverTransport;
         this.port = port;
     }
+
+    /**
+     * listen
+     *
+     * @return this
+     */
+    public abstract S bind();
 
     /**
      * @return server命名

@@ -30,51 +30,37 @@ public final class WebSocketServerTransport extends ProtocolServerTransport<WebS
     }
 
     /**
-     * 监听端口
+     * create, 以http1.1握手
      */
-    public WebSocketServer bind() {
-        return bind(8080);
-    }
-
-    /**
-     * 监听端口, 以http1.1握手
-     */
-    public WebSocketServer bind(int port) {
+    public WebSocketServer create(int port) {
         return bind(NetUtil.LOCALHOST.getHostAddress(), port, HttpProtocol.HTTP11);
     }
 
     /**
-     * 监听端口, 以http2握手
+     * create, 以http2握手
      */
-    public WebSocketServer bind2(int port) {
+    public WebSocketServer create2(int port) {
         return bind(NetUtil.LOCALHOST.getHostAddress(), port, HttpProtocol.H2);
     }
 
     /**
-     * 监听端口
+     * create, 以http1.1握手
      */
-    public WebSocketServer bind(String host) {
-        return bind(host, 8080);
-    }
-
-    /**
-     * 监听端口, 以http1.1握手
-     */
-    public WebSocketServer bind(String host, int port) {
+    public WebSocketServer create(String host, int port) {
         return bind(host, port, HttpProtocol.HTTP11);
     }
 
     /**
-     * 监听端口, 以http2握手
+     * create, 以http2握手
      */
-    public WebSocketServer bind2(String host, int port) {
+    public WebSocketServer create2(String host, int port) {
         return bind(host, port, HttpProtocol.H2);
     }
 
     /**
-     * 监听端口
+     * create
      */
-    public WebSocketServer bind(String host, int port, HttpProtocol protocol) {
+    public WebSocketServer create(String host, int port, HttpProtocol protocol) {
         check();
         Preconditions.checkArgument(port > 0, "websocket server port must be greater than 0");
         Preconditions.checkArgument(StringUtils.isNotBlank(host), "websocket server host must be not blank");
@@ -107,6 +93,41 @@ public final class WebSocketServerTransport extends ProtocolServerTransport<WebS
         httpServer = applyOptions(httpServer);
 
         return new WebSocketServer(this, httpServer, port);
+    }
+
+    /**
+     * listen, 以http1.1握手
+     */
+    public WebSocketServer bind(int port) {
+        return create(NetUtil.LOCALHOST.getHostAddress(), port, HttpProtocol.HTTP11).bind();
+    }
+
+    /**
+     * listen, 以http2握手
+     */
+    public WebSocketServer bind2(int port) {
+        return create(NetUtil.LOCALHOST.getHostAddress(), port, HttpProtocol.H2).bind();
+    }
+
+    /**
+     * listen, 以http1.1握手
+     */
+    public WebSocketServer bind(String host, int port) {
+        return create(host, port, HttpProtocol.HTTP11).bind();
+    }
+
+    /**
+     * listen, 以http2握手
+     */
+    public WebSocketServer bind2(String host, int port) {
+        return create(host, port, HttpProtocol.H2).bind();
+    }
+
+    /**
+     * listen
+     */
+    public WebSocketServer bind(String host, int port, HttpProtocol protocol) {
+        return create(host, port, protocol).bind();
     }
 
     //getter

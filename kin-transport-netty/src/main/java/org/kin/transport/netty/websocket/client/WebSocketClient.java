@@ -19,7 +19,7 @@ import reactor.netty.http.client.WebsocketClientSpec;
  * @author huangjianqin
  * @date 2023/1/19
  */
-public final class WebSocketClient extends Client<WebSocketClientTransport> {
+public final class WebSocketClient extends Client<WebSocketClient, WebSocketClientTransport> {
     private static final Logger log = LoggerFactory.getLogger(WebSocketClient.class);
     /** handshake uri */
     private final String uri;
@@ -30,8 +30,6 @@ public final class WebSocketClient extends Client<WebSocketClientTransport> {
         super(clientTransport);
         this.uri = uri;
         this.connector = connect(clientTransport, httpClient, uri);
-
-        tryReconnect();
     }
 
     /**

@@ -37,23 +37,23 @@ public final class TcpClientTransport extends ProtocolClientTransport<TcpClientT
     }
 
     /**
-     * tcp connect
+     * create
      */
-    public org.kin.transport.netty.tcp.client.TcpClient connect(int port) {
-        return connect(NetUtil.LOCALHOST.getHostAddress(), port);
+    public org.kin.transport.netty.tcp.client.TcpClient create(int port) {
+        return create(NetUtil.LOCALHOST.getHostAddress(), port);
     }
 
     /**
-     * tcp connect
+     * create
      */
-    public org.kin.transport.netty.tcp.client.TcpClient connect(String host, int port) {
-        return connect(new InetSocketAddress(host, port));
+    public org.kin.transport.netty.tcp.client.TcpClient create(String host, int port) {
+        return create(new InetSocketAddress(host, port));
     }
 
     /**
-     * tcp connect
+     * create
      */
-    public org.kin.transport.netty.tcp.client.TcpClient connect(InetSocketAddress address) {
+    public org.kin.transport.netty.tcp.client.TcpClient create(InetSocketAddress address) {
         check();
         Preconditions.checkArgument(connectTimeoutSec > 0, "client connect timeout must be greater than 0");
 
@@ -78,6 +78,27 @@ public final class TcpClientTransport extends ProtocolClientTransport<TcpClientT
         tcpClient = applyOptions(tcpClient);
 
         return new org.kin.transport.netty.tcp.client.TcpClient(this, tcpClient, address);
+    }
+
+    /**
+     * tcp connect
+     */
+    public org.kin.transport.netty.tcp.client.TcpClient connect(int port) {
+        return create(NetUtil.LOCALHOST.getHostAddress(), port).connect();
+    }
+
+    /**
+     * tcp connect
+     */
+    public org.kin.transport.netty.tcp.client.TcpClient connect(String host, int port) {
+        return create(new InetSocketAddress(host, port)).connect();
+    }
+
+    /**
+     * tcp connect
+     */
+    public org.kin.transport.netty.tcp.client.TcpClient connect(InetSocketAddress address) {
+        return create(address).connect();
     }
 
     //getter

@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.kin.framework.utils.TimeUtils;
-import org.kin.transport.netty.Client;
 import org.kin.transport.netty.ClientObserver;
 import org.kin.transport.netty.ObjectEncoder;
 import org.kin.transport.netty.Session;
@@ -34,7 +33,7 @@ public class WebSocketClientTest {
                     return Mono.empty();
                 })
                 .channelInitializer(conn -> conn.addHandlerLast(new IdleStateHandler(5, 0, 0)))
-                .observer(new ClientObserver() {
+                .observer(new ClientObserver<WebSocketClient>() {
                     @Override
                     public void onExceptionCaught(Session session, Throwable cause) {
                         System.out.println("client encounter exception!!!");
@@ -51,17 +50,17 @@ public class WebSocketClientTest {
                     }
 
                     @Override
-                    public <C extends Client<?>> void onConnected(C client, Session session) {
+                    public void onConnected(WebSocketClient client, Session session) {
                         System.out.println("client connected!!!");
                     }
 
                     @Override
-                    public <C extends Client<?>> void onReconnected(C client, Session session) {
+                    public void onReconnected(WebSocketClient client, Session session) {
                         System.out.println("client reconnected!!!");
                     }
 
                     @Override
-                    public <C extends Client<?>> void onDisconnected(C client, @Nullable Session session) {
+                    public void onDisconnected(WebSocketClient client, @Nullable Session session) {
                         System.out.println("client disconnected!!!");
                     }
                 })

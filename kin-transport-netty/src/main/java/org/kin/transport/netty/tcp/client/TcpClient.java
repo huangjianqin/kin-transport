@@ -16,7 +16,7 @@ import java.net.InetSocketAddress;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public final class TcpClient extends Client<TcpClientTransport> {
+public final class TcpClient extends Client<TcpClient, TcpClientTransport> {
     private static final Logger log = LoggerFactory.getLogger(TcpClient.class);
 
     /** remote address */
@@ -28,8 +28,6 @@ public final class TcpClient extends Client<TcpClientTransport> {
         super(clientTransport);
         this.address = address;
         this.connector = connect(clientTransport, tcpClient, address);
-
-        tryReconnect();
     }
 
     /**

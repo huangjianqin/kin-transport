@@ -10,6 +10,7 @@ import java.util.Map;
  * @date 2023/3/28
  */
 public abstract class ProtocolServerTransport<PST extends ProtocolServerTransport<PST>> extends ProtocolTransport<PST> {
+    @SuppressWarnings("rawtypes")
     private ServerObserver observer = ServerObserver.DEFAULT;
     /** 定义额外的netty child options */
     @SuppressWarnings("rawtypes")
@@ -44,11 +45,12 @@ public abstract class ProtocolServerTransport<PST extends ProtocolServerTranspor
         return childOptions;
     }
 
+    @SuppressWarnings("rawtypes")
     public ServerObserver getObserver() {
         return observer;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public PST observer(ServerObserver observer) {
         this.observer = observer;
         return (PST) this;

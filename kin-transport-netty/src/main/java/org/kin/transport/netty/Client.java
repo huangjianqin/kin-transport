@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * @author huangjianqin
  * @date 2023/1/20
  */
-public abstract class Client<PT extends ProtocolClientTransport<PT>> implements Disposable {
+public abstract class Client<C extends Client<C, PT>, PT extends ProtocolClientTransport<PT>> implements Disposable {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
 
     /** 原子更新{@link #session}字段 */
@@ -55,11 +55,29 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
      * 断连重连后, 会调用{@link Session#bind(Connection)}替换底层{@link Connection}实例
      */
     private volatile Session session;
+    /** 标识client是否已调用{@link #connect()} */
+    private volatile boolean connected;
     /** client是否closed */
     private volatile boolean disposed;
 
     protected Client(PT clientTransport) {
         this.clientTransport = clientTransport;
+    }
+
+    /**
+     * client connect
+     *
+     * @return this
+     */
+    @SuppressWarnings("unchecked")
+    public final C connect() {
+        if (connected) {
+            return (C) this;
+        }
+
+        connected = true;
+        tryReconnect();
+        return (C) this;
     }
 
     /**
@@ -84,7 +102,7 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
     /**
      * 连接成功绑定inbound payload逻辑处理
      */
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected final void onConnected(Connection connection, int retryTimes) {
         PayloadProcessor payloadProcessor = clientTransport.getPayloadProcessor();
         Disposable inboundProcessDisposable = connection
@@ -247,6 +265,7 @@ public abstract class Client<PT extends ProtocolClientTransport<PT>> implements 
         dispose(null);
     }
 
+    @SuppressWarnings("unchecked")
     public final void dispose(@Nullable Disposable disposable) {
         if (isDisposed()) {
             return;

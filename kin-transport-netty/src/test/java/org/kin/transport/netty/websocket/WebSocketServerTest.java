@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.kin.transport.netty.ObjectEncoder;
-import org.kin.transport.netty.Server;
 import org.kin.transport.netty.ServerObserver;
 import org.kin.transport.netty.Session;
 import org.kin.transport.netty.websocket.server.WebSocketServer;
@@ -32,7 +31,7 @@ public class WebSocketServerTest {
                     return session.sendObject(req, DEFAULT_ENCODER);
                 })
                 .channelInitializer(conn -> conn.addHandlerLast(new IdleStateHandler(5, 0, 0)))
-                .observer(new ServerObserver() {
+                .observer(new ServerObserver<WebSocketServer>() {
                     @Override
                     public void onExceptionCaught(Session session, Throwable cause) {
                         System.out.println("server encounter exception!!!");
@@ -49,17 +48,17 @@ public class WebSocketServerTest {
                     }
 
                     @Override
-                    public <S extends Server<?>> void onBound(S server) {
+                    public void onBound(WebSocketServer server) {
                         System.out.println("server bound!!!");
                     }
 
                     @Override
-                    public <S extends Server<?>> void onClientConnected(S server, Session session) {
+                    public void onClientConnected(WebSocketServer server, Session session) {
                         System.out.println("server accept client connect!!!");
                     }
 
                     @Override
-                    public <S extends Server<?>> void onUnbound(S server) {
+                    public void onUnbound(WebSocketServer server) {
                         System.out.println("server unbound!!!");
                     }
                 })
