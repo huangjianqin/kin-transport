@@ -33,6 +33,7 @@ public final class TcpClient extends Client<TcpClient, TcpClientTransport> {
     /**
      * tcp connect
      */
+    @SuppressWarnings("rawtypes")
     private Mono<Connection> connect(TcpClientTransport clientTransport, reactor.netty.tcp.TcpClient tcpClient, InetSocketAddress address) {
         ProtocolOptions options = clientTransport.getProtocolOptions();
 

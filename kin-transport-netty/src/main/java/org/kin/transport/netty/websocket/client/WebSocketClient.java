@@ -35,6 +35,7 @@ public final class WebSocketClient extends Client<WebSocketClient, WebSocketClie
     /**
      * websocket connect
      */
+    @SuppressWarnings("rawtypes")
     private Mono<Connection> connect(WebSocketClientTransport clientTransport, HttpClient httpClient, String uri) {
         ProtocolOptions options = clientTransport.getProtocolOptions();
 

@@ -8,7 +8,7 @@ import io.netty.handler.timeout.IdleStateEvent;
  * @author huangjianqin
  * @date 2023/3/27
  */
-public interface ServerObserver<S extends Server<S, ? extends ProtocolTransport<?>>> {
+public interface ServerObserver<S extends Server<S, ? extends AdvancedTransport<?>>> {
     /** 默认实现 */
     ServerObserver DEFAULT = new ServerObserver() {
     };

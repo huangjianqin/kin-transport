@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * @author huangjianqin
  * @date 2023/1/20
  */
-public abstract class Client<C extends Client<C, PT>, PT extends ProtocolClientTransport<PT>> implements Disposable {
+public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientTransport<PT>> implements Disposable {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
 
     /** 原子更新{@link #session}字段 */

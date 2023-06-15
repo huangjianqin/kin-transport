@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extends Transport<PT> {
+public abstract class AdvancedTransport<AT extends AdvancedTransport<AT>> extends Transport<AT> {
     /** 默认魔数 */
     private static final byte[] DEFAULT_MAGIC = "kin-transport".getBytes(StandardCharsets.UTF_8);
 
@@ -28,7 +28,7 @@ public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extend
     /** channel initializer */
     private ChannelInitializer channelInitializer = ChannelInitializer.DEFAULT;
 
-    protected ProtocolTransport() {
+    protected AdvancedTransport() {
     }
 
     public ProtocolOptions getProtocolOptions() {
@@ -46,39 +46,39 @@ public abstract class ProtocolTransport<PT extends ProtocolTransport<PT>> extend
     }
 
     @SuppressWarnings("unchecked")
-    public PT magic(byte[] magic) {
+    public AT magic(byte[] magic) {
         this.magic = magic;
-        return (PT) this;
+        return (AT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public PT magic(String magicStr) {
+    public AT magic(String magicStr) {
         this.magic = magicStr.getBytes(StandardCharsets.UTF_8);
-        return (PT) this;
+        return (AT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public PT maxBodySize(int maxBodySize) {
+    public AT maxBodySize(int maxBodySize) {
         this.maxBodySize = maxBodySize;
-        return (PT) this;
+        return (AT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public PT decoderUseCompositeBuf(boolean decoderUseCompositeBuf) {
+    public AT decoderUseCompositeBuf(boolean decoderUseCompositeBuf) {
         this.decoderUseCompositeBuf = decoderUseCompositeBuf;
-        return (PT) this;
+        return (AT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public PT payloadProcessor(PayloadProcessor payloadProcessor) {
+    public AT payloadProcessor(PayloadProcessor payloadProcessor) {
         this.payloadProcessor = payloadProcessor;
-        return (PT) this;
+        return (AT) this;
     }
 
     @SuppressWarnings("unchecked")
-    public PT channelInitializer(ChannelInitializer channelInitializer) {
+    public AT channelInitializer(ChannelInitializer channelInitializer) {
         this.channelInitializer = channelInitializer;
-        return (PT) this;
+        return (AT) this;
     }
 
     //getter

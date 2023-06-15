@@ -4,7 +4,7 @@ package org.kin.transport.netty;
  * @author huangjianqin
  * @date 2023/3/28
  */
-public abstract class ProtocolClientTransport<PCT extends ProtocolClientTransport<PCT>> extends ProtocolTransport<PCT> {
+public abstract class AdvancedClientTransport<ACT extends AdvancedClientTransport<ACT>> extends AdvancedTransport<ACT> {
     @SuppressWarnings("rawtypes")
     private ClientObserver observer = ClientObserver.DEFAULT;
 
@@ -15,8 +15,8 @@ public abstract class ProtocolClientTransport<PCT extends ProtocolClientTranspor
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public PCT observer(ClientObserver observer) {
+    public ACT observer(ClientObserver observer) {
         this.observer = observer;
-        return (PCT) this;
+        return (ACT) this;
     }
 }

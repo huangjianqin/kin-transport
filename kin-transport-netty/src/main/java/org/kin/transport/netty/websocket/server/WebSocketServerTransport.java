@@ -5,7 +5,7 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.util.NetUtil;
 import org.kin.framework.utils.StringUtils;
-import org.kin.transport.netty.ProtocolServerTransport;
+import org.kin.transport.netty.AdvancedServerTransport;
 import org.kin.transport.netty.websocket.WebSocketConstants;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.server.HttpServer;
@@ -18,7 +18,7 @@ import java.time.Duration;
  * @author huangjianqin
  * @date 2023/1/19
  */
-public final class WebSocketServerTransport extends ProtocolServerTransport<WebSocketServerTransport> {
+public final class WebSocketServerTransport extends AdvancedServerTransport<WebSocketServerTransport> {
     /** websocket 握手url */
     private String handshakeUrl = WebSocketConstants.WS_PATH;
 

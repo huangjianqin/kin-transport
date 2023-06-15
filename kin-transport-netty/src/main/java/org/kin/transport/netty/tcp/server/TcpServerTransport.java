@@ -5,7 +5,7 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.util.NetUtil;
 import org.kin.framework.utils.StringUtils;
-import org.kin.transport.netty.ProtocolServerTransport;
+import org.kin.transport.netty.AdvancedServerTransport;
 
 /**
  * 创建{@link TcpServer}的入口
@@ -13,7 +13,7 @@ import org.kin.transport.netty.ProtocolServerTransport;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public final class TcpServerTransport extends ProtocolServerTransport<TcpServerTransport> {
+public final class TcpServerTransport extends AdvancedServerTransport<TcpServerTransport> {
 
     public static TcpServerTransport create() {
         return new TcpServerTransport();

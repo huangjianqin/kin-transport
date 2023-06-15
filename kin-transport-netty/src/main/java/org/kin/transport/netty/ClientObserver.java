@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
  * @author huangjianqin
  * @date 2023/3/28
  */
-public interface ClientObserver<C extends Client<C, ? extends ProtocolClientTransport<?>>> {
+public interface ClientObserver<C extends Client<C, ? extends AdvancedClientTransport<?>>> {
     /** 默认实现 */
     ClientObserver DEFAULT = new ClientObserver() {
     };

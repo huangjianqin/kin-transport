@@ -6,7 +6,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.util.NetUtil;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.utils.SysUtils;
-import org.kin.transport.netty.ProtocolClientTransport;
+import org.kin.transport.netty.AdvancedClientTransport;
 import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.TcpClient;
 
@@ -18,7 +18,7 @@ import java.net.InetSocketAddress;
  * @author huangjianqin
  * @date 2023/1/15
  */
-public final class TcpClientTransport extends ProtocolClientTransport<TcpClientTransport> {
+public final class TcpClientTransport extends AdvancedClientTransport<TcpClientTransport> {
     /** client端统一loop resource, 没必要每次create都创建新的 */
     private static final LoopResources LOOP_RESOURCES = LoopResources.create("kin-tcp-client", SysUtils.CPU_NUM, false);
 
