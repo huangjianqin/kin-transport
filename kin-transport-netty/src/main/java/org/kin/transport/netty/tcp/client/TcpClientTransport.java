@@ -20,7 +20,7 @@ import java.net.InetSocketAddress;
  */
 public final class TcpClientTransport extends AdvancedClientTransport<TcpClientTransport> {
     /** client端统一loop resource, 没必要每次create都创建新的 */
-    private static final LoopResources LOOP_RESOURCES = LoopResources.create("kin-tcp-client", SysUtils.CPU_NUM, false);
+    private static final LoopResources LOOP_RESOURCES = LoopResources.create("kin-tcp-client", SysUtils.getIntSysProperty("kin.transport.tcp.worker", SysUtils.CPU_NUM), false);
 
     static {
         JvmCloseCleaner.instance().add(LOOP_RESOURCES::dispose);

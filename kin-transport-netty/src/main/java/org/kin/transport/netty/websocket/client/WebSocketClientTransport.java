@@ -54,6 +54,7 @@ public final class WebSocketClientTransport extends AdvancedClientTransport<WebS
         Preconditions.checkArgument(StringUtils.isNotBlank(uri), "websocket handshake uri must be not blank");
         Preconditions.checkArgument(connectTimeoutSec > 0, "client connect timeout must be greater than 0");
 
+        //使用默认的connection provider, 即worker数量=cpu处理器数量, max connection num为500
         HttpClient httpClient = HttpClient.create();
 
         //要覆盖nettyHttpServer, 其方法返回的不是this, 是新实例

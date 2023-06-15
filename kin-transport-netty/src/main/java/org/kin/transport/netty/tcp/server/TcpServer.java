@@ -42,7 +42,7 @@ public final class TcpServer extends Server<TcpServer, TcpServerTransport> {
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     private void onBind(TcpServerTransport serverTransport, reactor.netty.tcp.TcpServer tcpServer) {
-        //event loop
+        //event loop group
         LoopResources loopResources = LoopResources.create("kin-tcp-server-" + port, 2, SysUtils.DOUBLE_CPU, false);
 
         ProtocolOptions options = serverTransport.getProtocolOptions();
@@ -50,7 +50,8 @@ public final class TcpServer extends Server<TcpServer, TcpServerTransport> {
 
         ServerObserver observer = serverTransport.getObserver();
 
-        tcpServer.doOnConnection(connection -> {
+        tcpServer.runOn(loopResources)
+                .doOnConnection(connection -> {
                     //在channel init中add last handler会导致所添加的handler在名为"reactor.right.reactiveBridge"的ChannelOperationsHandler实例后面, 那么NettyInbound则是最原始的bytes
                     //NettyInbound.receiveObject() signal是ChannelOperationsHandler实例触发
                     //而Connection的addHandlerLast会保证ChannelOperationsHandler实例是pipeline最后一个handler
