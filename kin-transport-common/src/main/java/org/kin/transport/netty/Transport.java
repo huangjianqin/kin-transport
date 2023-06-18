@@ -4,6 +4,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.OpenSsl;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.FingerprintTrustManagerFactory;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import org.kin.framework.JvmCloseCleaner;
@@ -14,11 +15,13 @@ import reactor.netty.tcp.SslProvider;
 
 import javax.annotation.Nonnull;
 import javax.net.ssl.SSLException;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.cert.CertificateException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 传输层通用配置
@@ -53,6 +56,8 @@ public abstract class Transport<T extends Transport<T>> {
      * TLS握手时需要
      */
     private File caFile;
+    /** 证书指纹 */
+    private File fingerprintFile;
     //--------------------------------------------ssl配置 end
     /** 自定义netty options */
     @SuppressWarnings("rawtypes")
@@ -121,10 +126,7 @@ public abstract class Transport<T extends Transport<T>> {
                         .clientAuth(ClientAuth.OPTIONAL);
             }
 
-            if (Objects.nonNull(caFile)) {
-                //client信任证书
-                sslContextBuilder.trustManager(caFile);
-            }
+            setUpTrustManager(sslContextBuilder, false);
 
             sslContextBuilder.protocols(PROTOCOLS)
                     .sslProvider(getSslProvider());
@@ -147,19 +149,55 @@ public abstract class Transport<T extends Transport<T>> {
                 sslContextBuilder = SslContextBuilder.forServer(certFile, certKeyFile, certKeyPassword);
             }
 
-            if (Objects.nonNull(caFile)) {
-                //server信任证书
-                sslContextBuilder.trustManager(caFile);
-            } else {
-                log.warn("client ssl is opened, but caFile is not set, just accept any certificate");
-                //默认接受任何证书, 忽略所有证书校验异常
-                sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
-            }
+            setUpTrustManager(sslContextBuilder, true);
+
             sslContextSpec.sslContext(sslContextBuilder.build());
         } catch (SSLException e) {
             ExceptionUtils.throwExt(e);
         }
     }
+
+    /**
+     * 设置信任证书
+     * 优先级:
+     * 1. ca file
+     * 2. fingerprint file
+     * 3. {@link InsecureTrustManagerFactory}
+     */
+    private void setUpTrustManager(SslContextBuilder sslContextBuilder, boolean client) {
+        if (Objects.nonNull(caFile)) {
+            sslContextBuilder.trustManager(caFile);
+        } else if (Objects.nonNull(fingerprintFile)) {
+            //指纹适用于不能联网或者自签名环境, 同样安全
+            List<String> fingerprintSha256List = new ArrayList<>();
+            //读取指纹
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(Files.newInputStream(fingerprintFile.toPath()), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (!line.isEmpty()) {
+                        //一行一串SHA-256 hashed fingerprint
+                        fingerprintSha256List.add(line.trim());
+                    }
+                }
+            } catch (Exception ignore) {
+                //do nothing
+            }
+
+            if (!fingerprintSha256List.isEmpty()) {
+                //构建trust manager
+                sslContextBuilder.trustManager(FingerprintTrustManagerFactory.builder("SHA-256")
+                        .fingerprints(fingerprintSha256List)
+                        .build());
+            }
+        } else {
+            if (client) {
+                log.warn("client ssl is opened, but caFile or fingerPrintFile is not set, just accept any certificate");
+            }
+            //默认接受任何证书, 忽略所有证书校验异常
+            sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+        }
+    }
+
 
     //setter && getter
     public boolean isSsl() {
@@ -248,5 +286,17 @@ public abstract class Transport<T extends Transport<T>> {
         }
         this.caFile = caFile;
         return (T) this;
+    }
+
+    public File getFingerprintFile() {
+        return fingerprintFile;
+    }
+
+    public Transport<T> fingerprintFile(File fingerprintFile) {
+        if (!fingerprintFile.exists()) {
+            throw new IllegalArgumentException("fingerprintFile not exists");
+        }
+        this.fingerprintFile = fingerprintFile;
+        return this;
     }
 }
