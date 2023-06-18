@@ -69,7 +69,7 @@ public final class WebSocketServerTransport extends AdvancedServerTransport<WebS
 
         //要覆盖nettyHttpServer, 其方法返回的不是this, 是新实例
         if (isSsl()) {
-            httpServer = httpServer.secure(this::secure);
+            httpServer = httpServer.secure(this::serverSSL);
         }
 
         httpServer = httpServer.host(host).port(port)

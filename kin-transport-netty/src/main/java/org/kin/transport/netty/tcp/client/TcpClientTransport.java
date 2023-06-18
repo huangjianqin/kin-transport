@@ -60,7 +60,7 @@ public final class TcpClientTransport extends AdvancedClientTransport<TcpClientT
         //tcp
         TcpClient tcpClient = TcpClient.create();
         if (isSsl()) {
-            tcpClient = tcpClient.secure(this::secure);
+            tcpClient = tcpClient.secure(this::clientSSL);
         }
 
         tcpClient = tcpClient

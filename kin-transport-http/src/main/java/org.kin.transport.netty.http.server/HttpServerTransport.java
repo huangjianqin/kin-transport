@@ -244,7 +244,7 @@ public final class HttpServerTransport extends ServerTransport<HttpServerTranspo
 
         //要覆盖nettyHttpServer, 其方法返回的不是this, 是新实例
         if (isSsl()) {
-            nettyHttpServer = nettyHttpServer.secure(this::secure);
+            nettyHttpServer = nettyHttpServer.secure(this::serverSSL);
         }
 
         LoopResources loopResources = LoopResources.create("kin-http-server-" + port, 2, SysUtils.CPU_NUM * 2, false);

@@ -40,7 +40,7 @@ public final class TcpServerTransport extends AdvancedServerTransport<TcpServerT
         //tcp
         reactor.netty.tcp.TcpServer tcpServer = reactor.netty.tcp.TcpServer.create();
         if (isSsl()) {
-            tcpServer = tcpServer.secure(this::secure);
+            tcpServer = tcpServer.secure(this::serverSSL);
         }
 
         tcpServer = tcpServer.host(host).port(port)
