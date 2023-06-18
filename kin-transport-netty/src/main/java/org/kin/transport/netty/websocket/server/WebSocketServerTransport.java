@@ -61,7 +61,7 @@ public final class WebSocketServerTransport extends AdvancedServerTransport<WebS
      * create
      */
     public WebSocketServer create(String host, int port, HttpProtocol protocol) {
-        check();
+        checkRequire();
         Preconditions.checkArgument(port > 0, "websocket server port must be greater than 0");
         Preconditions.checkArgument(StringUtils.isNotBlank(host), "websocket server host must be not blank");
 
@@ -69,7 +69,7 @@ public final class WebSocketServerTransport extends AdvancedServerTransport<WebS
 
         //要覆盖nettyHttpServer, 其方法返回的不是this, 是新实例
         if (isSsl()) {
-            httpServer = httpServer.secure(this::serverSSL);
+            httpServer = httpServer.secure(this::serverSsl);
         }
 
         httpServer = httpServer.host(host).port(port)

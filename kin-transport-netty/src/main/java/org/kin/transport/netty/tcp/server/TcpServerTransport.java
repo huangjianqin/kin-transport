@@ -33,14 +33,14 @@ public final class TcpServerTransport extends AdvancedServerTransport<TcpServerT
      * create
      */
     public TcpServer create(String host, int port) {
-        check();
+        checkRequire();
         Preconditions.checkArgument(port > 0, "tcp server port must be greater than 0");
         Preconditions.checkArgument(StringUtils.isNotBlank(host), "tcp server host must be not blank");
 
         //tcp
         reactor.netty.tcp.TcpServer tcpServer = reactor.netty.tcp.TcpServer.create();
         if (isSsl()) {
-            tcpServer = tcpServer.secure(this::serverSSL);
+            tcpServer = tcpServer.secure(this::serverSsl);
         }
 
         tcpServer = tcpServer.host(host).port(port)

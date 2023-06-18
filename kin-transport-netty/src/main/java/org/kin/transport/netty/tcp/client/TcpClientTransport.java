@@ -54,13 +54,13 @@ public final class TcpClientTransport extends AdvancedClientTransport<TcpClientT
      * create
      */
     public org.kin.transport.netty.tcp.client.TcpClient create(InetSocketAddress address) {
-        check();
+        checkRequire();
         Preconditions.checkArgument(connectTimeoutSec > 0, "client connect timeout must be greater than 0");
 
         //tcp
         TcpClient tcpClient = TcpClient.create();
         if (isSsl()) {
-            tcpClient = tcpClient.secure(this::clientSSL);
+            tcpClient = tcpClient.secure(this::clientSsl);
         }
 
         tcpClient = tcpClient

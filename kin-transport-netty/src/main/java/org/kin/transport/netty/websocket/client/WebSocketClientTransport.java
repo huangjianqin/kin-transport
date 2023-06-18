@@ -50,7 +50,7 @@ public final class WebSocketClientTransport extends AdvancedClientTransport<WebS
      * @param uri handshake uri
      */
     public WebSocketClient create(String uri) {
-        check();
+        checkRequire();
         Preconditions.checkArgument(StringUtils.isNotBlank(uri), "websocket handshake uri must be not blank");
         Preconditions.checkArgument(connectTimeoutSec > 0, "client connect timeout must be greater than 0");
 
@@ -59,7 +59,7 @@ public final class WebSocketClientTransport extends AdvancedClientTransport<WebS
 
         //要覆盖nettyHttpServer, 其方法返回的不是this, 是新实例
         if (isSsl()) {
-            httpClient = httpClient.secure(this::clientSSL);
+            httpClient = httpClient.secure(this::clientSsl);
         }
 
         httpClient = httpClient

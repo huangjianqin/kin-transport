@@ -39,10 +39,10 @@ public abstract class AdvancedTransport<AT extends AdvancedTransport<AT>> extend
      * 配置检查
      * 实现类可以重写并自定义配置检查逻辑
      */
-    protected void check() {
+    protected void checkRequire() {
+        super.checkRequire();
         //检查
         Preconditions.checkNotNull(payloadProcessor, "payload processor must be not null");
-        checkRequire();
     }
 
     @SuppressWarnings("unchecked")

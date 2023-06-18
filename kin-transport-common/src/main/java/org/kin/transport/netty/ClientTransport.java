@@ -12,13 +12,11 @@ import java.util.Objects;
 
 /**
  * @author huangjianqin
- * @date 2023/3/28
+ * @date 2023/6/18
  */
-public abstract class AdvancedClientTransport<ACT extends AdvancedClientTransport<ACT>> extends AdvancedTransport<ACT> {
-    private static final Logger log = LoggerFactory.getLogger(AdvancedClientTransport.class);
+public class ClientTransport<CT extends ClientTransport<CT>> extends Transport<CT> {
+    private static final Logger log = LoggerFactory.getLogger(ClientTransport.class);
 
-    @SuppressWarnings("rawtypes")
-    private ClientObserver observer = ClientObserver.DEFAULT;
     /**
      * 自定义信任证书集合
      * null, 则表示使用系统默认
@@ -41,7 +39,7 @@ public abstract class AdvancedClientTransport<ACT extends AdvancedClientTranspor
     /**
      * 构建client端ssl上下文
      */
-    protected void clientSsl(SslProvider.SslContextSpec sslContextSpec) {
+    protected void clientSSL(SslProvider.SslContextSpec sslContextSpec) {
         try {
             SslContextBuilder sslContextBuilder = SslContextBuilder.forClient()
                     .protocols(PROTOCOLS);
@@ -55,32 +53,22 @@ public abstract class AdvancedClientTransport<ACT extends AdvancedClientTranspor
         }
     }
 
+
     //setter && getter
-    @SuppressWarnings("rawtypes")
-    public ClientObserver getObserver() {
-        return observer;
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public ACT observer(ClientObserver observer) {
-        this.observer = observer;
-        return (ACT) this;
-    }
-
     public File getCaFile() {
         return caFile;
     }
 
-    public ACT caFile(String caFilePath) {
+    public CT caFile(String caFilePath) {
         return caFile(new File(caFilePath));
     }
 
     @SuppressWarnings("unchecked")
-    public ACT caFile(File caFile) {
+    public CT caFile(File caFile) {
         if (!caFile.exists()) {
             throw new IllegalArgumentException("caFile not exists");
         }
         this.caFile = caFile;
-        return (ACT) this;
+        return (CT) this;
     }
 }
