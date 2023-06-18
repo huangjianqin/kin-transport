@@ -19,7 +19,7 @@ public abstract class AdvancedServerTransport<AST extends AdvancedServerTranspor
 
     @SuppressWarnings("rawtypes")
     private ServerObserver observer = ServerObserver.DEFAULT;
-    /** 定义额外的netty child options */
+    /** 自定义netty child options */
     @SuppressWarnings("rawtypes")
     private final Map<ChannelOption, Object> childOptions = new HashMap<>();
     /**

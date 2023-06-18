@@ -26,7 +26,7 @@ public abstract class Transport<T extends Transport<T>> {
 
     /** ssl */
     private boolean ssl;
-    /** 定义额外的netty options */
+    /** 自定义netty options */
     @SuppressWarnings("rawtypes")
     private final Map<ChannelOption, Object> options = new HashMap<>();
 

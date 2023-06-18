@@ -17,7 +17,7 @@ import java.util.Objects;
 public abstract class ServerTransport<ST extends ServerTransport<ST>> extends Transport<ST> {
     private static final Logger log = LoggerFactory.getLogger(ServerTransport.class);
 
-    /** 定义额外的netty child options */
+    /** 自定义netty child options */
     @SuppressWarnings("rawtypes")
     private final Map<ChannelOption, Object> childOptions = new HashMap<>();
     /**
