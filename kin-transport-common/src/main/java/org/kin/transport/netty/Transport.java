@@ -26,6 +26,8 @@ import java.util.Objects;
  * @date 2022/11/10
  */
 public abstract class Transport<T extends Transport<T>> {
+    private static final String[] PROTOCOLS = new String[]{"TLSv1.3", "TLSv.1.2"};
+
     /** ssl */
     private boolean ssl;
     /** certificate chain file */
@@ -62,7 +64,8 @@ public abstract class Transport<T extends Transport<T>> {
             SslContextBuilder sslContextBuilder;
             if (Objects.nonNull(keyCertChainFile) && Objects.nonNull(keyFile)) {
                 //配置key
-                sslContextBuilder = SslContextBuilder.forServer(keyCertChainFile, keyFile, keyPassword);
+                sslContextBuilder = SslContextBuilder.forServer(keyCertChainFile, keyFile, keyPassword)
+                        .protocols(PROTOCOLS);
                 if (Objects.nonNull(trustCertCollectionFile)) {
                     //配置握手信任证书
                     sslContextBuilder = sslContextBuilder.trustManager(trustCertCollectionFile)
@@ -71,7 +74,8 @@ public abstract class Transport<T extends Transport<T>> {
             } else {
                 //自签名证书
                 SelfSignedCertificate ssc = new SelfSignedCertificate();
-                sslContextBuilder = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey());
+                sslContextBuilder = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey())
+                        .protocols(PROTOCOLS);
             }
             sslContextSpec.sslContext(sslContextBuilder.build());
         } catch (SSLException | CertificateException e) {
@@ -84,7 +88,8 @@ public abstract class Transport<T extends Transport<T>> {
      */
     protected void clientSSL(SslProvider.SslContextSpec sslContextSpec) {
         try {
-            SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
+            SslContextBuilder sslContextBuilder = SslContextBuilder.forClient()
+                    .protocols(PROTOCOLS);
             if (Objects.nonNull(trustCertCollectionFile)) {
                 //配置握手信任证书
                 sslContextBuilder.trustManager(trustCertCollectionFile);
