@@ -1,12 +1,9 @@
 package org.kin.transport.netty;
 
-import io.netty.handler.ssl.SslContextBuilder;
-import org.kin.framework.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.netty.tcp.SslProvider;
 
-import javax.net.ssl.SSLException;
 import java.io.File;
 import java.util.Objects;
 
@@ -19,6 +16,7 @@ public class ClientTransport<CT extends ClientTransport<CT>> extends Transport<C
 
     /**
      * 自定义信任证书集合
+     * 信任证书即私钥提交CA签名后的证书, 用于校验server端证书权限
      * null, 则表示使用系统默认
      * TLS握手时需要
      */
@@ -39,20 +37,9 @@ public class ClientTransport<CT extends ClientTransport<CT>> extends Transport<C
     /**
      * 构建client端ssl上下文
      */
-    protected void clientSSL(SslProvider.SslContextSpec sslContextSpec) {
-        try {
-            SslContextBuilder sslContextBuilder = SslContextBuilder.forClient()
-                    .protocols(PROTOCOLS);
-            if (Objects.nonNull(caFile)) {
-                //配置握手信任证书
-                sslContextBuilder.trustManager(caFile);
-            }
-            sslContextSpec.sslContext(sslContextBuilder.build());
-        } catch (SSLException e) {
-            ExceptionUtils.throwExt(e);
-        }
+    protected void clientSsl(SslProvider.SslContextSpec sslContextSpec) {
+        onClientSsl(sslContextSpec, caFile);
     }
-
 
     //setter && getter
     public File getCaFile() {

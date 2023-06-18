@@ -1,17 +1,11 @@
 package org.kin.transport.netty;
 
 import io.netty.channel.ChannelOption;
-import io.netty.handler.ssl.ClientAuth;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
-import org.kin.framework.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.netty.tcp.SslProvider;
 
-import javax.net.ssl.SSLException;
 import java.io.File;
-import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -69,22 +63,7 @@ public abstract class AdvancedServerTransport<AST extends AdvancedServerTranspor
      * 构建server端ssl上下文
      */
     protected void serverSsl(SslProvider.SslContextSpec sslContextSpec) {
-        try {
-            SslContextBuilder sslContextBuilder;
-            if (Objects.nonNull(certFile) && Objects.nonNull(keyFile)) {
-                //配置证书和私钥
-                sslContextBuilder = SslContextBuilder.forServer(certFile, keyFile, keyPassword);
-            } else {
-                //自签名证书, for test
-                SelfSignedCertificate ssc = new SelfSignedCertificate();
-                sslContextBuilder = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey());
-            }
-            sslContextBuilder.protocols(PROTOCOLS)
-                    .clientAuth(ClientAuth.REQUIRE);
-            sslContextSpec.sslContext(sslContextBuilder.build());
-        } catch (SSLException | CertificateException e) {
-            ExceptionUtils.throwExt(e);
-        }
+        onServerSsl(sslContextSpec, certFile, keyFile, keyPassword);
     }
 
     //setter && getter

@@ -1,9 +1,18 @@
 package org.kin.transport.netty;
 
 import io.netty.channel.ChannelOption;
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
+import org.kin.framework.utils.ExceptionUtils;
+import reactor.netty.tcp.SslProvider;
 
+import javax.net.ssl.SSLException;
+import java.io.File;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 传输层通用配置
@@ -36,6 +45,51 @@ public abstract class Transport<T extends Transport<T>> {
             transport = (V) transport.option(entry.getKey(), entry.getValue());
         }
         return transport;
+    }
+
+    //--------------------------------------------------static
+
+    /**
+     * 构建server端ssl上下文
+     */
+    protected static void onServerSsl(SslProvider.SslContextSpec sslContextSpec,
+                                      File certFile,
+                                      File keyFile,
+                                      String keyPassword) {
+        try {
+            SslContextBuilder sslContextBuilder;
+            if (Objects.nonNull(certFile) && Objects.nonNull(keyFile)) {
+                //配置证书和私钥
+                sslContextBuilder = SslContextBuilder.forServer(certFile, keyFile, keyPassword);
+            } else {
+                //自签名证书, for test
+                SelfSignedCertificate ssc = new SelfSignedCertificate();
+                sslContextBuilder = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey());
+            }
+            sslContextBuilder.protocols(PROTOCOLS)
+                    .clientAuth(ClientAuth.REQUIRE);
+            sslContextSpec.sslContext(sslContextBuilder.build());
+        } catch (SSLException | CertificateException e) {
+            ExceptionUtils.throwExt(e);
+        }
+    }
+
+    /**
+     * 构建client端ssl上下文
+     */
+    protected static void onClientSsl(SslProvider.SslContextSpec sslContextSpec,
+                                      File caFile) {
+        try {
+            SslContextBuilder sslContextBuilder = SslContextBuilder.forClient()
+                    .protocols(PROTOCOLS);
+            if (Objects.nonNull(caFile)) {
+                //配置握手信任证书
+                sslContextBuilder.trustManager(caFile);
+            }
+            sslContextSpec.sslContext(sslContextBuilder.build());
+        } catch (SSLException e) {
+            ExceptionUtils.throwExt(e);
+        }
     }
 
     //setter && getter
