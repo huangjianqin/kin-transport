@@ -61,8 +61,10 @@ public abstract class Transport<T extends Transport<T>> {
         try {
             SslContextBuilder sslContextBuilder;
             if (Objects.nonNull(keyCertChainFile) && Objects.nonNull(keyFile)) {
+                //配置key
                 sslContextBuilder = SslContextBuilder.forServer(keyCertChainFile, keyFile, keyPassword);
                 if (Objects.nonNull(trustCertCollectionFile)) {
+                    //配置握手信任证书
                     sslContextBuilder = sslContextBuilder.trustManager(trustCertCollectionFile)
                             .clientAuth(ClientAuth.REQUIRE);
                 }
@@ -84,9 +86,11 @@ public abstract class Transport<T extends Transport<T>> {
         try {
             SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
             if (Objects.nonNull(trustCertCollectionFile)) {
+                //配置握手信任证书
                 sslContextBuilder.trustManager(trustCertCollectionFile);
             }
             if (Objects.nonNull(keyCertChainFile) && Objects.nonNull(keyFile)) {
+                //配置key
                 sslContextBuilder.keyManager(keyCertChainFile, keyFile, keyPassword);
             }
 
