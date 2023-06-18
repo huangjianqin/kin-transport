@@ -28,9 +28,9 @@ public abstract class AdvancedServerTransport<AST extends AdvancedServerTranspor
      */
     private File certFile;
     /** private key file */
-    private File keyFile;
+    private File certKeyFile;
     /** the password of the {@code keyFile}, or {@code null} if it's not password-protected */
-    private String keyPassword;
+    private String certKeyPassword;
 
     /**
      * 检查是否配上必要配置
@@ -42,8 +42,8 @@ public abstract class AdvancedServerTransport<AST extends AdvancedServerTranspor
                 log.warn("ssl is opened, but certFile is not set");
             }
 
-            if (Objects.isNull(keyFile)) {
-                log.warn("ssl is opened, but keyFile is not set");
+            if (Objects.isNull(certKeyFile)) {
+                log.warn("ssl is opened, but certKeyFile is not set");
             }
         }
     }
@@ -63,7 +63,7 @@ public abstract class AdvancedServerTransport<AST extends AdvancedServerTranspor
      * 构建server端ssl上下文
      */
     protected void serverSsl(SslProvider.SslContextSpec sslContextSpec) {
-        onServerSsl(sslContextSpec, certFile, keyFile, keyPassword);
+        onServerSsl(sslContextSpec, certFile, certKeyFile, certKeyPassword);
     }
 
     //setter && getter
@@ -112,30 +112,30 @@ public abstract class AdvancedServerTransport<AST extends AdvancedServerTranspor
         return (AST) this;
     }
 
-    public File getKeyFile() {
-        return keyFile;
+    public File getCertKeyFile() {
+        return certKeyFile;
     }
 
-    public AST keyFile(String keyFilePath) {
-        return keyFile(new File(keyFilePath));
+    public AST certKeyFile(String certKeyFilePath) {
+        return certKeyFile(new File(certKeyFilePath));
     }
 
     @SuppressWarnings("unchecked")
-    public AST keyFile(File keyFile) {
-        if (!keyFile.exists()) {
-            throw new IllegalArgumentException("keyFile not exists");
+    public AST certKeyFile(File certKeyFile) {
+        if (!certKeyFile.exists()) {
+            throw new IllegalArgumentException("certKeyFile not exists");
         }
-        this.keyFile = keyFile;
+        this.certKeyFile = certKeyFile;
         return (AST) this;
     }
 
-    public String getKeyPassword() {
-        return keyPassword;
+    public String getCertKeyPassword() {
+        return certKeyPassword;
     }
 
     @SuppressWarnings("unchecked")
-    public AST keyPassword(String keyPassword) {
-        this.keyPassword = keyPassword;
+    public AST certKeyPassword(String certKeyPassword) {
+        this.certKeyPassword = certKeyPassword;
         return (AST) this;
     }
 }
