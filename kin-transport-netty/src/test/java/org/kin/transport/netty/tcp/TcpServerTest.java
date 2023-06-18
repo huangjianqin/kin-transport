@@ -61,6 +61,7 @@ public class TcpServerTest {
                         System.out.println("server unbound!!!");
                     }
                 })
+                .ssl()
                 .bind(10000);
 
         System.in.read();

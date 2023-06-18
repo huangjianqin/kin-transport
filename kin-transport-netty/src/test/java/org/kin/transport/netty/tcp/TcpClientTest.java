@@ -64,6 +64,7 @@ public class TcpClientTest {
                         System.out.println("client disconnected!!!");
                     }
                 })
+                .ssl()
                 .connect(10000);
 
         for (int i = 0; i < 10; i++) {

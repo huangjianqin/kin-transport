@@ -62,6 +62,7 @@ public class WebSocketServerTest {
                         System.out.println("server unbound!!!");
                     }
                 })
+                .ssl()
                 .bind(10000);
 
         System.in.read();
