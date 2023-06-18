@@ -2,6 +2,7 @@ package org.kin.transport.netty;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.OpenSsl;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import org.kin.framework.utils.ExceptionUtils;
@@ -50,6 +51,17 @@ public abstract class Transport<T extends Transport<T>> {
     //--------------------------------------------------static
 
     /**
+     * 获取ssl provider, 如果支持openssl, 则使用, 否则回退到使用jdk ssl
+     */
+    protected static io.netty.handler.ssl.SslProvider getSslProvider() {
+        if (OpenSsl.isAvailable()) {
+            return io.netty.handler.ssl.SslProvider.OPENSSL_REFCNT;
+        } else {
+            return io.netty.handler.ssl.SslProvider.JDK;
+        }
+    }
+
+    /**
      * 构建server端ssl上下文
      */
     protected static void onServerSsl(SslProvider.SslContextSpec sslContextSpec,
@@ -67,6 +79,7 @@ public abstract class Transport<T extends Transport<T>> {
                 sslContextBuilder = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey());
             }
             sslContextBuilder.protocols(PROTOCOLS)
+                    .sslProvider(getSslProvider())
                     .clientAuth(ClientAuth.REQUIRE);
             sslContextSpec.sslContext(sslContextBuilder.build());
         } catch (SSLException | CertificateException e) {
@@ -81,7 +94,8 @@ public abstract class Transport<T extends Transport<T>> {
                                       File caFile) {
         try {
             SslContextBuilder sslContextBuilder = SslContextBuilder.forClient()
-                    .protocols(PROTOCOLS);
+                    .protocols(PROTOCOLS)
+                    .sslProvider(getSslProvider());
             if (Objects.nonNull(caFile)) {
                 //配置握手信任证书
                 sslContextBuilder.trustManager(caFile);
