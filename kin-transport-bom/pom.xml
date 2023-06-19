@@ -15,12 +15,6 @@
         <dependencies>
             <dependency>
                 <groupId>org.kin</groupId>
-                <artifactId>kin-transport-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
                 <artifactId>kin-transport-http-utils</artifactId>
                 <version>${project.version}</version>
             </dependency>

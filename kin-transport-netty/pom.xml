@@ -33,11 +33,5 @@
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-transport-netty-utils</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 </project>
