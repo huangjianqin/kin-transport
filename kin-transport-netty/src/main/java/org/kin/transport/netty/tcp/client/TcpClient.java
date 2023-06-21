@@ -27,14 +27,14 @@ public final class TcpClient extends Client<TcpClient, TcpClientTransport> {
     TcpClient(TcpClientTransport clientTransport, reactor.netty.tcp.TcpClient tcpClient, InetSocketAddress address) {
         super(clientTransport);
         this.address = address;
-        this.connector = connect(clientTransport, tcpClient, address);
+        this.connector = createConnector(clientTransport, tcpClient, address);
     }
 
     /**
      * tcp connect
      */
     @SuppressWarnings("rawtypes")
-    private Mono<Connection> connect(TcpClientTransport clientTransport, reactor.netty.tcp.TcpClient tcpClient, InetSocketAddress address) {
+    private Mono<Connection> createConnector(TcpClientTransport clientTransport, reactor.netty.tcp.TcpClient tcpClient, InetSocketAddress address) {
         ProtocolOptions options = clientTransport.getProtocolOptions();
 
         ChannelInitializer channelInitializer = clientTransport.getChannelInitializer();

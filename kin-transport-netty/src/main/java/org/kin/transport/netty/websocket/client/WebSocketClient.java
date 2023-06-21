@@ -29,14 +29,14 @@ public final class WebSocketClient extends Client<WebSocketClient, WebSocketClie
     WebSocketClient(WebSocketClientTransport clientTransport, HttpClient httpClient, String uri) {
         super(clientTransport);
         this.uri = uri;
-        this.connector = connect(clientTransport, httpClient, uri);
+        this.connector = createConnector(clientTransport, httpClient, uri);
     }
 
     /**
      * websocket connect
      */
     @SuppressWarnings("rawtypes")
-    private Mono<Connection> connect(WebSocketClientTransport clientTransport, HttpClient httpClient, String uri) {
+    private Mono<Connection> createConnector(WebSocketClientTransport clientTransport, HttpClient httpClient, String uri) {
         ProtocolOptions options = clientTransport.getProtocolOptions();
 
         ChannelInitializer channelInitializer = clientTransport.getChannelInitializer();
