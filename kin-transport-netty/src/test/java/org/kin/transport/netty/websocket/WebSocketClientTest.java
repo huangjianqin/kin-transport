@@ -55,13 +55,23 @@ public class WebSocketClientTest {
                     }
 
                     @Override
+                    public void onConnectFail(WebSocketClient client, Throwable cause) {
+                        System.out.println("client fail!!!");
+                    }
+
+                    @Override
                     public void onReconnected(WebSocketClient client, Session session) {
                         System.out.println("client reconnected!!!");
                     }
 
                     @Override
-                    public void onDisconnected(WebSocketClient client, @Nullable Session session) {
+                    public void onDisconnected(WebSocketClient client, Session oldSession) {
                         System.out.println("client disconnected!!!");
+                    }
+
+                    @Override
+                    public void onDisposed(WebSocketClient client, @Nullable Session session) {
+                        System.out.println("client disposed!!!");
                     }
                 })
                 .ssl()

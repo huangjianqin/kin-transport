@@ -56,6 +56,16 @@ public interface ClientObserver<C extends Client<C, ? extends AdvancedClientTran
     }
 
     /**
+     * client connect fail时触发
+     *
+     * @param client client实例
+     * @param cause  connect fail exception
+     */
+    default void onConnectFail(C client, Throwable cause) {
+        //default do nothing
+    }
+
+    /**
      * client reconnected时触发
      *
      * @param client  client实例
@@ -66,12 +76,22 @@ public interface ClientObserver<C extends Client<C, ? extends AdvancedClientTran
     }
 
     /**
-     * client disconnected时触发
+     * client connection disconnected时触发
+     * 一般来说优先于{@link #onDisposed(Client, Session)}执行
+     *
+     * @param client client实例
+     */
+    default void onDisconnected(C client, Session oldSession) {
+        //default do nothing
+    }
+
+    /**
+     * client disposed时触发
      *
      * @param client  client实例
      * @param session client session
      */
-    default void onDisconnected(C client, @Nullable Session session) {
+    default void onDisposed(C client, @Nullable Session session) {
         //default do nothing
     }
 }

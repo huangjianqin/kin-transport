@@ -136,18 +136,6 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
                 .onErrorContinue((throwable, o) -> log.error("{} process payload error, {}", clientName(), o, throwable))
                 .subscribe();
 
-        //自定义connection断开逻辑
-        connection.onDispose(() -> {
-            if (disposed) {
-                return;
-            }
-
-            inboundProcessDisposable.dispose();
-            //尝试重连
-            log.info("{} prepare to reconnect to remote '{}'", clientName(), remoteAddress());
-            tryReconnect(retryTimes);
-        });
-
         Session session = SESSION_UPDATER.get(this);
         //标识是否是重连
         boolean isReconnect = false;
@@ -162,7 +150,23 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
             isReconnect = true;
         }
 
+        //自定义connection断开逻辑
         ClientObserver observer = clientTransport.getObserver();
+        Session innerSession = session;
+        connection.onDispose(() -> {
+            try {
+                observer.onDisconnected(this, innerSession);
+            } finally {
+                if (!disposed) {
+                    inboundProcessDisposable.dispose();
+
+                    //尝试重连
+                    log.info("{} prepare to reconnect to remote '{}'", clientName(), remoteAddress());
+                    tryReconnect(retryTimes);
+                }
+            }
+        });
+
         if (!isReconnect) {
             //首次连接成功
             observer.onConnected(this, session);
@@ -204,9 +208,15 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
     /**
      * 处理connect过程的异常
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void handleErrorOnConnecting(Throwable t, int times) {
         log.error("{} connect to remote '{}' error", clientName(), remoteAddress(), t);
-        tryReconnect(times);
+        try {
+            ClientObserver observer = clientTransport.getObserver();
+            observer.onConnectFail(this, t);
+        } finally {
+            tryReconnect(times);
+        }
     }
 
     /**
@@ -275,7 +285,7 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
 
         Session session = SESSION_UPDATER.get(this);
         if (Objects.nonNull(session)) {
-            session.connection().onDispose(() -> clientTransport.getObserver().onDisconnected(this, session));
+            session.connection().onDispose(() -> clientTransport.getObserver().onDisposed(this, session));
             if (Objects.nonNull(disposable)) {
                 //自定义dispose逻辑
                 session.connection().onDispose(disposable);
@@ -283,7 +293,7 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
             session.dispose();
         } else {
             //连接还没建立就dispose, 直接complete sink
-            clientTransport.getObserver().onDisconnected(this, null);
+            clientTransport.getObserver().onDisposed(this, null);
             sessionSink.emitEmpty(RetryNonSerializedEmitFailureHandler.RETRY_NON_SERIALIZED);
         }
     }

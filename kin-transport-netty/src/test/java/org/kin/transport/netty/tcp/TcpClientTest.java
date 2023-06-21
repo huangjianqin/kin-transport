@@ -55,13 +55,23 @@ public class TcpClientTest {
                     }
 
                     @Override
+                    public void onConnectFail(TcpClient client, Throwable cause) {
+                        System.out.println("client fail!!!");
+                    }
+
+                    @Override
                     public void onReconnected(TcpClient client, Session session) {
                         System.out.println("client reconnected!!!");
                     }
 
                     @Override
-                    public void onDisconnected(TcpClient client, @Nullable Session session) {
+                    public void onDisconnected(TcpClient client, Session oldSession) {
                         System.out.println("client disconnected!!!");
+                    }
+
+                    @Override
+                    public void onDisposed(TcpClient client, @Nullable Session session) {
+                        System.out.println("client disposed!!!");
                     }
                 })
                 .ssl()
