@@ -12,6 +12,8 @@ public abstract class AdvancedClientTransport<ACT extends AdvancedClientTranspor
 
     @SuppressWarnings("rawtypes")
     private ClientObserver observer = ClientObserver.DEFAULT;
+    /** 是否支持自动重连 */
+    private boolean reconnect;
 
     //setter && getter
     @SuppressWarnings("rawtypes")
@@ -22,6 +24,16 @@ public abstract class AdvancedClientTransport<ACT extends AdvancedClientTranspor
     @SuppressWarnings({"unchecked", "rawtypes"})
     public ACT observer(ClientObserver observer) {
         this.observer = observer;
+        return (ACT) this;
+    }
+
+    public boolean isReconnect() {
+        return reconnect;
+    }
+
+    @SuppressWarnings("unchecked")
+    public ACT reconnect() {
+        this.reconnect = true;
         return (ACT) this;
     }
 }

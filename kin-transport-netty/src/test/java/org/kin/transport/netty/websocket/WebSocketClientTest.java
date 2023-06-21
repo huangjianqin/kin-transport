@@ -56,7 +56,7 @@ public class WebSocketClientTest {
 
                     @Override
                     public void onConnectFail(WebSocketClient client, Throwable cause) {
-                        System.out.println("client fail!!!");
+                        System.out.println("client connect fail!!!");
                     }
 
                     @Override
@@ -75,6 +75,7 @@ public class WebSocketClientTest {
                     }
                 })
                 .ssl()
+                .reconnect()
                 .connect(10000);
 
         for (int i = 0; i < 10; i++) {

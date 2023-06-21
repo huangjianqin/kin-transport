@@ -43,6 +43,8 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
 
     /** client配置 */
     protected final PT clientTransport;
+    /** client name, lazy init */
+    private String clientName;
     /**
      * 会话sink, 用于连接还没建立且writeXX调用时, 注册subscriber, 等连接建立成功后, 发送请求
      * 首次连接成功后, emit {@link Session}实例, 有且仅有一次, 因为重来不会创建多个新的{@link Session}实例
@@ -76,7 +78,13 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
         }
 
         connected = true;
-        tryReconnect();
+        if (!clientTransport.isReconnect()) {
+            //不支持自动重连
+            connect0();
+        } else {
+            //支持自动重连
+            tryReconnect();
+        }
         return (C) this;
     }
 
@@ -93,17 +101,26 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
     protected abstract String remoteAddress();
 
     /**
-     * @return client命名
+     * 不开启重连时, connect入口, 仅仅调用一次
      */
-    protected final String clientName() {
-        return getClass().getSimpleName();
+    private void connect0() {
+        if (disposed) {
+            return;
+        }
+
+        connector().subscribe(connection -> onConnected(connection, 0),
+                t -> {
+                    handleErrorOnConnecting(t, 0);
+                    //单次connect失败, 马上dispose
+                    dispose();
+                });
     }
 
     /**
      * 连接成功绑定inbound payload逻辑处理
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected final void onConnected(Connection connection, int retryTimes) {
+    private void onConnected(Connection connection, int retryTimes) {
         PayloadProcessor payloadProcessor = clientTransport.getPayloadProcessor();
         Disposable inboundProcessDisposable = connection
                 .inbound()
@@ -137,7 +154,7 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
                 .subscribe();
 
         Session session = SESSION_UPDATER.get(this);
-        //标识是否是重连
+        //标识是否是重连成功
         boolean isReconnect = false;
         if (Objects.isNull(session)) {
             //new session
@@ -176,18 +193,23 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
         }
     }
 
+
     /**
      * client重连逻辑
      */
-    protected final void tryReconnect() {
+    private void tryReconnect() {
         tryReconnect(0);
     }
 
     /**
      * client重连逻辑
      */
-    protected final void tryReconnect(int retryTimes) {
+    private void tryReconnect(int retryTimes) {
         if (disposed) {
+            return;
+        }
+
+        if (!clientTransport.isReconnect()) {
             return;
         }
 
@@ -217,15 +239,6 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
         } finally {
             tryReconnect(times);
         }
-    }
-
-    /**
-     * 获取会话, 首次连接未建立时, 会等待
-     *
-     * @return 会话
-     */
-    public final Mono<Session> session() {
-        return sessionSink.asMono();
     }
 
     /**
@@ -320,5 +333,29 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
     @Override
     public final boolean isDisposed() {
         return disposed;
+    }
+
+    //getter
+
+    /**
+     * @return client命名
+     */
+    protected final String clientName() {
+        if (Objects.isNull(clientName)) {
+            clientName = getClass().getSimpleName() + String.format("(- R:%s)", remoteAddress());
+        }
+        return clientName;
+    }
+
+    /**
+     * 获取会话, 首次连接未建立时, 会等待
+     *
+     * @return 会话
+     */
+    private Mono<Session> session() {
+        if (disposed) {
+            return Mono.error(new TransportException(String.format("%s disposed", clientName())));
+        }
+        return sessionSink.asMono();
     }
 }
