@@ -177,9 +177,11 @@ public abstract class Client<C extends Client<C, PT>, PT extends AdvancedClientT
                 if (!disposed) {
                     inboundProcessDisposable.dispose();
 
-                    //尝试重连
-                    log.info("{} prepare to reconnect to remote '{}'", clientName(), remoteAddress());
-                    tryReconnect(retryTimes);
+                    if (clientTransport.isReconnect()) {
+                        //尝试重连
+                        log.info("{} prepare to reconnect to remote '{}'", clientName(), remoteAddress());
+                        tryReconnect(retryTimes);
+                    }
                 }
             }
         });
