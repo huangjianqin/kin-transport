@@ -71,7 +71,7 @@ public abstract class Transport<T extends Transport<T>> {
      */
     protected void serverSsl(SslProvider.SslContextSpec sslContextSpec) {
         sslContextSpec.sslContext(
-                SslUtils.setUpServerSslContext(
+                SslUtils.getServerSslContext(
                         getCertFile(),
                         getCertKeyFile(),
                         getCertKeyPassword(),
@@ -84,7 +84,7 @@ public abstract class Transport<T extends Transport<T>> {
      */
     protected void clientSsl(SslProvider.SslContextSpec sslContextSpec) {
         sslContextSpec.sslContext(
-                SslUtils.setUpClientSslContext(
+                SslUtils.getClientSslContext(
                         getCertFile(),
                         getCertKeyFile(),
                         getCertKeyPassword(),

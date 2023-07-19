@@ -68,11 +68,11 @@ public final class SslUtils {
      * @return ssl context
      */
     @Nonnull
-    public static SslContext setUpServerSslContext(@Nullable File certFile,
-                                                   @Nullable File certKeyFile,
-                                                   @Nullable String certKeyPassword,
-                                                   @Nullable File caFile,
-                                                   @Nullable File fingerprintFile) {
+    public static SslContext getServerSslContext(@Nullable File certFile,
+                                                 @Nullable File certKeyFile,
+                                                 @Nullable String certKeyPassword,
+                                                 @Nullable File caFile,
+                                                 @Nullable File fingerprintFile) {
         try {
             SslContextBuilder sslContextBuilder;
             if (Objects.nonNull(certFile) && Objects.nonNull(certKeyFile)) {
@@ -88,7 +88,7 @@ public final class SslUtils {
                         .clientAuth(ClientAuth.OPTIONAL);
             }
 
-            setUpTrustManager(sslContextBuilder, caFile, fingerprintFile, false);
+            configTrustManager(sslContextBuilder, caFile, fingerprintFile, false);
 
             sslContextBuilder.protocols(PROTOCOLS)
                     .sslProvider(getSslProvider());
@@ -111,11 +111,11 @@ public final class SslUtils {
      * @return ssl context
      */
     @Nonnull
-    public static SslContext setUpClientSslContext(@Nullable File certFile,
-                                                   @Nullable File certKeyFile,
-                                                   @Nullable String certKeyPassword,
-                                                   @Nullable File caFile,
-                                                   @Nullable File fingerprintFile) {
+    public static SslContext getClientSslContext(@Nullable File certFile,
+                                                 @Nullable File certKeyFile,
+                                                 @Nullable String certKeyPassword,
+                                                 @Nullable File caFile,
+                                                 @Nullable File fingerprintFile) {
         try {
             SslContextBuilder sslContextBuilder = SslContextBuilder.forClient()
                     .protocols(PROTOCOLS)
@@ -125,7 +125,7 @@ public final class SslUtils {
                 sslContextBuilder = SslContextBuilder.forServer(certFile, certKeyFile, certKeyPassword);
             }
 
-            setUpTrustManager(sslContextBuilder, caFile, fingerprintFile, true);
+            configTrustManager(sslContextBuilder, caFile, fingerprintFile, true);
 
             return sslContextBuilder.build();
         } catch (SSLException e) {
@@ -142,10 +142,10 @@ public final class SslUtils {
      * 2. fingerprint file
      * 3. {@link InsecureTrustManagerFactory}
      */
-    private static void setUpTrustManager(SslContextBuilder sslContextBuilder,
-                                          @Nullable File caFile,
-                                          @Nullable File fingerprintFile,
-                                          boolean client) {
+    private static void configTrustManager(SslContextBuilder sslContextBuilder,
+                                           @Nullable File caFile,
+                                           @Nullable File fingerprintFile,
+                                           boolean client) {
         if (Objects.nonNull(caFile)) {
             sslContextBuilder.trustManager(caFile);
         } else if (Objects.nonNull(fingerprintFile)) {
