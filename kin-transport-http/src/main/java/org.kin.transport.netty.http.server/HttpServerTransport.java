@@ -3,11 +3,13 @@ package org.kin.transport.netty.http.server;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
+import io.netty.util.NetUtil;
 import org.kin.framework.collection.Tuple;
 import org.kin.framework.proxy.MethodDefinition;
 import org.kin.framework.proxy.ProxyInvoker;
 import org.kin.framework.proxy.Proxys;
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.transport.netty.ServerTransport;
 import org.slf4j.Logger;
@@ -208,7 +210,7 @@ public final class HttpServerTransport extends ServerTransport<HttpServerTranspo
      * http server绑定经典端口
      */
     public org.kin.transport.netty.http.server.HttpServer bind() {
-        return bind(8080);
+        return bind(NetUtil.LOCALHOST.getHostAddress());
     }
 
     /**
@@ -217,7 +219,7 @@ public final class HttpServerTransport extends ServerTransport<HttpServerTranspo
      * @param port server端口
      */
     public org.kin.transport.netty.http.server.HttpServer bind(int port) {
-        return bind(port, HttpProtocol.HTTP11);
+        return bind(NetUtil.LOCALHOST.getHostAddress(), port);
     }
 
     /**
@@ -226,7 +228,38 @@ public final class HttpServerTransport extends ServerTransport<HttpServerTranspo
      * @param port server端口
      */
     public org.kin.transport.netty.http.server.HttpServer bind2(int port) {
-        return bind(port, HttpProtocol.H2);
+        return bind2(NetUtil.LOCALHOST.getHostAddress(), port);
+    }
+
+    /**
+     * http server绑定经典端口
+     *
+     * @param host host name
+     */
+    public org.kin.transport.netty.http.server.HttpServer bind(String host) {
+        return bind(host, 8080);
+    }
+
+    /**
+     * http server绑定端口
+     *
+     * @param host host name
+     * @param port server端口
+     */
+    public org.kin.transport.netty.http.server.HttpServer bind(String host,
+                                                               int port) {
+        return bind(host, port, HttpProtocol.HTTP11);
+    }
+
+    /**
+     * http server绑定端口
+     *
+     * @param host host name
+     * @param port server端口
+     */
+    public org.kin.transport.netty.http.server.HttpServer bind2(String host,
+                                                                int port) {
+        return bind(host, port, HttpProtocol.H2);
     }
 
     /**
@@ -235,8 +268,10 @@ public final class HttpServerTransport extends ServerTransport<HttpServerTranspo
      *
      * @param port server端口
      */
-    @SuppressWarnings({"unchecked"})
-    public org.kin.transport.netty.http.server.HttpServer bind(int port, HttpProtocol protocol) {
+    public org.kin.transport.netty.http.server.HttpServer bind(String host,
+                                                               int port,
+                                                               HttpProtocol protocol) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(host), "http server host must be not blank");
         Preconditions.checkArgument(port > 0, "http server port must be greater than 0");
         checkRequire();
 
@@ -252,7 +287,9 @@ public final class HttpServerTransport extends ServerTransport<HttpServerTranspo
         if (threadCap > 0) {
             bsScheduler = Schedulers.newBoundedElastic(threadCap, queueCap, "kin-http-server-bs-" + port, 300);
         }
-        nettyHttpServer = nettyHttpServer.port(port)
+        nettyHttpServer = nettyHttpServer
+                .host(host)
+                .port(port)
                 .protocol(protocol)
                 .route(new HttpRoutesAcceptor(url2Handler, interceptors, exceptionHandlers, bsScheduler))
                 .childOption(ChannelOption.TCP_NODELAY, true)
