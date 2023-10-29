@@ -280,6 +280,15 @@ public final class HttpServerTransport extends ServerTransport<HttpServerTranspo
         //要覆盖nettyHttpServer, 其方法返回的不是this, 是新实例
         if (isSsl()) {
             nettyHttpServer = nettyHttpServer.secure(this::serverSsl);
+            if (HttpProtocol.H2C.equals(protocol)) {
+                //开启ssl, 但使用http2c协议, 升级为http2
+                protocol = HttpProtocol.H2;
+            }
+        } else {
+            if (HttpProtocol.H2.equals(protocol)) {
+                //没有开启ssl, 但使用http2协议, 降级为http2c
+                protocol = HttpProtocol.H2C;
+            }
         }
 
         LoopResources loopResources = LoopResources.create("kin-http-server-" + port, 2, SysUtils.CPU_NUM * 2, false);
@@ -303,10 +312,10 @@ public final class HttpServerTransport extends ServerTransport<HttpServerTranspo
                 //>=256KB+client允许接受压缩就开启压缩
                 .compress(true)
                 .compress(256 * 1024)
-                //5min空闲超时
-                .idleTimeout(Duration.ofMinutes(5))
-                //最多最存在512个待处理的http request
-                .maxKeepAliveRequests(512)
+                //1min空闲超时
+                .idleTimeout(Duration.ofMinutes(1))
+                //最多最存在256个待处理的http request
+                .maxKeepAliveRequests(256)
                 //自定义event loop
                 .runOn(loopResources);
 
