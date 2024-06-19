@@ -2,7 +2,7 @@
 
 ## netty
 
-基于reactor-netty实现的tpc, websocket和http服务器以及客户端
+基于reactor-netty实现server和client, 支持tcp, websocket和http协议
 
 ## http
 
