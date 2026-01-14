@@ -13,7 +13,7 @@
         <netty.version>4.1.82.Final</netty.version>
         <kin-framework-java.version>0.1.0.0</kin-framework-java.version>
         <kin-framework-dependencies.version>0.1.0.0</kin-framework-dependencies.version>
-        <okhttp.version>4.2.0</okhttp.version>
+        <okhttp.version>4.9.2</okhttp.version>
         <jackson.version>2.10.1</jackson.version>
         <reactor.version>2020.0.24</reactor.version>
     </properties>
